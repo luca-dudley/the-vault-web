@@ -437,8 +437,24 @@
             <input type="text" id="modalSupervisorName" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-primary" placeholder="e.g. Siyabonga Maseko">
           </div>
 
-          <div class="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100 text-xs text-blue-900 leading-relaxed">
-            <p><strong>Legal Declaration:</strong> I hereby confirm that I have conducted and supervised this safety training induction. The above-named employee(s) have reviewed all guidelines and safety procedures.</p>
+          <!-- Mandatory ECTA Section 13 Verification Gate -->
+          <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 text-xs text-blue-950 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider">ECTA Section 13 Verification Gate</span>
+              <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">Mandatory Gate</span>
+            </div>
+            <label class="flex items-start gap-3 cursor-pointer pt-1">
+              <input type="checkbox" id="supervisorDeclarationCheck" onchange="checkComplianceFormValidity()" class="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer">
+              <div class="space-y-1.5 leading-relaxed text-slate-700 font-normal">
+                <p class="font-bold text-slate-900 text-xs">I, the undersigned Supervisor / Section 16(2) Appointee, formally declare and confirm that:</p>
+                <ol class="list-decimal pl-4 space-y-1 text-slate-800 text-[11px]">
+                  <li>I have conducted and supervised this induction / risk assessment on the estate.</li>
+                  <li>The employees listed have physically attended, reviewed the materials in an understood language, and were verbally assessed on the comprehension questions.</li>
+                  <li>On-site physical hazard controls, machinery guarding, and mandatory PPE have been independently evaluated, verified, and enforced on this facility in terms of OHSA Section 8.</li>
+                  <li>I acknowledge that Simple Solutions provides baseline educational guides only and holds zero liability for on-site operations.</li>
+                </ol>
+              </div>
+            </label>
           </div>
 
           <div>
@@ -454,9 +470,9 @@
 
         <!-- Submit Action -->
         <div class="pt-2">
-          <button type="button" id="submitComplianceBtn" onclick="submitComplianceLog()" class="w-full bg-primary text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2">
+          <button type="button" id="submitComplianceBtn" onclick="submitComplianceLog()" disabled class="w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>Confirm & Sync to Audit Records</span>
+            <span>LOG TRAINING RECORD</span>
           </button>
         </div>
 
@@ -556,7 +572,12 @@
         sigCtx.lineTo(pos.x, pos.y);
         sigCtx.stroke();
       };
-      window.addEventListener('mouseup', () => { isSupervisorDrawing = false; });
+      window.addEventListener('mouseup', () => { 
+        if (isSupervisorDrawing) {
+          isSupervisorDrawing = false;
+          checkComplianceFormValidity();
+        }
+      });
 
       // Touch Listeners (Mobile)
       sigCanvas.ontouchstart = (e) => {
@@ -575,12 +596,35 @@
         sigCtx.lineTo(pos.x, pos.y);
         sigCtx.stroke();
       };
-      sigCanvas.ontouchend = () => { isSupervisorDrawing = false; };
+      sigCanvas.ontouchend = () => { 
+        if (isSupervisorDrawing) {
+          isSupervisorDrawing = false;
+          checkComplianceFormValidity();
+        }
+      };
+    }
+
+    function checkComplianceFormValidity() {
+      const submitBtn = document.getElementById('submitComplianceBtn');
+      const checkbox = document.getElementById('supervisorDeclarationCheck');
+      if (!submitBtn) return;
+
+      const isChecked = checkbox && checkbox.checked;
+      const hasSignature = !isSignatureBlank();
+
+      if (isChecked && hasSignature) {
+        submitBtn.disabled = false;
+        submitBtn.className = 'w-full bg-primary text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.className = 'w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
     }
 
     function clearSignaturePad() {
       if (!sigCanvas || !sigCtx) return;
       sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      checkComplianceFormValidity();
     }
 
     function isSignatureBlank() {
@@ -788,12 +832,15 @@
       }
 
       setLogMode('Individual');
+      const declCheck = document.getElementById('supervisorDeclarationCheck');
+      if (declCheck) declCheck.checked = false;
       modal?.classList.remove('hidden');
       
       // Allow modal DOM layout to settle before calculating canvas rect
       setTimeout(() => {
         initSignaturePad();
         clearSignaturePad();
+        checkComplianceFormValidity();
       }, 120);
     }
 
@@ -810,6 +857,13 @@
         alert('Unable to identify active company profile. Please refresh.');
         return;
       }
+
+      const supervisorDeclarationCheckbox = document.getElementById('supervisorDeclarationCheck');
+      if (!supervisorDeclarationCheckbox || !supervisorDeclarationCheckbox.checked) {
+        alert('Please formally declare and confirm the mandatory ECTA Section 13 Supervisor Declaration before submitting.');
+        return;
+      }
+      const supervisor_declaration_confirmed = Boolean(supervisorDeclarationCheckbox.checked);
 
       if (!supName) {
         alert('Please enter the Supervising Officer name.');
@@ -855,9 +909,10 @@
       }
 
       submitBtn.disabled = true;
+      submitBtn.className = 'w-full bg-primary/70 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-wait';
       submitBtn.innerHTML = `
         <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
-        Syncing to Audit Trail...
+        DIGITALLY SIGNING &amp; LOGGING IMMUTABLE RECORD...
       `;
 
       try {
@@ -872,7 +927,8 @@
           gtag('event', 'compliance_log_submitted', {
             module: moduleTitle,
             training_type: currentLogMode,
-            trainee_count: recordsToInsert.length
+            trainee_count: recordsToInsert.length,
+            supervisor_declaration_confirmed: supervisor_declaration_confirmed
           });
         }
 
@@ -883,11 +939,11 @@
         console.error('Failed submitting compliance log:', err);
         alert(`Error saving records: ${err.message || 'Unknown database error'}`);
       } finally {
-        submitBtn.disabled = false;
         submitBtn.innerHTML = `
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          <span>Confirm & Sync to Audit Records</span>
+          <span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span>
         `;
+        checkComplianceFormValidity();
       }
     }
 

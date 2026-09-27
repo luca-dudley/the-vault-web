@@ -571,11 +571,38 @@
         <!-- Step 4: Assessor Authorisation -->
         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
           <h4 class="font-bold text-sm text-foreground">5. Assessor Authorisation & Verification</h4>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3 max-w-xl mx-auto shadow-sm">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-3.5 max-w-xl mx-auto shadow-sm">
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Assessor Name (Conducted By)</label>
               <input id="modalAssessorName" type="text" placeholder="Full Name of Assessor" class="w-full p-2.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-primary">
             </div>
+
+            <!-- Statutory Notice & Appointee Attestation -->
+            <div class="bg-amber-50/90 p-3 rounded-xl border border-amber-200 text-[11px] text-amber-950 leading-relaxed space-y-1">
+              <span class="font-bold block text-amber-900 uppercase tracking-wider text-[10px]">Statutory Notice: Procedural Baseline Only</span>
+              <p>STATUTORY NOTICE: PROCEDURAL BASELINE ONLY. This assessment is formulated from open-source agricultural safety benchmarks, Driven Machinery Regulations, General Safety Regulations, and SIZA/GlobalG.A.P. criteria. SIMPLE SOLUTIONS (PTY) LTD DOES NOT WARRANT THAT THIS DOCUMENT EXHAUSTIVELY CAPTURES ALL PHYSICAL OR SITE-SPECIFIC HAZARDS. The registered Assessor / Section 16(2) Appointee warrants independent physical inspection and internal adoption under OHSA Section 8(2)(d). Simple Solutions holds zero legal liability for on-site incidents or sanctions.</p>
+            </div>
+
+            <!-- Mandatory ECTA Section 13 Verification Gate -->
+            <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200 text-xs text-blue-950 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider">ECTA Section 13 Verification Gate</span>
+                <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">Mandatory Gate</span>
+              </div>
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" id="assessorDeclarationCheck" onchange="checkAssessmentValidity()" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer">
+                <div class="space-y-1 leading-relaxed text-slate-700 font-normal">
+                  <p class="font-bold text-slate-900 text-xs">I, the undersigned Supervisor / Section 16(2) Appointee, formally declare and confirm that:</p>
+                  <ol class="list-decimal pl-4 space-y-0.5 text-slate-800 text-[11px]">
+                    <li>I have conducted and supervised this induction / risk assessment on the estate.</li>
+                    <li>The employees listed have physically attended, reviewed the materials in an understood language, and were verbally assessed on the comprehension questions.</li>
+                    <li>On-site physical hazard controls, machinery guarding, and mandatory PPE have been independently evaluated, verified, and enforced on this facility in terms of OHSA Section 8.</li>
+                    <li>I acknowledge that Simple Solutions provides baseline educational guides only and holds zero liability for on-site operations.</li>
+                  </ol>
+                </div>
+              </label>
+            </div>
+
             <div>
               <div class="flex items-center justify-between pb-1">
                 <label class="text-[11px] font-medium text-slate-500">Draw Digital Signature</label>
@@ -595,8 +622,8 @@
         <button onclick="closeNewAssessmentModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all text-center">
           Cancel
         </button>
-        <button id="btnSubmitAssessment" onclick="saveAndCompleteAssessment()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2">
-          <span>Complete Assessment</span>
+        <button id="btnSubmitAssessment" onclick="saveAndCompleteAssessment()" disabled class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
+          <span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
         </button>
       </div>
@@ -639,8 +666,30 @@
           </div>
         </div>
 
-        <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-100 text-slate-600 leading-relaxed">
-          <p><strong>Legal Review Undertaking:</strong> I confirm that I have reviewed the hazard registers and control measures for this baseline profile. All operational controls, maintenance regimens, and statutory PPE protocols remain enforced across the estate.</p>
+        <!-- Statutory Notice & Appointee Attestation -->
+        <div class="bg-amber-50/90 p-3 rounded-xl border border-amber-200 text-[11px] text-amber-950 leading-relaxed space-y-1">
+          <span class="font-bold block text-amber-900 uppercase tracking-wider text-[10px]">Statutory Notice: Procedural Baseline Only</span>
+          <p>STATUTORY NOTICE: PROCEDURAL BASELINE ONLY. This assessment is formulated from open-source agricultural safety benchmarks, Driven Machinery Regulations, General Safety Regulations, and SIZA/GlobalG.A.P. criteria. SIMPLE SOLUTIONS (PTY) LTD DOES NOT WARRANT THAT THIS DOCUMENT EXHAUSTIVELY CAPTURES ALL PHYSICAL OR SITE-SPECIFIC HAZARDS. The registered Assessor / Section 16(2) Appointee warrants independent physical inspection and internal adoption under OHSA Section 8(2)(d). Simple Solutions holds zero legal liability for on-site incidents or sanctions.</p>
+        </div>
+
+        <!-- Mandatory ECTA Section 13 Verification Gate -->
+        <div class="bg-blue-50/70 p-3.5 rounded-xl border border-blue-200 text-xs text-blue-950 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider">ECTA Section 13 Verification Gate</span>
+            <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">Mandatory Gate</span>
+          </div>
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" id="baselineDeclarationCheck" onchange="checkBaselineValidity()" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer">
+            <div class="space-y-1 leading-relaxed text-slate-700 font-normal">
+              <p class="font-bold text-slate-900 text-xs">I, the undersigned Supervisor / Section 16(2) Appointee, formally declare and confirm that:</p>
+              <ol class="list-decimal pl-4 space-y-0.5 text-slate-800 text-[11px]">
+                <li>I have conducted and supervised this induction / risk assessment on the estate.</li>
+                <li>The employees listed have physically attended, reviewed the materials in an understood language, and were verbally assessed on the comprehension questions.</li>
+                <li>On-site physical hazard controls, machinery guarding, and mandatory PPE have been independently evaluated, verified, and enforced on this facility in terms of OHSA Section 8.</li>
+                <li>I acknowledge that Simple Solutions provides baseline educational guides only and holds zero liability for on-site operations.</li>
+              </ol>
+            </div>
+          </label>
         </div>
 
         <div>
@@ -658,8 +707,8 @@
         <button onclick="closeBaselineReviewModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-all text-center">
           Cancel
         </button>
-        <button id="btnSubmitBaselineReview" onclick="saveAndAuthorizeBaseline()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2">
-          <span>Authorize &amp; Set Due Date</span>
+        <button id="btnSubmitBaselineReview" onclick="saveAndAuthorizeBaseline()" disabled class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
+          <span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
         </button>
       </div>
@@ -907,6 +956,8 @@
       function endStroke() {
         isDrawing = false;
         activePointerId = null;
+        if (canvasId === 'assessorSigCanvas') checkAssessmentValidity();
+        if (canvasId === 'baselineSigCanvas') checkBaselineValidity();
       }
 
       const listeners = [];
@@ -976,10 +1027,42 @@
       };
     }
 
+    function checkAssessmentValidity() {
+      const btn = document.getElementById('btnSubmitAssessment');
+      const chk = document.getElementById('assessorDeclarationCheck');
+      if (!btn) return;
+      const isChecked = Boolean(chk && chk.checked);
+      const hasSig = !isCanvasEmpty('assessorSigCanvas');
+      if (isChecked && hasSig) {
+        btn.disabled = false;
+        btn.className = 'w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
+      } else {
+        btn.disabled = true;
+        btn.className = 'w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
+    }
+
+    function checkBaselineValidity() {
+      const btn = document.getElementById('btnSubmitBaselineReview');
+      const chk = document.getElementById('baselineDeclarationCheck');
+      if (!btn) return;
+      const isChecked = Boolean(chk && chk.checked);
+      const hasSig = !isCanvasEmpty('baselineSigCanvas');
+      if (isChecked && hasSig) {
+        btn.disabled = false;
+        btn.className = 'w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
+      } else {
+        btn.disabled = true;
+        btn.className = 'w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
+    }
+
     function clearCanvas(canvasId) {
       const pad = activeCanvasPad[canvasId];
       if (!pad) return;
       pad.clear();
+      if (canvasId === 'assessorSigCanvas') checkAssessmentValidity();
+      if (canvasId === 'baselineSigCanvas') checkBaselineValidity();
     }
 
     function isCanvasEmpty(canvasId) {
@@ -1338,6 +1421,8 @@
       const select = document.getElementById('modalBaselineSelect');
       const officerInput = document.getElementById('modalBaselineOfficerName');
       const dateInput = document.getElementById('modalBaselineDate');
+      const declCheck = document.getElementById('baselineDeclarationCheck');
+      if (declCheck) declCheck.checked = false;
 
       if (select) {
         select.innerHTML = '<option value="">-- Choose Statutory Profile --</option>' + 
@@ -1353,6 +1438,7 @@
       setTimeout(() => {
         setupCanvasPad('baselineSigCanvas');
         clearCanvas('baselineSigCanvas');
+        checkBaselineValidity();
       }, 150);
     }
 
@@ -1375,6 +1461,14 @@
         alert('Please enter the Designated Officer / Assessor name.');
         return;
       }
+
+      const declCheck = document.getElementById('baselineDeclarationCheck');
+      if (!declCheck || !declCheck.checked) {
+        alert('Please formally declare and confirm the mandatory ECTA Section 13 Supervisor / Appointee Declaration before submitting.');
+        return;
+      }
+      const supervisor_declaration_confirmed = Boolean(declCheck.checked);
+
       if (isCanvasEmpty('baselineSigCanvas')) {
         alert('Please provide your digital signature on the pad before authorizing.');
         return;
@@ -1403,7 +1497,8 @@
       };
 
       btn.disabled = true;
-      btn.innerHTML = `<div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div> Authorizing...`;
+      btn.className = 'w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary/70 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-wait';
+      btn.innerHTML = `<div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div> DIGITALLY SIGNING &amp; LOGGING IMMUTABLE RECORD...`;
 
       try {
         const { data, error } = await window.dbClient
@@ -1422,8 +1517,8 @@
         console.error('Error saving baseline review:', err);
         alert(`Error authorizing baseline: ${err.message}`);
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<span>Authorize &amp; Set Due Date</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+        btn.innerHTML = `<span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+        checkBaselineValidity();
       }
     }
 
@@ -1667,9 +1762,9 @@
 
       // Legal Compliance Footer Note
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
+      doc.setFontSize(5.5);
       doc.setTextColor(148, 163, 184);
-      const legalNote = "STATUTORY DECLARATION: This document serves as a binding Baseline Risk Assessment conducted in terms of Section 8(2)(d) of the Occupational Health and Safety Act 85 of 1993, DMR 2015, and SIZA Health & Safety v6.0 audit requirements.";
+      const legalNote = "STATUTORY NOTICE: PROCEDURAL BASELINE ONLY. This assessment is formulated from open-source agricultural safety benchmarks, Driven Machinery Regulations, General Safety Regulations, and SIZA/GlobalG.A.P. criteria. SIMPLE SOLUTIONS (PTY) LTD DOES NOT WARRANT THAT THIS DOCUMENT EXHAUSTIVELY CAPTURES ALL PHYSICAL OR SITE-SPECIFIC HAZARDS. The registered Assessor / Section 16(2) Appointee warrants independent physical inspection and internal adoption under OHSA Section 8(2)(d). Simple Solutions holds zero legal liability for on-site incidents or sanctions.";
       doc.text(doc.splitTextToSize(legalNote, contentWidth), margin, y);
 
       doc.save(`Statutory_BRA_${tmpl.title.replace(/\s+/g, '_')}.pdf`);
@@ -1970,6 +2065,9 @@
       document.getElementById('modalWorkArea').value = '';
       document.getElementById('modalAssessorName').value = '';
       
+      const declCheck = document.getElementById('assessorDeclarationCheck');
+      if (declCheck) declCheck.checked = false;
+
       document.getElementById('modalHazardTableBody').innerHTML = `<tr><td colspan="4" class="p-6 text-center text-muted">Select an equipment module above to load its hazard register.</td></tr>`;
       document.getElementById('modalPpeList').innerHTML = `<p class="text-muted italic">Select a module to load mandatory PPE items.</p>`;
       document.getElementById('modalPreUseList').innerHTML = `<p class="text-muted italic">Select a module to load physical inspection checks.</p>`;
@@ -1979,6 +2077,7 @@
       setTimeout(() => {
         setupCanvasPad('assessorSigCanvas');
         clearCanvas('assessorSigCanvas');
+        checkAssessmentValidity();
       }, 150);
     }
 
@@ -2006,6 +2105,14 @@
         alert('Please provide the Assessor name.');
         return;
       }
+
+      const assessorDeclarationCheckbox = document.getElementById('assessorDeclarationCheck');
+      if (!assessorDeclarationCheckbox || !assessorDeclarationCheckbox.checked) {
+        alert('Please formally declare and confirm the mandatory ECTA Section 13 Supervisor / Appointee Declaration before submitting.');
+        return;
+      }
+      const supervisor_declaration_confirmed = Boolean(assessorDeclarationCheckbox.checked);
+
       if (isCanvasEmpty('assessorSigCanvas')) {
         alert('Please ensure the Assessor has signed on the signature pad.');
         return;
@@ -2076,7 +2183,8 @@
       };
 
       btn.disabled = true;
-      btn.innerHTML = `<div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div> Saving...`;
+      btn.className = 'w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary/70 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-wait';
+      btn.innerHTML = `<div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div> DIGITALLY SIGNING &amp; LOGGING IMMUTABLE RECORD...`;
 
       try {
         const { data, error } = await window.dbClient
@@ -2090,7 +2198,8 @@
         if (typeof gtag === 'function') {
           gtag('event', 'risk_assessment_completed', {
             task_title: template.title,
-            work_area: area
+            work_area: area,
+            supervisor_declaration_confirmed: supervisor_declaration_confirmed
           });
         }
 
@@ -2103,8 +2212,8 @@
         console.error('Error saving risk assessment to Supabase:', err);
         alert(`Error saving assessment: ${err.message || 'Database error'}`);
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<span>Complete Assessment</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+        btn.innerHTML = `<span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+        checkAssessmentValidity();
       }
     }
 
@@ -2500,9 +2609,9 @@
       y += signBoxH + 5;
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.2);
+      doc.setFontSize(5.5);
       doc.setTextColor(148, 163, 184);
-      const disclaimerText = "DISCLAIMER: This document serves as an internal operational safety review and procedural risk guide compiled for internal farm use. It does not constitute certified legal, statutory, or accredited occupational health and safety engineering advice.";
+      const disclaimerText = "STATUTORY NOTICE: PROCEDURAL BASELINE ONLY. This assessment is formulated from open-source agricultural safety benchmarks, Driven Machinery Regulations, General Safety Regulations, and SIZA/GlobalG.A.P. criteria. SIMPLE SOLUTIONS (PTY) LTD DOES NOT WARRANT THAT THIS DOCUMENT EXHAUSTIVELY CAPTURES ALL PHYSICAL OR SITE-SPECIFIC HAZARDS. The registered Assessor / Section 16(2) Appointee warrants independent physical inspection and internal adoption under OHSA Section 8(2)(d). Simple Solutions holds zero legal liability for on-site incidents or sanctions.";
       doc.text(doc.splitTextToSize(disclaimerText, contentWidth), margin, y);
 
       doc.save(`Risk_Assessment_${(record.title || 'Task').replace(/\s+/g, '_')}_${record.assessment_date}.pdf`);

@@ -1163,6 +1163,12 @@ function closeVaultUpgradeReviewModal() {
 }
 
 function executeVaultPaystackUpgrade() {
+  const termsCheck = document.getElementById('upgrade-terms-agree');
+  if (!termsCheck || !termsCheck.checked) {
+    alert('Please review and agree to the Terms of Service and Section 49 CPA Statutory Notice to continue.');
+    return;
+  }
+
   closeVaultUpgradeReviewModal();
 
   const userEmail = document.getElementById('sidebar-user-email')?.textContent || '';

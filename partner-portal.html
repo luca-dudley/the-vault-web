@@ -238,10 +238,13 @@
           No growers match your active filter and search terms.
         </div>
 
-        <!-- POPIA Legal Protection Banner -->
-        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-400 gap-1 sm:gap-4">
-          <span>POPIA Sec 14 / GDPR Compliant: Individual employee identification numbers and digital signatures are encrypted within farm private tenancies.</span>
-          <span class="font-mono shrink-0">Vault Kernel v2.4</span>
+        <!-- POPIA Legal Protection & Underwriter Boundary Banner -->
+        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between text-[11px] text-slate-500 gap-2 sm:gap-4">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2 py-0.5 rounded bg-blue-50 text-primary font-bold border border-blue-100 text-[10px] uppercase">POPIA Sec 14 / GDPR</span>
+            <span>Individual employee identities, ID numbers, and digital signatures are encrypted within farm private tenancies. Corporate data feed access is strictly limited to aggregated manifest metrics in terms of Document 4 (Corporate Partner Data Sharing &amp; Subsidy Agreement) and Document 5 (Aggregated Underwriter &amp; Exporter Data Feed Terms).</span>
+          </div>
+          <span class="font-mono text-slate-400 shrink-0">Vault Kernel v2.4</span>
         </div>
 
       </div>
@@ -249,6 +252,77 @@
     </div>
 
   </main>
+
+  <!-- =========================================================================
+       MODAL: CORPORATE PARTNER DATA SHARING & SUBSIDY AGREEMENT ACCEPTANCE GATE
+  ========================================================================== -->
+  <div id="partnerAgreementModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-8 shadow-2xl relative my-6 max-h-[92vh] flex flex-col justify-between space-y-5">
+      
+      <div class="pb-3 border-b border-slate-200 shrink-0">
+        <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider">POPIA Act 4 of 2013</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">SIZA v6.0 / GlobalG.A.P.</span>
+          <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-wider">Underwriter Boundary</span>
+        </div>
+        <h3 class="font-serif text-xl sm:text-2xl font-bold text-foreground">Corporate Partner Data Sharing &amp; Subsidy Agreement</h3>
+        <p class="text-xs text-muted mt-1">Mandatory first-access statutory governance and underwriter data feed boundary acceptance.</p>
+      </div>
+
+      <div class="overflow-y-auto pr-1 py-1 space-y-4 flex-1 text-xs text-slate-700 leading-relaxed">
+        <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1">
+          <p class="font-bold text-blue-950">Statutory Notice on Data Access &amp; Privacy Boundaries:</p>
+          <p>
+            You are accessing The Vault Corporate Partner Compliance Portal on behalf of <strong id="agreementPartnerName" class="text-primary">Corporate Partner</strong>. 
+            This portal provides authorized commercial aggregations (grower enrollment status, rolling 90-day induction volume, and statutory baseline risk assessment standing) across your contracted supply network.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-900 text-[11px] uppercase tracking-wider">Governing Legal Undertakings (Documents 4 &amp; 5):</h4>
+          <ol class="list-decimal pl-4 space-y-1.5 text-slate-600">
+            <li>
+              <strong>Strict Metric Aggregation:</strong> Access is restricted strictly to aggregated manifest metrics. Corporate Partner warrants that it shall not de-anonymize, reverse-engineer, extract South African identity numbers, or solicit raw employee personal records or digital signatures.
+            </li>
+            <li>
+              <strong>Permitted Purpose:</strong> Data is furnished exclusively for ESG audit compliance, processor due diligence, and underwriter risk evaluation under the Aggregated Underwriter &amp; Exporter Data Feed Terms.
+            </li>
+            <li>
+              <strong>POPIA Compliance:</strong> Corporate Partner warrants continuous adherence to POPIA Condition 7 (Security Safeguards) and Section 14 (Retention and Restriction of Records).
+            </li>
+          </ol>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <a href="docs/CORPORATE PARTNER DATA SHARING & SUBSIDY AGREEMENT.pdf" target="_blank" download class="p-3 bg-slate-50 border border-slate-200 hover:border-primary rounded-xl flex items-center justify-between text-xs text-slate-700 font-medium transition-all group">
+            <span class="truncate">Corporate Subsidy Agreement</span>
+            <span class="text-primary font-bold group-hover:underline text-[11px] shrink-0">Download PDF ↗</span>
+          </a>
+          <a href="docs/AGGREGATED UNDERWRITER & EXPORTER DATA FEED TERMS.pdf" target="_blank" download class="p-3 bg-slate-50 border border-slate-200 hover:border-primary rounded-xl flex items-center justify-between text-xs text-slate-700 font-medium transition-all group">
+            <span class="truncate">Underwriter Feed Terms</span>
+            <span class="text-primary font-bold group-hover:underline text-[11px] shrink-0">Download PDF ↗</span>
+          </a>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+          <label class="flex items-start gap-2.5 cursor-pointer">
+            <input type="checkbox" id="partnerAgreementCheck" onchange="togglePartnerAgreementValidity()" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer">
+            <span class="text-xs text-slate-800 font-medium leading-snug">
+              I, as an authorized representative of this Corporate Partner, formally confirm that I have reviewed, understand, and agree to the <strong>Corporate Partner Data Sharing &amp; Subsidy Agreement</strong> and the <strong>Aggregated Underwriter &amp; Exporter Data Feed Terms</strong>.
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 shrink-0">
+        <button id="btnAcceptPartnerAgreement" onclick="acceptPartnerAgreement()" disabled class="w-full py-3.5 px-6 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
+          <span>ACCEPT TERMS &amp; ACCESS COMPLIANCE PORTAL</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- PORTAL FOOTER -->
   <footer class="mt-16 w-full border-t border-slate-200 bg-white py-6 px-5 sm:px-8 text-center text-xs text-slate-400">
@@ -311,6 +385,9 @@
         loadingEl.classList.add('hidden');
         dashboardEl.classList.remove('hidden');
 
+        // Check first-access acceptance gate for Data Sharing & Subsidy Agreement
+        checkPartnerAgreementGate(token);
+
       } catch (err) {
         console.error('[Portal Auth Error]:', err);
         loadingEl.classList.add('hidden');
@@ -331,6 +408,56 @@
         document.getElementById('partnerLogoContainer').classList.remove('hidden');
       }
       document.getElementById('partnerIdentityBadge').classList.remove('hidden');
+    }
+
+    function checkPartnerAgreementGate(token) {
+      const partnerKey = portalData.partner?.slug || (token || '').trim();
+      const hasAccepted = localStorage.getItem(`vault_partner_agreement_${partnerKey}`);
+      if (!hasAccepted) {
+        openPartnerAgreementModal();
+      }
+    }
+
+    function openPartnerAgreementModal() {
+      const modal = document.getElementById('partnerAgreementModal');
+      const partnerNameEl = document.getElementById('agreementPartnerName');
+      if (partnerNameEl && portalData.partner?.name) {
+        partnerNameEl.textContent = portalData.partner.name;
+      }
+      const check = document.getElementById('partnerAgreementCheck');
+      if (check) check.checked = false;
+      const btn = document.getElementById('btnAcceptPartnerAgreement');
+      if (btn) {
+        btn.disabled = true;
+        btn.className = 'w-full py-3.5 px-6 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
+      modal?.classList.remove('hidden');
+    }
+
+    function togglePartnerAgreementValidity() {
+      const check = document.getElementById('partnerAgreementCheck');
+      const btn = document.getElementById('btnAcceptPartnerAgreement');
+      if (!btn) return;
+      if (check && check.checked) {
+        btn.disabled = false;
+        btn.className = 'w-full py-3.5 px-6 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
+      } else {
+        btn.disabled = true;
+        btn.className = 'w-full py-3.5 px-6 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
+    }
+
+    function acceptPartnerAgreement() {
+      const check = document.getElementById('partnerAgreementCheck');
+      if (!check || !check.checked) {
+        alert('Please review and check the agreement confirmation checkbox before proceeding.');
+        return;
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = (urlParams.get('token') || '').trim();
+      const partnerKey = portalData.partner?.slug || token;
+      localStorage.setItem(`vault_partner_agreement_${partnerKey}`, new Date().toISOString());
+      document.getElementById('partnerAgreementModal')?.classList.add('hidden');
     }
 
     let healthChartInstance = null;
