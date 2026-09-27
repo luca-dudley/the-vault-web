@@ -428,6 +428,23 @@ graph TD
   - Refactored `#profileModal` in `profile-modal.html`: modal container converted to fluid responsive flex layout (`p-0 sm:p-4`, `h-full sm:h-[600px] flex flex-col sm:flex-row`), navigation converted to horizontally scrollable tab bar (`flex overflow-x-auto no-scrollbar flex-nowrap shrink-0 border-b`), headings responsive (`text-2xl sm:text-3xl`), and close button offset adjusted.
   - Refactored `#vaultUpgradeReviewModal`, `#newAssessmentModal`, `#baselineReviewModal`, and `#inspectBaselineModal` footers to `flex flex-col-reverse sm:flex-row items-stretch sm:items-center` with full-width primary action buttons on mobile.
 
+### Statutory Compliance, Section 49 CPA Notice & Checkout Hardening (2026-09-27)
+- **Checkout Modal Hardening & Terms Gate (`index.html`)**:
+  - Removed outdated `#enterprise-branding-note` disclaimer banner above submit button to streamline the checkout conversion funnel.
+  - Implemented mandatory **Section 49 CPA Statutory Notice** highlighting Clauses 4, 5, 6, 7, and 9 under Consumer Protection Act 68 of 2008 and OHSA 85 of 1993 statutory liability disclaimers.
+  - Added required interactive checkbox `#checkout-terms-agree` directly linking to `docs/MASTER TERMS OF SERVICE & STATUTORY OHSA LIABILITY WAIVER.pdf`, with front-end validation gating checkout progression.
+  - Modernized checkout security footnote to a unified SSL / PCI-DSS compliance badge.
+- **In-App Plan Upgrade Terms Gate (`profile-modal.html`, `js/profile-engine.js`)**:
+  - Injected Section 49 CPA Statutory Notice and mandatory checkbox `#upgrade-terms-agree` into `#vaultUpgradeReviewModal`.
+  - Added programmatic validation inside `executeVaultPaystackUpgrade()` in `js/profile-engine.js` preventing unconsented upgrades.
+- **Statutory Audit Packs & Schedule Downloads (`profile-modal.html`, `records.html`)**:
+  - Added dedicated Statutory Compliance & Audit Schedules card grid in `profile-modal.html` under the Organization tab with instant downloads for Master Terms & OHSA Liability Waiver, POPIA Section 21 Operator Agreement / DPA, and Statutory Risk Assessment Template Notice & Appointee Schedule.
+  - Added direct audit pack action button in `records.html` header providing agricultural managers immediate access to the Section 21 DPA for SIZA and GlobalG.A.P. audits.
+- **Digital Sign-off Statutory Declarations & Legal PDF Footers (`module.html`, `risk-assessments.html`, `records.html`)**:
+  - Embedded mandatory ECTA Section 13 Supervisor / Appointee Declaration checkboxes in individual/group training modals (`module.html`) and risk assessment review registers (`risk-assessments.html`).
+  - Hardened dynamic button states during immutable record generation (`DIGITALLY SIGNING & LOGGING IMMUTABLE RECORD...`).
+  - Strengthened jsPDF exported disclaimers across training certificates and Baseline Risk Assessments to explicitly confirm procedural benchmark nature and affirm on-site physical verification by registered Section 16(2) appointees.
+
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
 2. **Paystack Bolt-On Automation**: Verify live webhook processing of `charge.success` events for `PLN_8n5qrpeh23evvnu` across production testing farms.
