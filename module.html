@@ -31,7 +31,7 @@
   </script>
 
   <title>The Vault - Training Module</title>
-  <link rel="icon" type="image/jpeg" href="assets/Simple_Logo-removebg-preview.png">
+  <link rel="icon" type="image/jpeg" href="assets/branding/Simple_Logo-removebg-preview.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -104,6 +104,14 @@
       transform: rotate(180deg);
     }
 
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
     details > summary {
       list-style: none;
     }
@@ -149,7 +157,7 @@
     <div class="flex items-center gap-5 shrink-0">
       <div class="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-700 shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="topbar-company-name" class="font-medium">Simple Solutions</span>
+        <span id="topbar-company-name" class="font-medium truncate max-w-[140px]">Simple Solutions</span>
         <span class="text-slate-300">|</span>
         <span id="topbar-tier-tag" class="font-bold text-primary uppercase text-[10px] tracking-wide">Enterprise</span>
       </div>
@@ -165,7 +173,7 @@
         </button>
 
         <!-- Dropdown Menu -->
-        <div id="topbar-sponsor-dropdown" class="hidden absolute right-0 sm:left-0 sm:right-auto mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden py-1.5">
+        <div id="topbar-sponsor-dropdown" class="hidden absolute right-0 sm:left-0 sm:right-auto mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden py-1.5">
           <div class="px-4 py-2 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
             <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Subsidies</span>
             <span id="topbar-sponsor-count" class="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">0 Active</span>
@@ -183,7 +191,7 @@
           <span id="bell-unread-dot" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
         </button>
 
-        <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+        <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <span class="text-xs font-bold text-foreground uppercase tracking-wider">Notifications</span>
             <button onclick="markAllNotificationsRead()" class="text-[11px] font-medium text-primary hover:underline">Mark all read</button>
@@ -309,15 +317,15 @@
 
       <!-- Module Details -->
       <div class="mt-8 space-y-6 max-w-4xl mx-auto">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div class="flex items-center gap-3 mb-3">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
             <span data-module-category class="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Module</span>
             <span id="moduleSubTag" class="hidden items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide border">Subtag</span>
             <span id="modulePartnerBadge" class="hidden items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 pl-1 pr-2.5 py-1"></span>
             <span id="moduleDuration" class="text-xs text-muted font-medium">Duration: --:--</span>
             <span id="moduleLanguage" class="text-xs text-muted font-medium">Audio Tracks: --</span>
           </div>
-          <h1 id="moduleTitle" class="text-3xl font-serif font-bold text-foreground mb-3">Loading Module...</h1>
+          <h1 id="moduleTitle" class="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-3">Loading Module...</h1>
           <p id="moduleDescription" class="text-sm text-slate-600 leading-relaxed">
             Loading module description...
           </p>
@@ -351,10 +359,10 @@
         </details>
 
         <!-- Compliance Form Trigger -->
-        <div id="compliance-card-container" class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+        <div id="compliance-card-container" class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 text-center shadow-sm">
           <h3 class="font-serif text-2xl font-bold text-foreground mb-2">Compliance Registration</h3>
           <p class="text-slate-500 text-sm mb-6 max-w-md mx-auto">Submit your completion data to sync with your organization's verified audit trail.</p>
-          <button onclick="openComplianceModal()" class="inline-block bg-primary text-white font-medium py-3 px-8 rounded-xl hover:bg-primary/90 transition-colors shadow-md">
+          <button onclick="openComplianceModal()" class="w-full sm:w-auto inline-flex items-center justify-center bg-primary text-white font-medium py-3 px-8 rounded-xl hover:bg-primary/90 transition-colors shadow-md min-h-[44px]">
             Log Training Completion &rarr;
           </button>
         </div>
@@ -429,8 +437,24 @@
             <input type="text" id="modalSupervisorName" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-primary" placeholder="e.g. Siyabonga Maseko">
           </div>
 
-          <div class="bg-blue-50/60 p-3.5 rounded-xl border border-blue-100 text-xs text-blue-900 leading-relaxed">
-            <p><strong>Legal Declaration:</strong> I hereby confirm that I have conducted and supervised this safety training induction. The above-named employee(s) have reviewed all guidelines and safety procedures.</p>
+          <!-- Mandatory ECTA Section 13 Verification Gate -->
+          <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 text-xs text-blue-950 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider">ECTA Section 13 Verification Gate</span>
+              <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider">Mandatory Gate</span>
+            </div>
+            <label class="flex items-start gap-3 cursor-pointer pt-1">
+              <input type="checkbox" id="supervisorDeclarationCheck" onchange="checkComplianceFormValidity()" class="mt-1 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer">
+              <div class="space-y-1.5 leading-relaxed text-slate-700 font-normal">
+                <p class="font-bold text-slate-900 text-xs">I, the undersigned Supervisor / Section 16(2) Appointee, formally declare and confirm that:</p>
+                <ol class="list-decimal pl-4 space-y-1 text-slate-800 text-[11px]">
+                  <li>I have conducted and supervised this induction / risk assessment on the estate.</li>
+                  <li>The employees listed have physically attended, reviewed the materials in an understood language, and were verbally assessed on the comprehension questions.</li>
+                  <li>On-site physical hazard controls, machinery guarding, and mandatory PPE have been independently evaluated, verified, and enforced on this facility in terms of OHSA Section 8.</li>
+                  <li>I acknowledge that Simple Solutions provides baseline educational guides only and holds zero liability for on-site operations.</li>
+                </ol>
+              </div>
+            </label>
           </div>
 
           <div>
@@ -446,9 +470,9 @@
 
         <!-- Submit Action -->
         <div class="pt-2">
-          <button type="button" id="submitComplianceBtn" onclick="submitComplianceLog()" class="w-full bg-primary text-white py-3 rounded-xl font-semibold text-sm hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2">
+          <button type="button" id="submitComplianceBtn" onclick="submitComplianceLog()" disabled class="w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>Confirm & Sync to Audit Records</span>
+            <span>LOG TRAINING RECORD</span>
           </button>
         </div>
 
@@ -548,7 +572,12 @@
         sigCtx.lineTo(pos.x, pos.y);
         sigCtx.stroke();
       };
-      window.addEventListener('mouseup', () => { isSupervisorDrawing = false; });
+      window.addEventListener('mouseup', () => { 
+        if (isSupervisorDrawing) {
+          isSupervisorDrawing = false;
+          checkComplianceFormValidity();
+        }
+      });
 
       // Touch Listeners (Mobile)
       sigCanvas.ontouchstart = (e) => {
@@ -567,12 +596,35 @@
         sigCtx.lineTo(pos.x, pos.y);
         sigCtx.stroke();
       };
-      sigCanvas.ontouchend = () => { isSupervisorDrawing = false; };
+      sigCanvas.ontouchend = () => { 
+        if (isSupervisorDrawing) {
+          isSupervisorDrawing = false;
+          checkComplianceFormValidity();
+        }
+      };
+    }
+
+    function checkComplianceFormValidity() {
+      const submitBtn = document.getElementById('submitComplianceBtn');
+      const checkbox = document.getElementById('supervisorDeclarationCheck');
+      if (!submitBtn) return;
+
+      const isChecked = checkbox && checkbox.checked;
+      const hasSignature = !isSignatureBlank();
+
+      if (isChecked && hasSignature) {
+        submitBtn.disabled = false;
+        submitBtn.className = 'w-full bg-primary text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.className = 'w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
     }
 
     function clearSignaturePad() {
       if (!sigCanvas || !sigCtx) return;
       sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      checkComplianceFormValidity();
     }
 
     function isSignatureBlank() {
@@ -780,12 +832,15 @@
       }
 
       setLogMode('Individual');
+      const declCheck = document.getElementById('supervisorDeclarationCheck');
+      if (declCheck) declCheck.checked = false;
       modal?.classList.remove('hidden');
       
       // Allow modal DOM layout to settle before calculating canvas rect
       setTimeout(() => {
         initSignaturePad();
         clearSignaturePad();
+        checkComplianceFormValidity();
       }, 120);
     }
 
@@ -802,6 +857,13 @@
         alert('Unable to identify active company profile. Please refresh.');
         return;
       }
+
+      const supervisorDeclarationCheckbox = document.getElementById('supervisorDeclarationCheck');
+      if (!supervisorDeclarationCheckbox || !supervisorDeclarationCheckbox.checked) {
+        alert('Please formally declare and confirm the mandatory ECTA Section 13 Supervisor Declaration before submitting.');
+        return;
+      }
+      const supervisor_declaration_confirmed = Boolean(supervisorDeclarationCheckbox.checked);
 
       if (!supName) {
         alert('Please enter the Supervising Officer name.');
@@ -847,9 +909,10 @@
       }
 
       submitBtn.disabled = true;
+      submitBtn.className = 'w-full bg-primary/70 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-wait';
       submitBtn.innerHTML = `
         <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
-        Syncing to Audit Trail...
+        DIGITALLY SIGNING &amp; LOGGING IMMUTABLE RECORD...
       `;
 
       try {
@@ -864,7 +927,8 @@
           gtag('event', 'compliance_log_submitted', {
             module: moduleTitle,
             training_type: currentLogMode,
-            trainee_count: recordsToInsert.length
+            trainee_count: recordsToInsert.length,
+            supervisor_declaration_confirmed: supervisor_declaration_confirmed
           });
         }
 
@@ -875,11 +939,11 @@
         console.error('Failed submitting compliance log:', err);
         alert(`Error saving records: ${err.message || 'Unknown database error'}`);
       } finally {
-        submitBtn.disabled = false;
         submitBtn.innerHTML = `
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          <span>Confirm & Sync to Audit Records</span>
+          <span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span>
         `;
+        checkComplianceFormValidity();
       }
     }
 
@@ -1419,7 +1483,7 @@
     }
   </script>
 
-  <script src="assets/java_files/main.js"></script>
-  <script src="assets/java_files/profile-engine.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/profile-engine.js"></script>
 </body>
 </html>
