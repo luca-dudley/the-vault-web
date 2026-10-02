@@ -1,2032 +1,2005 @@
-# The Vault: Supabase Master Schema & Storage Policies
-
-This file serves as the Single Source of Truth for database tables, column structures, Row Level Security (RLS) policies, and storage buckets.
+# Live Supabase Schema Manifest
+> **Last Synchronized:** 2026-10-02 09:36:30 UTC
+> **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
 
 ---
 
-## 1. Database Schema & RLS Policies
-database_architecture_schema
-"{
-    ""tables"": {
-        ""sops"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""description"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""category"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Agriculture'::text""
-            },
-            {
-                ""column"": ""sub_tag"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'General Safety'::text""
-            },
-            {
-                ""column"": ""doc_url"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""video_id"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""updated_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""company_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""curriculum_slug"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""partner_docs"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'{}'::jsonb""
-            }
-        ],
-        ""videos"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""category"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Agriculture'::text""
-            },
-            {
-                ""column"": ""language"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'English'::text""
-            },
-            {
-                ""column"": ""total_seconds"",
-                ""data_type"": ""int4"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""thumbnail_url"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""description"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""objectives"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""sub_tag"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""questions"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""curriculum_slug"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""partner_thumbnails"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": ""'{}'::jsonb""
-            }
-        ],
-        ""profiles"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""first_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""last_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""role"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Staff'::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""timezone('utc'::text, now())""
-            },
-            {
-                ""column"": ""avatar_url"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""tier"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'basic'::text""
-            }
-        ],
-        ""companies"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""subscription_status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'active'::text""
-            },
-            {
-                ""column"": ""seat_limit"",
-                ""data_type"": ""int4"",
-                ""is_nullable"": true,
-                ""default_value"": ""5""
-            },
-            {
-                ""column"": ""tier"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Base'::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""timezone('utc'::text, now())""
-            },
-            {
-                ""column"": ""paystack_subscription_code"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""paystack_customer_code"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""vat_number"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""postal_address"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""phone"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""contact_email"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""partner_grower_codes"",
-                ""data_type"": ""_text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'{}'::text[]""
-            },
-            {
-                ""column"": ""sponsored_crop_packs"",
-                ""data_type"": ""_text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'{}'::text[]""
-            },
-            {
-                ""column"": ""purchased_crop_packs"",
-                ""data_type"": ""_text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'{}'::text[]""
-            },
-            {
-                ""column"": ""is_subsidized"",
-                ""data_type"": ""bool"",
-                ""is_nullable"": false,
-                ""default_value"": ""false""
-            },
-            {
-                ""column"": ""unlock_all_crops"",
-                ""data_type"": ""bool"",
-                ""is_nullable"": false,
-                ""default_value"": ""false""
-            }
-        ],
-        ""support_tickets"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""user_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""user_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""user_email"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""ticket_type"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""subject"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""message"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": ""'open'::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""training_records"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""employee_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""module_title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""completed_at"",
-                ""data_type"": ""date"",
-                ""is_nullable"": false,
-                ""default_value"": ""CURRENT_DATE""
-            },
-            {
-                ""column"": ""status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": ""'Verified'::text""
-            },
-            {
-                ""column"": ""supervisor_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""signature_url"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""training_type"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Individual'::text""
-            },
-            {
-                ""column"": ""employee_number"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""gender"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""batch_session_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""supervisor_signature_data"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""employee_signature_data"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            }
-        ],
-        ""corporate_partners"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""slug"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""logo_url"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""sponsored_crop_pack"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""contact_email"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""user_video_progress"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""user_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""video_id"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""video_title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""progress_seconds"",
-                ""data_type"": ""numeric"",
-                ""is_nullable"": false,
-                ""default_value"": ""0""
-            },
-            {
-                ""column"": ""duration_seconds"",
-                ""data_type"": ""numeric"",
-                ""is_nullable"": false,
-                ""default_value"": ""0""
-            },
-            {
-                ""column"": ""percentage"",
-                ""data_type"": ""numeric"",
-                ""is_nullable"": false,
-                ""default_value"": ""0""
-            },
-            {
-                ""column"": ""is_completed"",
-                ""data_type"": ""bool"",
-                ""is_nullable"": true,
-                ""default_value"": ""false""
-            },
-            {
-                ""column"": ""updated_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""timezone('utc'::text, now())""
-            }
-        ],
-        ""sandbox_jsonb_backup"": [
-            {
-                ""column"": ""table_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""row_id"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""column_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""original_value"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""backed_up_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""baseline_ra_templates"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""category"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""regulation_reference"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""review_interval_months"",
-                ""data_type"": ""int4"",
-                ""is_nullable"": true,
-                ""default_value"": ""12""
-            },
-            {
-                ""column"": ""hazards_register"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""partner_portal_tokens"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""partner_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""token"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": ""(gen_random_uuid())::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""expires_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""(now() + '90 days'::interval)""
-            },
-            {
-                ""column"": ""revoked_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            }
-        ],
-        ""partner_grower_registry"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""partner_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""grower_code"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""contact_email"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""is_active"",
-                ""data_type"": ""bool"",
-                ""is_nullable"": true,
-                ""default_value"": ""true""
-            },
-            {
-                ""column"": ""claimed_by_company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""claimed_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""company_risk_assessments"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""template_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""work_area"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""equipment_id"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""assessor_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""assessment_date"",
-                ""data_type"": ""date"",
-                ""is_nullable"": false,
-                ""default_value"": ""CURRENT_DATE""
-            },
-            {
-                ""column"": ""review_due_date"",
-                ""data_type"": ""date"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""risk_items"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""ppe_verified"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""assessor_signature"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Active'::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""pre_use_verified"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": ""'[]'::jsonb""
-            }
-        ],
-        ""processor_referral_leads"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""user_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""crop_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""processor_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": ""'pending'::text""
-            }
-        ],
-        ""crop_pack_addon_purchases"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""crop_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""paystack_ref"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""purchased_by"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""risk_assessment_templates"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""sub_tag"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""hazards"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""required_ppe"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""pre_use_checks"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""safe_work_procedures"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""emergency_procedures"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""curriculum_slug"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            }
-        ],
-        ""company_baseline_assessments"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""template_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""title"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""category"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""assessment_date"",
-                ""data_type"": ""date"",
-                ""is_nullable"": false,
-                ""default_value"": ""CURRENT_DATE""
-            },
-            {
-                ""column"": ""review_due_date"",
-                ""data_type"": ""date"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""designated_person_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""designated_person_signature"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""hazards_register"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": false,
-                ""default_value"": ""'[]'::jsonb""
-            },
-            {
-                ""column"": ""status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": ""'Active'::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": ""now()""
-            }
-        ],
-        ""partner_supply_chain_metrics"": [
-            {
-                ""column"": ""partner_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""partner_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""company_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""grower_code"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""claimed_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""is_subsidized"",
-                ""data_type"": ""bool"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""total_training_records_90d"",
-                ""data_type"": ""int8"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""distinct_modules_completed"",
-                ""data_type"": ""int8"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""last_training_at"",
-                ""data_type"": ""date"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""is_dark_supplier"",
-                ""data_type"": ""bool"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""baseline_reviews_overdue"",
-                ""data_type"": ""int8"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""baseline_reviews_total"",
-                ""data_type"": ""int8"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""gender_mix_suppressed_under_5"",
-                ""data_type"": ""jsonb"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            }
-        ],
-        ""crop_pack_addon_subscriptions"": [
-            {
-                ""column"": ""id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": ""gen_random_uuid()""
-            },
-            {
-                ""column"": ""company_id"",
-                ""data_type"": ""uuid"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""crop_name"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""paystack_subscription_code"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""paystack_email_token"",
-                ""data_type"": ""text"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""status"",
-                ""data_type"": ""text"",
-                ""is_nullable"": false,
-                ""default_value"": ""'active'::text""
-            },
-            {
-                ""column"": ""created_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": false,
-                ""default_value"": ""now()""
-            },
-            {
-                ""column"": ""cancellation_requested_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            },
-            {
-                ""column"": ""cancelled_at"",
-                ""data_type"": ""timestamptz"",
-                ""is_nullable"": true,
-                ""default_value"": null
-            }
-        ]
-    },
-    ""rls_status"": [
-        {
-            ""table"": ""profiles"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""companies"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""corporate_partners"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""partner_grower_registry"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""company_baseline_assessments"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""partner_portal_tokens"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""baseline_ra_templates"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""training_records"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""sandbox_jsonb_backup"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""crop_pack_addon_purchases"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""sops"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""company_risk_assessments"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""user_video_progress"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""risk_assessment_templates"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""crop_pack_addon_subscriptions"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""processor_referral_leads"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""support_tickets"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        },
-        {
-            ""table"": ""videos"",
-            ""rls_forced"": false,
-            ""rls_enabled"": true
-        }
-    ],
-    ""foreign_keys"": [
-        {
-            ""table"": ""profiles"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""profiles_company_id_fkey""
-        },
-        {
-            ""table"": ""videos"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""videos_company_id_fkey""
-        },
-        {
-            ""table"": ""training_records"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""training_records_company_id_fkey""
-        },
-        {
-            ""table"": ""processor_referral_leads"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""processor_referral_leads_company_id_fkey""
-        },
-        {
-            ""table"": ""sops"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""sops_company_id_fkey""
-        },
-        {
-            ""table"": ""partner_grower_registry"",
-            ""column"": ""partner_id"",
-            ""foreign_table"": ""corporate_partners"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""partner_grower_registry_partner_id_fkey""
-        },
-        {
-            ""table"": ""partner_grower_registry"",
-            ""column"": ""claimed_by_company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""partner_grower_registry_claimed_by_company_id_fkey""
-        },
-        {
-            ""table"": ""company_baseline_assessments"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""company_baseline_assessments_company_id_fkey""
-        },
-        {
-            ""table"": ""company_baseline_assessments"",
-            ""column"": ""template_id"",
-            ""foreign_table"": ""baseline_ra_templates"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""company_baseline_assessments_template_id_fkey""
-        },
-        {
-            ""table"": ""crop_pack_addon_purchases"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""crop_pack_addon_purchases_company_id_fkey""
-        },
-        {
-            ""table"": ""crop_pack_addon_purchases"",
-            ""column"": ""purchased_by"",
-            ""foreign_table"": ""profiles"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""crop_pack_addon_purchases_purchased_by_fkey""
-        },
-        {
-            ""table"": ""company_risk_assessments"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""company_risk_assessments_company_id_fkey""
-        },
-        {
-            ""table"": ""company_risk_assessments"",
-            ""column"": ""template_id"",
-            ""foreign_table"": ""risk_assessment_templates"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""company_risk_assessments_template_id_fkey""
-        },
-        {
-            ""table"": ""crop_pack_addon_subscriptions"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""crop_pack_addon_subscriptions_company_id_fkey""
-        },
-        {
-            ""table"": ""partner_portal_tokens"",
-            ""column"": ""partner_id"",
-            ""foreign_table"": ""corporate_partners"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""partner_portal_tokens_partner_id_fkey""
-        },
-        {
-            ""table"": ""support_tickets"",
-            ""column"": ""company_id"",
-            ""foreign_table"": ""companies"",
-            ""foreign_column"": ""id"",
-            ""constraint_name"": ""support_tickets_company_id_fkey""
-        }
-    ],
-    ""rls_policies"": [
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Admins can update company member profiles"",
-            ""using_clause"": ""(EXISTS ( SELECT 1\n   FROM profiles admin_p\n  WHERE ((admin_p.id = auth.uid()) AND (admin_p.company_id = profiles.company_id) AND ((lower(admin_p.role) ~~ '%admin%'::text) OR (lower(admin_p.role) = 'master admin'::text)))))"",
-            ""with_check_clause"": ""true""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Allow self insert on profiles"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(auth.uid() = id)""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Allow self update on profiles"",
-            ""using_clause"": ""(auth.uid() = id)"",
-            ""with_check_clause"": ""(auth.uid() = id)""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Allow users to update their profiles"",
-            ""using_clause"": ""(auth.uid() = id)"",
-            ""with_check_clause"": ""(auth.uid() = id)""
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can insert their own profile"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(auth.uid() = id)""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Users can update own profile"",
-            ""using_clause"": ""(auth.uid() = id)"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Users can update their own profile"",
-            ""using_clause"": ""(auth.uid() = id)"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""profiles"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view profiles in same company"",
-            ""using_clause"": ""((id = auth.uid()) OR (company_id = get_my_company_id()))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""companies"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Admins can update own company"",
-            ""using_clause"": ""(id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": ""(id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))""
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""companies"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Allow insert on companies during registration"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""true""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""companies"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Allow members to update their company"",
-            ""using_clause"": ""(id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": ""(id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""companies"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view own company"",
-            ""using_clause"": ""(id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""corporate_partners"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Allow read corporate partners"",
-            ""using_clause"": ""true"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""partner_grower_registry"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view their own company's claimed grower codes"",
-            ""using_clause"": ""(claimed_by_company_id = get_my_company_id())"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""company_baseline_assessments"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can insert own company baseline assessments"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""company_baseline_assessments"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Users can update own company baseline assessments"",
-            ""using_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""company_baseline_assessments"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view own company baseline assessments"",
-            ""using_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""baseline_ra_templates"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Allow authenticated users to read baseline templates"",
-            ""using_clause"": ""true"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""training_records"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can insert company training records"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))""
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""training_records"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view company training records"",
-            ""using_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""sops"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Allow users to view accessible SOPs"",
-            ""using_clause"": ""((company_id IS NULL) OR (company_id = ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())\n LIMIT 1)))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""company_risk_assessments"",
-            ""command"": ""ALL"",
-            ""policy_name"": ""Tenants can view and insert own risk assessments"",
-            ""using_clause"": ""(company_id = ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""company_risk_assessments"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can insert company risk assessments"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""((company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid()))) OR (company_id IS NULL))""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""company_risk_assessments"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view company risk assessments"",
-            ""using_clause"": ""((company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid()))) OR (company_id IS NULL))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""user_video_progress"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can insert own video progress"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(auth.uid() = user_id)""
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""user_video_progress"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can insert/update own video progress"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(auth.uid() = user_id)""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""user_video_progress"",
-            ""command"": ""UPDATE"",
-            ""policy_name"": ""Users can update own video progress"",
-            ""using_clause"": ""(auth.uid() = user_id)"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""user_video_progress"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view own video progress"",
-            ""using_clause"": ""(auth.uid() = user_id)"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""public""
-            ],
-            ""table"": ""risk_assessment_templates"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Allow read access to all users"",
-            ""using_clause"": ""true"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""crop_pack_addon_subscriptions"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view own company addon subscriptions"",
-            ""using_clause"": ""(company_id = get_my_company_id())"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""processor_referral_leads"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can view own company referral leads"",
-            ""using_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""support_tickets"",
-            ""command"": ""INSERT"",
-            ""policy_name"": ""Users can create support tickets"",
-            ""using_clause"": null,
-            ""with_check_clause"": ""(auth.uid() = user_id)""
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""support_tickets"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Users can read company support tickets"",
-            ""using_clause"": ""(company_id IN ( SELECT profiles.company_id\n   FROM profiles\n  WHERE (profiles.id = auth.uid())))"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""authenticated""
-            ],
-            ""table"": ""videos"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Authenticated users can view videos"",
-            ""using_clause"": ""true"",
-            ""with_check_clause"": null
-        },
-        {
-            ""roles"": [
-                ""anon"",
-                ""authenticated""
-            ],
-            ""table"": ""videos"",
-            ""command"": ""SELECT"",
-            ""policy_name"": ""Public can view master catalog videos"",
-            ""using_clause"": ""(company_id IS NULL)"",
-            ""with_check_clause"": null
-        }
-    ],
-    ""custom_functions"": [
-        {
-            ""return_type"": ""jsonb"",
-            ""function_name"": ""validate_grower_code""
-        },
-        {
-            ""return_type"": ""uuid"",
-            ""function_name"": ""provision_company_subscription""
-        },
-        {
-            ""return_type"": ""void"",
-            ""function_name"": ""submit_processor_referral""
-        },
-        {
-            ""return_type"": ""jsonb"",
-            ""function_name"": ""upgrade_company_tier""
-        },
-        {
-            ""return_type"": ""jsonb"",
-            ""function_name"": ""get_partner_portal_data""
-        },
-        {
-            ""return_type"": ""jsonb"",
-            ""function_name"": ""claim_additional_grower_subsidy""
-        },
-        {
-            ""return_type"": ""jsonb"",
-            ""function_name"": ""purchase_crop_pack_addon""
-        },
-        {
-            ""return_type"": ""record"",
-            ""function_name"": ""provision_company_baseline_register""
-        },
-        {
-            ""return_type"": ""uuid"",
-            ""function_name"": ""get_my_company_id""
-        },
-        {
-            ""return_type"": ""jsonb"",
-            ""function_name"": ""remove_team_member""
-        },
-        {
-            ""return_type"": ""trigger"",
-            ""function_name"": ""sync_profile_to_auth_meta""
-        }
-    ]
-}"
----
+## 1. Relational Database Schema & Policies (DDL)
 
-## 2. Storage Buckets & Storage RLS Policies
-bucket_id,folder,subfolder,file_name,extension,tree_view,full_storage_path,created_at
-sops,corporate_partners,Test-Banana,sop_banana_desuckering.docx,docx,sops/corporate_partners/Test-Banana -> sop_banana_desuckering.docx,corporate_partners/Test-Banana/sop_banana_desuckering.docx,2026-09-25 20:17:40.686882+00
-sops,corporate_partners,Test-Banana,sop_banana_fertilizer_application.docx,docx,sops/corporate_partners/Test-Banana -> sop_banana_fertilizer_application.docx,corporate_partners/Test-Banana/sop_banana_fertilizer_application.docx,2026-09-25 20:17:40.900949+00
-sops,corporate_partners,Test-Banana,sop_banana_planting.docx,docx,sops/corporate_partners/Test-Banana -> sop_banana_planting.docx,corporate_partners/Test-Banana/sop_banana_planting.docx,2026-09-25 20:17:40.69303+00
-sops,corporate_partners,Test-Banana,sop_banana_propping.docx,docx,sops/corporate_partners/Test-Banana -> sop_banana_propping.docx,corporate_partners/Test-Banana/sop_banana_propping.docx,2026-09-25 20:17:40.724919+00
-sops,corporate_partners,Test-Mac,sop_employee_allergens.docx,docx,sops/corporate_partners/Test-Mac -> sop_employee_allergens.docx,corporate_partners/Test-Mac/sop_employee_allergens.docx,2026-09-25 20:17:40.623642+00
-sops,corporate_partners,Test-Mac,sop_macadamia_boiler.docx,docx,sops/corporate_partners/Test-Mac -> sop_macadamia_boiler.docx,corporate_partners/Test-Mac/sop_macadamia_boiler.docx,2026-09-25 20:17:40.52255+00
-sops,corporate_partners,Test-Mac,sop_macadamia_chemical_spraying.docx,docx,sops/corporate_partners/Test-Mac -> sop_macadamia_chemical_spraying.docx,corporate_partners/Test-Mac/sop_macadamia_chemical_spraying.docx,2026-09-25 20:17:40.300688+00
-sops,corporate_partners,Test-Mac,sop_macadamia_dehusking.docx,docx,sops/corporate_partners/Test-Mac -> sop_macadamia_dehusking.docx,corporate_partners/Test-Mac/sop_macadamia_dehusking.docx,2026-09-25 20:17:39.246489+00
-sops,corporate_partners,Test-Mac,sop_macadamia_drying.docx,docx,sops/corporate_partners/Test-Mac -> sop_macadamia_drying.docx,corporate_partners/Test-Mac/sop_macadamia_drying.docx,2026-09-25 20:17:40.644686+00
-sops,corporate_partners,Test-Mac,sop_macadamia_sorting.docx,docx,sops/corporate_partners/Test-Mac -> sop_macadamia_sorting.docx,corporate_partners/Test-Mac/sop_macadamia_sorting.docx,2026-09-25 20:17:40.483837+00
-sops,corporate_partners,Test-Mac,sop_macadamia_storage.docx,docx,sops/corporate_partners/Test-Mac -> sop_macadamia_storage.docx,corporate_partners/Test-Mac/sop_macadamia_storage.docx,2026-09-25 20:17:39.182811+00
-sops,doveton_farm,null,sop_angle_grinder.docx,docx,sops/doveton_farm -> sop_angle_grinder.docx,doveton_farm/sop_angle_grinder.docx,2026-09-25 20:17:30.804423+00
-sops,doveton_farm,null,sop_banana_desuckering.docx,docx,sops/doveton_farm -> sop_banana_desuckering.docx,doveton_farm/sop_banana_desuckering.docx,2026-09-25 20:17:30.62856+00
-sops,doveton_farm,null,sop_banana_fertilizer_application.docx,docx,sops/doveton_farm -> sop_banana_fertilizer_application.docx,doveton_farm/sop_banana_fertilizer_application.docx,2026-09-25 20:17:30.634679+00
-sops,doveton_farm,null,sop_banana_propping.docx,docx,sops/doveton_farm -> sop_banana_propping.docx,doveton_farm/sop_banana_propping.docx,2026-09-25 20:17:29.716067+00
-sops,doveton_farm,null,sop_brush_cutter.docx,docx,sops/doveton_farm -> sop_brush_cutter.docx,doveton_farm/sop_brush_cutter.docx,2026-09-25 20:17:29.739681+00
-sops,doveton_farm,null,sop_chainsaw.docx,docx,sops/doveton_farm -> sop_chainsaw.docx,doveton_farm/sop_chainsaw.docx,2026-09-25 20:17:30.689627+00
-sops,doveton_farm,null,sop_electrical_hazards.docx,docx,sops/doveton_farm -> sop_electrical_hazards.docx,doveton_farm/sop_electrical_hazards.docx,2026-09-25 20:17:30.767326+00
-sops,doveton_farm,null,sop_farm_noise.docx,docx,sops/doveton_farm -> sop_farm_noise.docx,doveton_farm/sop_farm_noise.docx,2026-09-25 20:17:29.681836+00
-sops,doveton_farm,null,sop_farm_saw.docx,docx,sops/doveton_farm -> sop_farm_saw.docx,doveton_farm/sop_farm_saw.docx,2026-09-25 20:17:29.695272+00
-sops,doveton_farm,null,sop_general_farm_employees.docx,docx,sops/doveton_farm -> sop_general_farm_employees.docx,doveton_farm/sop_general_farm_employees.docx,2026-09-25 20:17:30.647247+00
-sops,doveton_farm,null,sop_irrigation_manager.docx,docx,sops/doveton_farm -> sop_irrigation_manager.docx,doveton_farm/sop_irrigation_manager.docx,2026-09-25 20:17:29.684599+00
-sops,doveton_farm,null,sop_irrigation_pump_house.docx,docx,sops/doveton_farm -> sop_irrigation_pump_house.docx,doveton_farm/sop_irrigation_pump_house.docx,2026-09-25 20:17:30.524113+00
-sops,doveton_farm,null,sop_macadamia_boiler.docx,docx,sops/doveton_farm -> sop_macadamia_boiler.docx,doveton_farm/sop_macadamia_boiler.docx,2026-09-25 20:17:29.785304+00
-sops,doveton_farm,null,sop_macadamia_chemical_spraying.docx,docx,sops/doveton_farm -> sop_macadamia_chemical_spraying.docx,doveton_farm/sop_macadamia_chemical_spraying.docx,2026-09-25 20:17:30.652784+00
-sops,doveton_farm,null,sop_macadamia_dehusking.docx,docx,sops/doveton_farm -> sop_macadamia_dehusking.docx,doveton_farm/sop_macadamia_dehusking.docx,2026-09-25 20:17:29.693163+00
-sops,doveton_farm,null,sop_macadamia_drying.docx,docx,sops/doveton_farm -> sop_macadamia_drying.docx,doveton_farm/sop_macadamia_drying.docx,2026-09-25 20:17:30.65198+00
-sops,doveton_farm,null,sop_macadamia_sorting.docx,docx,sops/doveton_farm -> sop_macadamia_sorting.docx,doveton_farm/sop_macadamia_sorting.docx,2026-09-25 20:17:31.612803+00
-sops,doveton_farm,null,sop_macadamia_storage.docx,docx,sops/doveton_farm -> sop_macadamia_storage.docx,doveton_farm/sop_macadamia_storage.docx,2026-09-25 20:17:29.755924+00
-sops,doveton_farm,null,sop_senior_farm_manager.docx,docx,sops/doveton_farm -> sop_senior_farm_manager.docx,doveton_farm/sop_senior_farm_manager.docx,2026-09-25 20:17:29.658383+00
-sops,doveton_farm,null,sop_tractor_operation.docx,docx,sops/doveton_farm -> sop_tractor_operation.docx,doveton_farm/sop_tractor_operation.docx,2026-09-25 20:17:30.714984+00
-sops,doveton_farm,null,sop_workshop_manager.docx,docx,sops/doveton_farm -> sop_workshop_manager.docx,doveton_farm/sop_workshop_manager.docx,2026-09-25 20:17:29.730388+00
-sops,elliott_farm,null,sop_angle_grinder.docx,docx,sops/elliott_farm -> sop_angle_grinder.docx,elliott_farm/sop_angle_grinder.docx,2026-09-25 20:17:34.185893+00
-sops,elliott_farm,null,sop_banana_desuckering.docx,docx,sops/elliott_farm -> sop_banana_desuckering.docx,elliott_farm/sop_banana_desuckering.docx,2026-09-25 20:17:34.184023+00
-sops,elliott_farm,null,sop_banana_fertilizer_application.docx,docx,sops/elliott_farm -> sop_banana_fertilizer_application.docx,elliott_farm/sop_banana_fertilizer_application.docx,2026-09-25 20:17:33.227265+00
-sops,elliott_farm,null,sop_banana_planting.docx,docx,sops/elliott_farm -> sop_banana_planting.docx,elliott_farm/sop_banana_planting.docx,2026-09-25 20:17:31.805236+00
-sops,elliott_farm,null,sop_banana_propping.docx,docx,sops/elliott_farm -> sop_banana_propping.docx,elliott_farm/sop_banana_propping.docx,2026-09-25 20:17:31.880372+00
-sops,elliott_farm,null,sop_band_prop_saw.docx,docx,sops/elliott_farm -> sop_band_prop_saw.docx,elliott_farm/sop_band_prop_saw.docx,2026-09-25 20:17:33.21746+00
-sops,elliott_farm,null,sop_brush_cutter.docx,docx,sops/elliott_farm -> sop_brush_cutter.docx,elliott_farm/sop_brush_cutter.docx,2026-09-25 20:17:31.797174+00
-sops,elliott_farm,null,sop_chainsaw.docx,docx,sops/elliott_farm -> sop_chainsaw.docx,elliott_farm/sop_chainsaw.docx,2026-09-25 20:17:33.198493+00
-sops,elliott_farm,null,sop_farm_noise.docx,docx,sops/elliott_farm -> sop_farm_noise.docx,elliott_farm/sop_farm_noise.docx,2026-09-25 20:17:31.793279+00
-sops,elliott_farm,null,sop_farm_saw.docx,docx,sops/elliott_farm -> sop_farm_saw.docx,elliott_farm/sop_farm_saw.docx,2026-09-25 20:17:31.895094+00
-sops,elliott_farm,null,sop_general_farm_employees.docx,docx,sops/elliott_farm -> sop_general_farm_employees.docx,elliott_farm/sop_general_farm_employees.docx,2026-09-25 20:17:33.196072+00
-sops,elliott_farm,null,sop_irrigation_manager.docx,docx,sops/elliott_farm -> sop_irrigation_manager.docx,elliott_farm/sop_irrigation_manager.docx,2026-09-25 20:17:33.187335+00
-sops,elliott_farm,null,sop_irrigation_pump_house.docx,docx,sops/elliott_farm -> sop_irrigation_pump_house.docx,elliott_farm/sop_irrigation_pump_house.docx,2026-09-25 20:17:33.225575+00
-sops,elliott_farm,null,sop_macadamia_boiler.docx,docx,sops/elliott_farm -> sop_macadamia_boiler.docx,elliott_farm/sop_macadamia_boiler.docx,2026-09-25 20:17:33.129268+00
-sops,elliott_farm,null,sop_macadamia_chemical_spraying.docx,docx,sops/elliott_farm -> sop_macadamia_chemical_spraying.docx,elliott_farm/sop_macadamia_chemical_spraying.docx,2026-09-25 20:17:33.231829+00
-sops,elliott_farm,null,sop_macadamia_dehusking.docx,docx,sops/elliott_farm -> sop_macadamia_dehusking.docx,elliott_farm/sop_macadamia_dehusking.docx,2026-09-25 20:17:31.942547+00
-sops,elliott_farm,null,sop_macadamia_drying.docx,docx,sops/elliott_farm -> sop_macadamia_drying.docx,elliott_farm/sop_macadamia_drying.docx,2026-09-25 20:17:34.212934+00
-sops,elliott_farm,null,sop_macadamia_sorting.docx,docx,sops/elliott_farm -> sop_macadamia_sorting.docx,elliott_farm/sop_macadamia_sorting.docx,2026-09-25 20:17:34.223586+00
-sops,elliott_farm,null,sop_macadamia_storage.docx,docx,sops/elliott_farm -> sop_macadamia_storage.docx,elliott_farm/sop_macadamia_storage.docx,2026-09-25 20:17:32.039033+00
-sops,elliott_farm,null,sop_oxy_acetylene.docx,docx,sops/elliott_farm -> sop_oxy_acetylene.docx,elliott_farm/sop_oxy_acetylene.docx,2026-09-25 20:17:34.174857+00
-sops,elliott_farm,null,sop_senior_farm_manager.docx,docx,sops/elliott_farm -> sop_senior_farm_manager.docx,elliott_farm/sop_senior_farm_manager.docx,2026-09-25 20:17:31.993661+00
-sops,elliott_farm,null,sop_tractor_operation.docx,docx,sops/elliott_farm -> sop_tractor_operation.docx,elliott_farm/sop_tractor_operation.docx,2026-09-25 20:17:33.224997+00
-sops,elliott_farm,null,sop_welding.docx,docx,sops/elliott_farm -> sop_welding.docx,elliott_farm/sop_welding.docx,2026-09-25 20:17:33.200001+00
-sops,elliott_farm,null,sop_workshop_manager.docx,docx,sops/elliott_farm -> sop_workshop_manager.docx,elliott_farm/sop_workshop_manager.docx,2026-09-25 20:17:31.987681+00
-sops,outlook_farm,null,sop_angle_grinder.docx,docx,sops/outlook_farm -> sop_angle_grinder.docx,outlook_farm/sop_angle_grinder.docx,2026-09-25 20:17:36.633305+00
-sops,outlook_farm,null,sop_banana_desuckering.docx,docx,sops/outlook_farm -> sop_banana_desuckering.docx,outlook_farm/sop_banana_desuckering.docx,2026-09-25 20:17:36.630788+00
-sops,outlook_farm,null,sop_banana_fertilizer_application.docx,docx,sops/outlook_farm -> sop_banana_fertilizer_application.docx,outlook_farm/sop_banana_fertilizer_application.docx,2026-09-25 20:17:36.616499+00
-sops,outlook_farm,null,sop_banana_propping.docx,docx,sops/outlook_farm -> sop_banana_propping.docx,outlook_farm/sop_banana_propping.docx,2026-09-25 20:17:33.94067+00
-sops,outlook_farm,null,sop_band_prop_saw.docx,docx,sops/outlook_farm -> sop_band_prop_saw.docx,outlook_farm/sop_band_prop_saw.docx,2026-09-25 20:17:36.629624+00
-sops,outlook_farm,null,sop_brush_cutter.docx,docx,sops/outlook_farm -> sop_brush_cutter.docx,outlook_farm/sop_brush_cutter.docx,2026-09-25 20:17:33.953482+00
-sops,outlook_farm,null,sop_chainsaw.docx,docx,sops/outlook_farm -> sop_chainsaw.docx,outlook_farm/sop_chainsaw.docx,2026-09-25 20:17:34.982897+00
-sops,outlook_farm,null,sop_electrical_hazards.docx,docx,sops/outlook_farm -> sop_electrical_hazards.docx,outlook_farm/sop_electrical_hazards.docx,2026-09-25 20:17:34.957725+00
-sops,outlook_farm,null,sop_farm_noise.docx,docx,sops/outlook_farm -> sop_farm_noise.docx,outlook_farm/sop_farm_noise.docx,2026-09-25 20:17:34.115408+00
-sops,outlook_farm,null,sop_farm_saw.docx,docx,sops/outlook_farm -> sop_farm_saw.docx,outlook_farm/sop_farm_saw.docx,2026-09-25 20:17:33.980408+00
-sops,outlook_farm,null,sop_general_farm_employees.docx,docx,sops/outlook_farm -> sop_general_farm_employees.docx,outlook_farm/sop_general_farm_employees.docx,2026-09-25 20:17:36.624582+00
-sops,outlook_farm,null,sop_irrigation_manager.docx,docx,sops/outlook_farm -> sop_irrigation_manager.docx,outlook_farm/sop_irrigation_manager.docx,2026-09-25 20:17:34.961291+00
-sops,outlook_farm,null,sop_irrigation_pump_house.docx,docx,sops/outlook_farm -> sop_irrigation_pump_house.docx,outlook_farm/sop_irrigation_pump_house.docx,2026-09-25 20:17:36.64005+00
-sops,outlook_farm,null,sop_macadamia_boiler.docx,docx,sops/outlook_farm -> sop_macadamia_boiler.docx,outlook_farm/sop_macadamia_boiler.docx,2026-09-25 20:17:34.973543+00
-sops,outlook_farm,null,sop_macadamia_chemical_spraying.docx,docx,sops/outlook_farm -> sop_macadamia_chemical_spraying.docx,outlook_farm/sop_macadamia_chemical_spraying.docx,2026-09-25 20:17:34.968943+00
-sops,outlook_farm,null,sop_macadamia_dehusking.docx,docx,sops/outlook_farm -> sop_macadamia_dehusking.docx,outlook_farm/sop_macadamia_dehusking.docx,2026-09-25 20:17:34.130627+00
-sops,outlook_farm,null,sop_macadamia_drying.docx,docx,sops/outlook_farm -> sop_macadamia_drying.docx,outlook_farm/sop_macadamia_drying.docx,2026-09-25 20:17:36.639335+00
-sops,outlook_farm,null,sop_macadamia_sorting.docx,docx,sops/outlook_farm -> sop_macadamia_sorting.docx,outlook_farm/sop_macadamia_sorting.docx,2026-09-25 20:17:36.611952+00
-sops,outlook_farm,null,sop_macadamia_storage.docx,docx,sops/outlook_farm -> sop_macadamia_storage.docx,outlook_farm/sop_macadamia_storage.docx,2026-09-25 20:17:34.974496+00
-sops,outlook_farm,null,sop_oxy_acetylene.docx,docx,sops/outlook_farm -> sop_oxy_acetylene.docx,outlook_farm/sop_oxy_acetylene.docx,2026-09-25 20:17:36.639166+00
-sops,outlook_farm,null,sop_senior_farm_manager.docx,docx,sops/outlook_farm -> sop_senior_farm_manager.docx,outlook_farm/sop_senior_farm_manager.docx,2026-09-25 20:17:34.97719+00
-sops,outlook_farm,null,sop_tractor_operation.docx,docx,sops/outlook_farm -> sop_tractor_operation.docx,outlook_farm/sop_tractor_operation.docx,2026-09-25 20:17:34.962439+00
-sops,outlook_farm,null,sop_welding.docx,docx,sops/outlook_farm -> sop_welding.docx,outlook_farm/sop_welding.docx,2026-09-25 20:17:35.824764+00
-sops,outlook_farm,null,sop_workshop_manager.docx,docx,sops/outlook_farm -> sop_workshop_manager.docx,outlook_farm/sop_workshop_manager.docx,2026-09-25 20:17:34.986298+00
-sops,simple_solutions,null,sop_angle_grinder.docx,docx,sops/simple_solutions -> sop_angle_grinder.docx,simple_solutions/sop_angle_grinder.docx,2026-09-25 20:17:39.050427+00
-sops,simple_solutions,null,sop_banana_desuckering.docx,docx,sops/simple_solutions -> sop_banana_desuckering.docx,simple_solutions/sop_banana_desuckering.docx,2026-09-25 20:17:39.030997+00
-sops,simple_solutions,null,sop_banana_fertilizer_application.docx,docx,sops/simple_solutions -> sop_banana_fertilizer_application.docx,simple_solutions/sop_banana_fertilizer_application.docx,2026-09-25 20:17:38.286794+00
-sops,simple_solutions,null,sop_banana_planting.docx,docx,sops/simple_solutions -> sop_banana_planting.docx,simple_solutions/sop_banana_planting.docx,2026-09-25 20:17:36.592123+00
-sops,simple_solutions,null,sop_banana_propping.docx,docx,sops/simple_solutions -> sop_banana_propping.docx,simple_solutions/sop_banana_propping.docx,2026-09-25 20:17:37.354129+00
-sops,simple_solutions,null,sop_band_prop_saw.docx,docx,sops/simple_solutions -> sop_band_prop_saw.docx,simple_solutions/sop_band_prop_saw.docx,2026-09-25 20:17:38.276811+00
-sops,simple_solutions,null,sop_brush_cutter.docx,docx,sops/simple_solutions -> sop_brush_cutter.docx,simple_solutions/sop_brush_cutter.docx,2026-09-25 20:17:37.355745+00
-sops,simple_solutions,null,sop_chainsaw.docx,docx,sops/simple_solutions -> sop_chainsaw.docx,simple_solutions/sop_chainsaw.docx,2026-09-25 20:17:38.228834+00
-sops,simple_solutions,null,sop_citrus_chemical_spraying.docx,docx,sops/simple_solutions -> sop_citrus_chemical_spraying.docx,simple_solutions/sop_citrus_chemical_spraying.docx,2026-09-25 20:17:38.323363+00
-sops,simple_solutions,null,sop_citrus_orchard_hygiene.docx,docx,sops/simple_solutions -> sop_citrus_orchard_hygiene.docx,simple_solutions/sop_citrus_orchard_hygiene.docx,2026-09-25 20:17:39.127802+00
-sops,simple_solutions,null,sop_citrus_orchard_ladder.docx,docx,sops/simple_solutions -> sop_citrus_orchard_ladder.docx,simple_solutions/sop_citrus_orchard_ladder.docx,2026-09-25 20:17:39.032611+00
-sops,simple_solutions,null,sop_citrus_orchard.docx,docx,sops/simple_solutions -> sop_citrus_orchard.docx,simple_solutions/sop_citrus_orchard.docx,2026-09-25 20:17:39.046421+00
-sops,simple_solutions,null,sop_electrical_hazards.docx,docx,sops/simple_solutions -> sop_electrical_hazards.docx,simple_solutions/sop_electrical_hazards.docx,2026-09-25 20:17:38.250424+00
-sops,simple_solutions,null,sop_farm_noise.docx,docx,sops/simple_solutions -> sop_farm_noise.docx,simple_solutions/sop_farm_noise.docx,2026-09-25 20:17:37.350891+00
-sops,simple_solutions,null,sop_farm_saw.docx,docx,sops/simple_solutions -> sop_farm_saw.docx,simple_solutions/sop_farm_saw.docx,2026-09-25 20:17:37.322754+00
-sops,simple_solutions,null,sop_general_farm_employees.docx,docx,sops/simple_solutions -> sop_general_farm_employees.docx,simple_solutions/sop_general_farm_employees.docx,2026-09-25 20:17:38.246935+00
-sops,simple_solutions,null,sop_irrigation_manager.docx,docx,sops/simple_solutions -> sop_irrigation_manager.docx,simple_solutions/sop_irrigation_manager.docx,2026-09-25 20:17:37.357827+00
-sops,simple_solutions,null,sop_irrigation_pump_house.docx,docx,sops/simple_solutions -> sop_irrigation_pump_house.docx,simple_solutions/sop_irrigation_pump_house.docx,2026-09-25 20:17:38.241292+00
-sops,simple_solutions,null,sop_macadamia_boiler.docx,docx,sops/simple_solutions -> sop_macadamia_boiler.docx,simple_solutions/sop_macadamia_boiler.docx,2026-09-25 20:17:37.348884+00
-sops,simple_solutions,null,sop_macadamia_chemical_spraying.docx,docx,sops/simple_solutions -> sop_macadamia_chemical_spraying.docx,simple_solutions/sop_macadamia_chemical_spraying.docx,2026-09-25 20:17:38.260798+00
-sops,simple_solutions,null,sop_macadamia_dehusking.docx,docx,sops/simple_solutions -> sop_macadamia_dehusking.docx,simple_solutions/sop_macadamia_dehusking.docx,2026-09-25 20:17:37.410308+00
-sops,simple_solutions,null,sop_macadamia_drying.docx,docx,sops/simple_solutions -> sop_macadamia_drying.docx,simple_solutions/sop_macadamia_drying.docx,2026-09-25 20:17:39.076054+00
-sops,simple_solutions,null,sop_macadamia_sorting.docx,docx,sops/simple_solutions -> sop_macadamia_sorting.docx,simple_solutions/sop_macadamia_sorting.docx,2026-09-25 20:17:39.176075+00
-sops,simple_solutions,null,sop_macadamia_storage.docx,docx,sops/simple_solutions -> sop_macadamia_storage.docx,simple_solutions/sop_macadamia_storage.docx,2026-09-25 20:17:37.363922+00
-sops,simple_solutions,null,sop_oxy_acetylene.docx,docx,sops/simple_solutions -> sop_oxy_acetylene.docx,simple_solutions/sop_oxy_acetylene.docx,2026-09-25 20:17:39.053096+00
-sops,simple_solutions,null,sop_senior_farm_manager.docx,docx,sops/simple_solutions -> sop_senior_farm_manager.docx,simple_solutions/sop_senior_farm_manager.docx,2026-09-25 20:17:37.329708+00
-sops,simple_solutions,null,sop_tractor_operation.docx,docx,sops/simple_solutions -> sop_tractor_operation.docx,simple_solutions/sop_tractor_operation.docx,2026-09-25 20:17:38.38069+00
-sops,simple_solutions,null,sop_welding.docx,docx,sops/simple_solutions -> sop_welding.docx,simple_solutions/sop_welding.docx,2026-09-25 20:17:38.346252+00
-sops,simple_solutions,null,sop_workshop_manager.docx,docx,sops/simple_solutions -> sop_workshop_manager.docx,simple_solutions/sop_workshop_manager.docx,2026-09-25 20:17:37.556749+00
-thumbnails,corporate_partners,Test-Banana,banana_desuckering.svg,svg,thumbnails/corporate_partners/Test-Banana -> banana_desuckering.svg,corporate_partners/Test-Banana/banana_desuckering.svg,2026-09-25 20:16:01.350215+00
-thumbnails,corporate_partners,Test-Banana,banana_fertilizer_application.svg,svg,thumbnails/corporate_partners/Test-Banana -> banana_fertilizer_application.svg,corporate_partners/Test-Banana/banana_fertilizer_application.svg,2026-09-25 20:16:01.442708+00
-thumbnails,corporate_partners,Test-Banana,banana_propping.svg,svg,thumbnails/corporate_partners/Test-Banana -> banana_propping.svg,corporate_partners/Test-Banana/banana_propping.svg,2026-09-25 20:16:01.392598+00
-thumbnails,corporate_partners,Test-Citrus,citrus_chemical_spraying.svg,svg,thumbnails/corporate_partners/Test-Citrus -> citrus_chemical_spraying.svg,corporate_partners/Test-Citrus/citrus_chemical_spraying.svg,2026-09-25 20:16:00.984589+00
-thumbnails,corporate_partners,Test-Citrus,citrus_orchard_hygiene.svg,svg,thumbnails/corporate_partners/Test-Citrus -> citrus_orchard_hygiene.svg,corporate_partners/Test-Citrus/citrus_orchard_hygiene.svg,2026-09-25 20:16:01.033162+00
-thumbnails,corporate_partners,Test-Citrus,citrus_orchard_ladder.svg,svg,thumbnails/corporate_partners/Test-Citrus -> citrus_orchard_ladder.svg,corporate_partners/Test-Citrus/citrus_orchard_ladder.svg,2026-09-25 20:16:00.982944+00
-thumbnails,corporate_partners,Test-Citrus,citrus_orchard.svg,svg,thumbnails/corporate_partners/Test-Citrus -> citrus_orchard.svg,corporate_partners/Test-Citrus/citrus_orchard.svg,2026-09-25 20:16:00.968616+00
-thumbnails,corporate_partners,Test-Mac,employee_allergens.svg,svg,thumbnails/corporate_partners/Test-Mac -> employee_allergens.svg,corporate_partners/Test-Mac/employee_allergens.svg,2026-09-25 20:15:59.760487+00
-thumbnails,corporate_partners,Test-Mac,farm_noise.svg,svg,thumbnails/corporate_partners/Test-Mac -> farm_noise.svg,corporate_partners/Test-Mac/farm_noise.svg,2026-09-25 20:15:59.674766+00
-thumbnails,corporate_partners,Test-Mac,macadamia_boiler.svg,svg,thumbnails/corporate_partners/Test-Mac -> macadamia_boiler.svg,corporate_partners/Test-Mac/macadamia_boiler.svg,2026-09-25 20:15:59.834265+00
-thumbnails,corporate_partners,Test-Mac,macadamia_chemical_spraying.svg,svg,thumbnails/corporate_partners/Test-Mac -> macadamia_chemical_spraying.svg,corporate_partners/Test-Mac/macadamia_chemical_spraying.svg,2026-09-25 20:15:59.717045+00
-thumbnails,corporate_partners,Test-Mac,macadamia_dehusking.svg,svg,thumbnails/corporate_partners/Test-Mac -> macadamia_dehusking.svg,corporate_partners/Test-Mac/macadamia_dehusking.svg,2026-09-25 20:15:59.849874+00
-thumbnails,corporate_partners,Test-Mac,macadamia_drying.svg,svg,thumbnails/corporate_partners/Test-Mac -> macadamia_drying.svg,corporate_partners/Test-Mac/macadamia_drying.svg,2026-09-25 20:15:59.709685+00
-thumbnails,corporate_partners,Test-Mac,macadamia_storage.svg,svg,thumbnails/corporate_partners/Test-Mac -> macadamia_storage.svg,corporate_partners/Test-Mac/macadamia_storage.svg,2026-09-25 20:16:00.062313+00
-thumbnails,doveton_farm,null,angle_grinder.svg,svg,thumbnails/doveton_farm -> angle_grinder.svg,doveton_farm/angle_grinder.svg,2026-09-25 20:15:56.675528+00
-thumbnails,doveton_farm,null,banana_desuckering.svg,svg,thumbnails/doveton_farm -> banana_desuckering.svg,doveton_farm/banana_desuckering.svg,2026-09-25 20:15:55.54856+00
-thumbnails,doveton_farm,null,banana_fertilizer_application.svg,svg,thumbnails/doveton_farm -> banana_fertilizer_application.svg,doveton_farm/banana_fertilizer_application.svg,2026-09-25 20:15:55.717552+00
-thumbnails,doveton_farm,null,banana_propping.svg,svg,thumbnails/doveton_farm -> banana_propping.svg,doveton_farm/banana_propping.svg,2026-09-25 20:15:55.468684+00
-thumbnails,doveton_farm,null,brush_cutter.svg,svg,thumbnails/doveton_farm -> brush_cutter.svg,doveton_farm/brush_cutter.svg,2026-09-25 20:15:56.563269+00
-thumbnails,doveton_farm,null,chainsaw.svg,svg,thumbnails/doveton_farm -> chainsaw.svg,doveton_farm/chainsaw.svg,2026-09-25 20:15:56.567373+00
-thumbnails,doveton_farm,null,electrical_hazards.svg,svg,thumbnails/doveton_farm -> electrical_hazards.svg,doveton_farm/electrical_hazards.svg,2026-09-25 20:15:56.507624+00
-thumbnails,doveton_farm,null,employee_allergens.svg,svg,thumbnails/doveton_farm -> employee_allergens.svg,doveton_farm/employee_allergens.svg,2026-09-25 20:15:55.466194+00
-thumbnails,doveton_farm,null,farm_noise.svg,svg,thumbnails/doveton_farm -> farm_noise.svg,doveton_farm/farm_noise.svg,2026-09-25 20:15:55.622597+00
-thumbnails,doveton_farm,null,farm_saw.svg,svg,thumbnails/doveton_farm -> farm_saw.svg,doveton_farm/farm_saw.svg,2026-09-25 20:15:55.49228+00
-thumbnails,doveton_farm,null,fertigation_pump_house.svg,svg,thumbnails/doveton_farm -> fertigation_pump_house.svg,doveton_farm/fertigation_pump_house.svg,2026-09-25 20:15:55.489622+00
-thumbnails,doveton_farm,null,general_farm_employees.svg,svg,thumbnails/doveton_farm -> general_farm_employees.svg,doveton_farm/general_farm_employees.svg,2026-09-25 20:15:56.532574+00
-thumbnails,doveton_farm,null,irrigation_pump_house.svg,svg,thumbnails/doveton_farm -> irrigation_pump_house.svg,doveton_farm/irrigation_pump_house.svg,2026-09-25 20:15:55.514432+00
-thumbnails,doveton_farm,null,macadamia_boiler.svg,svg,thumbnails/doveton_farm -> macadamia_boiler.svg,doveton_farm/macadamia_boiler.svg,2026-09-25 20:15:56.625077+00
-thumbnails,doveton_farm,null,macadamia_chemical_spraying.svg,svg,thumbnails/doveton_farm -> macadamia_chemical_spraying.svg,doveton_farm/macadamia_chemical_spraying.svg,2026-09-25 20:15:55.477827+00
-thumbnails,doveton_farm,null,macadamia_dehusking.svg,svg,thumbnails/doveton_farm -> macadamia_dehusking.svg,doveton_farm/macadamia_dehusking.svg,2026-09-25 20:15:56.576026+00
-thumbnails,doveton_farm,null,macadamia_drying.svg,svg,thumbnails/doveton_farm -> macadamia_drying.svg,doveton_farm/macadamia_drying.svg,2026-09-25 20:15:55.431448+00
-thumbnails,doveton_farm,null,macadamia_storage.svg,svg,thumbnails/doveton_farm -> macadamia_storage.svg,doveton_farm/macadamia_storage.svg,2026-09-25 20:15:56.533666+00
-thumbnails,doveton_farm,null,tractor_logbook.svg,svg,thumbnails/doveton_farm -> tractor_logbook.svg,doveton_farm/tractor_logbook.svg,2026-09-25 20:15:56.479566+00
-thumbnails,doveton_farm,null,tractor_operation.svg,svg,thumbnails/doveton_farm -> tractor_operation.svg,doveton_farm/tractor_operation.svg,2026-09-25 20:15:56.541922+00
-thumbnails,elliott_farm,null,angle_grinder.svg,svg,thumbnails/elliott_farm -> angle_grinder.svg,elliott_farm/angle_grinder.svg,2026-09-25 20:15:58.403117+00
-thumbnails,elliott_farm,null,banana_desuckering.svg,svg,thumbnails/elliott_farm -> banana_desuckering.svg,elliott_farm/banana_desuckering.svg,2026-09-25 20:15:57.432369+00
-thumbnails,elliott_farm,null,banana_fertilizer_application.svg,svg,thumbnails/elliott_farm -> banana_fertilizer_application.svg,elliott_farm/banana_fertilizer_application.svg,2026-09-25 20:15:57.623952+00
-thumbnails,elliott_farm,null,banana_propping.svg,svg,thumbnails/elliott_farm -> banana_propping.svg,elliott_farm/banana_propping.svg,2026-09-25 20:15:57.43158+00
-thumbnails,elliott_farm,null,band_prop_saw.svg,svg,thumbnails/elliott_farm -> band_prop_saw.svg,elliott_farm/band_prop_saw.svg,2026-09-25 20:15:59.248729+00
-thumbnails,elliott_farm,null,brush_cutter.svg,svg,thumbnails/elliott_farm -> brush_cutter.svg,elliott_farm/brush_cutter.svg,2026-09-25 20:15:58.398487+00
-thumbnails,elliott_farm,null,chainsaw.svg,svg,thumbnails/elliott_farm -> chainsaw.svg,elliott_farm/chainsaw.svg,2026-09-25 20:15:58.494254+00
-thumbnails,elliott_farm,null,electrical_hazards.svg,svg,thumbnails/elliott_farm -> electrical_hazards.svg,elliott_farm/electrical_hazards.svg,2026-09-25 20:15:59.226734+00
-thumbnails,elliott_farm,null,employee_allergens.svg,svg,thumbnails/elliott_farm -> employee_allergens.svg,elliott_farm/employee_allergens.svg,2026-09-25 20:15:57.43019+00
-thumbnails,elliott_farm,null,farm_noise.svg,svg,thumbnails/elliott_farm -> farm_noise.svg,elliott_farm/farm_noise.svg,2026-09-25 20:15:57.503946+00
-thumbnails,elliott_farm,null,farm_saw.svg,svg,thumbnails/elliott_farm -> farm_saw.svg,elliott_farm/farm_saw.svg,2026-09-25 20:15:58.369382+00
-thumbnails,elliott_farm,null,fertigation_pump_house.svg,svg,thumbnails/elliott_farm -> fertigation_pump_house.svg,elliott_farm/fertigation_pump_house.svg,2026-09-25 20:15:57.521167+00
-thumbnails,elliott_farm,null,general_farm_employees.svg,svg,thumbnails/elliott_farm -> general_farm_employees.svg,elliott_farm/general_farm_employees.svg,2026-09-25 20:15:59.240573+00
-thumbnails,elliott_farm,null,irrigation_pump_house.svg,svg,thumbnails/elliott_farm -> irrigation_pump_house.svg,elliott_farm/irrigation_pump_house.svg,2026-09-25 20:15:57.480546+00
-thumbnails,elliott_farm,null,macadamia_boiler.svg,svg,thumbnails/elliott_farm -> macadamia_boiler.svg,elliott_farm/macadamia_boiler.svg,2026-09-25 20:15:58.480662+00
-thumbnails,elliott_farm,null,macadamia_chemical_spraying.svg,svg,thumbnails/elliott_farm -> macadamia_chemical_spraying.svg,elliott_farm/macadamia_chemical_spraying.svg,2026-09-25 20:15:57.590774+00
-thumbnails,elliott_farm,null,macadamia_dehusking.svg,svg,thumbnails/elliott_farm -> macadamia_dehusking.svg,elliott_farm/macadamia_dehusking.svg,2026-09-25 20:15:58.395421+00
-thumbnails,elliott_farm,null,macadamia_drying.svg,svg,thumbnails/elliott_farm -> macadamia_drying.svg,elliott_farm/macadamia_drying.svg,2026-09-25 20:15:57.563562+00
-thumbnails,elliott_farm,null,macadamia_storage.svg,svg,thumbnails/elliott_farm -> macadamia_storage.svg,elliott_farm/macadamia_storage.svg,2026-09-25 20:15:58.39292+00
-thumbnails,elliott_farm,null,oxy_acetylene.svg,svg,thumbnails/elliott_farm -> oxy_acetylene.svg,elliott_farm/oxy_acetylene.svg,2026-09-25 20:15:58.471577+00
-thumbnails,elliott_farm,null,tractor_logbook.svg,svg,thumbnails/elliott_farm -> tractor_logbook.svg,elliott_farm/tractor_logbook.svg,2026-09-25 20:15:58.376332+00
-thumbnails,elliott_farm,null,tractor_operation.svg,svg,thumbnails/elliott_farm -> tractor_operation.svg,elliott_farm/tractor_operation.svg,2026-09-25 20:15:58.380788+00
-thumbnails,elliott_farm,null,welding.svg,svg,thumbnails/elliott_farm -> welding.svg,elliott_farm/welding.svg,2026-09-25 20:15:57.584225+00
-thumbnails,outlook_farm,null,angle_grinder.svg,svg,thumbnails/outlook_farm -> angle_grinder.svg,outlook_farm/angle_grinder.svg,2026-09-25 20:14:21.009221+00
-thumbnails,outlook_farm,null,banana_desuckering.svg,svg,thumbnails/outlook_farm -> banana_desuckering.svg,outlook_farm/banana_desuckering.svg,2026-09-25 20:14:19.99185+00
-thumbnails,outlook_farm,null,banana_fertilizer_application.svg,svg,thumbnails/outlook_farm -> banana_fertilizer_application.svg,outlook_farm/banana_fertilizer_application.svg,2026-09-25 20:14:20.206816+00
-thumbnails,outlook_farm,null,banana_propping.svg,svg,thumbnails/outlook_farm -> banana_propping.svg,outlook_farm/banana_propping.svg,2026-09-25 20:14:19.954055+00
-thumbnails,outlook_farm,null,band_prop_saw.svg,svg,thumbnails/outlook_farm -> band_prop_saw.svg,outlook_farm/band_prop_saw.svg,2026-09-25 20:14:21.923315+00
-thumbnails,outlook_farm,null,brush_cutter.svg,svg,thumbnails/outlook_farm -> brush_cutter.svg,outlook_farm/brush_cutter.svg,2026-09-25 20:14:21.001071+00
-thumbnails,outlook_farm,null,chainsaw.svg,svg,thumbnails/outlook_farm -> chainsaw.svg,outlook_farm/chainsaw.svg,2026-09-25 20:14:21.00082+00
-thumbnails,outlook_farm,null,electrical_hazards.svg,svg,thumbnails/outlook_farm -> electrical_hazards.svg,outlook_farm/electrical_hazards.svg,2026-09-25 20:14:21.892035+00
-thumbnails,outlook_farm,null,employee_allergens.svg,svg,thumbnails/outlook_farm -> employee_allergens.svg,outlook_farm/employee_allergens.svg,2026-09-25 20:14:19.594906+00
-thumbnails,outlook_farm,null,farm_noise.svg,svg,thumbnails/outlook_farm -> farm_noise.svg,outlook_farm/farm_noise.svg,2026-09-25 20:14:19.972901+00
-thumbnails,outlook_farm,null,farm_saw.svg,svg,thumbnails/outlook_farm -> farm_saw.svg,outlook_farm/farm_saw.svg,2026-09-25 20:14:21.035367+00
-thumbnails,outlook_farm,null,fertigation_pump_house.svg,svg,thumbnails/outlook_farm -> fertigation_pump_house.svg,outlook_farm/fertigation_pump_house.svg,2026-09-25 20:14:19.91616+00
-thumbnails,outlook_farm,null,general_farm_employees.svg,svg,thumbnails/outlook_farm -> general_farm_employees.svg,outlook_farm/general_farm_employees.svg,2026-09-25 20:14:21.887822+00
-thumbnails,outlook_farm,null,irrigation_pump_house.svg,svg,thumbnails/outlook_farm -> irrigation_pump_house.svg,outlook_farm/irrigation_pump_house.svg,2026-09-25 20:14:19.86981+00
-thumbnails,outlook_farm,null,macadamia_boiler.svg,svg,thumbnails/outlook_farm -> macadamia_boiler.svg,outlook_farm/macadamia_boiler.svg,2026-09-25 20:14:21.13515+00
-thumbnails,outlook_farm,null,macadamia_chemical_spraying.svg,svg,thumbnails/outlook_farm -> macadamia_chemical_spraying.svg,outlook_farm/macadamia_chemical_spraying.svg,2026-09-25 20:14:19.658263+00
-thumbnails,outlook_farm,null,macadamia_dehusking.svg,svg,thumbnails/outlook_farm -> macadamia_dehusking.svg,outlook_farm/macadamia_dehusking.svg,2026-09-25 20:14:20.986975+00
-thumbnails,outlook_farm,null,macadamia_drying.svg,svg,thumbnails/outlook_farm -> macadamia_drying.svg,outlook_farm/macadamia_drying.svg,2026-09-25 20:14:20.008607+00
-thumbnails,outlook_farm,null,macadamia_storage.svg,svg,thumbnails/outlook_farm -> macadamia_storage.svg,outlook_farm/macadamia_storage.svg,2026-09-25 20:14:21.034139+00
-thumbnails,outlook_farm,null,oxy_acetylene.svg,svg,thumbnails/outlook_farm -> oxy_acetylene.svg,outlook_farm/oxy_acetylene.svg,2026-09-25 20:14:21.016577+00
-thumbnails,outlook_farm,null,tractor_logbook.svg,svg,thumbnails/outlook_farm -> tractor_logbook.svg,outlook_farm/tractor_logbook.svg,2026-09-25 20:14:20.967798+00
-thumbnails,outlook_farm,null,tractor_operation.svg,svg,thumbnails/outlook_farm -> tractor_operation.svg,outlook_farm/tractor_operation.svg,2026-09-25 20:14:21.029455+00
-thumbnails,outlook_farm,null,welding.svg,svg,thumbnails/outlook_farm -> welding.svg,outlook_farm/welding.svg,2026-09-25 20:14:19.562992+00
-thumbnails,simple_solutions,null,angle_grinder.svg,svg,thumbnails/simple_solutions -> angle_grinder.svg,simple_solutions/angle_grinder.svg,2026-09-25 20:13:59.031391+00
-thumbnails,simple_solutions,null,banana_desuckering.svg,svg,thumbnails/simple_solutions -> banana_desuckering.svg,simple_solutions/banana_desuckering.svg,2026-09-25 20:13:58.188936+00
-thumbnails,simple_solutions,null,banana_fertilizer_application.svg,svg,thumbnails/simple_solutions -> banana_fertilizer_application.svg,simple_solutions/banana_fertilizer_application.svg,2026-09-25 20:13:57.892937+00
-thumbnails,simple_solutions,null,banana_propping.svg,svg,thumbnails/simple_solutions -> banana_propping.svg,simple_solutions/banana_propping.svg,2026-09-25 20:13:57.954627+00
-thumbnails,simple_solutions,null,band_prop_saw.svg,svg,thumbnails/simple_solutions -> band_prop_saw.svg,simple_solutions/band_prop_saw.svg,2026-09-25 20:14:00.137035+00
-thumbnails,simple_solutions,null,brush_cutter.svg,svg,thumbnails/simple_solutions -> brush_cutter.svg,simple_solutions/brush_cutter.svg,2026-09-25 20:13:59.043304+00
-thumbnails,simple_solutions,null,chainsaw.svg,svg,thumbnails/simple_solutions -> chainsaw.svg,simple_solutions/chainsaw.svg,2026-09-25 20:13:59.033933+00
-thumbnails,simple_solutions,null,citrus_chemical_spraying.svg,svg,thumbnails/simple_solutions -> citrus_chemical_spraying.svg,simple_solutions/citrus_chemical_spraying.svg,2026-09-25 20:13:59.065081+00
-thumbnails,simple_solutions,null,citrus_orchard_hygiene.svg,svg,thumbnails/simple_solutions -> citrus_orchard_hygiene.svg,simple_solutions/citrus_orchard_hygiene.svg,2026-09-25 20:13:58.183803+00
-thumbnails,simple_solutions,null,citrus_orchard_ladder.svg,svg,thumbnails/simple_solutions -> citrus_orchard_ladder.svg,simple_solutions/citrus_orchard_ladder.svg,2026-09-25 20:13:59.949079+00
-thumbnails,simple_solutions,null,citrus_orchard.svg,svg,thumbnails/simple_solutions -> citrus_orchard.svg,simple_solutions/citrus_orchard.svg,2026-09-25 20:14:00.099734+00
-thumbnails,simple_solutions,null,electrical_hazards.svg,svg,thumbnails/simple_solutions -> electrical_hazards.svg,simple_solutions/electrical_hazards.svg,2026-09-25 20:13:59.971958+00
-thumbnails,simple_solutions,null,employee_allergens.svg,svg,thumbnails/simple_solutions -> employee_allergens.svg,simple_solutions/employee_allergens.svg,2026-09-25 20:13:57.89433+00
-thumbnails,simple_solutions,null,farm_noise.svg,svg,thumbnails/simple_solutions -> farm_noise.svg,simple_solutions/farm_noise.svg,2026-09-25 20:13:57.879731+00
-thumbnails,simple_solutions,null,farm_saw.svg,svg,thumbnails/simple_solutions -> farm_saw.svg,simple_solutions/farm_saw.svg,2026-09-25 20:13:59.033909+00
-thumbnails,simple_solutions,null,general_farm_employees.svg,svg,thumbnails/simple_solutions -> general_farm_employees.svg,simple_solutions/general_farm_employees.svg,2026-09-25 20:14:00.146367+00
-thumbnails,simple_solutions,null,irrigation_pump_house.svg,svg,thumbnails/simple_solutions -> irrigation_pump_house.svg,simple_solutions/irrigation_pump_house.svg,2026-09-25 20:13:58.184984+00
-thumbnails,simple_solutions,null,macadamia_boiler.svg,svg,thumbnails/simple_solutions -> macadamia_boiler.svg,simple_solutions/macadamia_boiler.svg,2026-09-25 20:13:59.015782+00
-thumbnails,simple_solutions,null,macadamia_chemical_spraying.svg,svg,thumbnails/simple_solutions -> macadamia_chemical_spraying.svg,simple_solutions/macadamia_chemical_spraying.svg,2026-09-25 20:13:58.194054+00
-thumbnails,simple_solutions,null,macadamia_dehusking.svg,svg,thumbnails/simple_solutions -> macadamia_dehusking.svg,simple_solutions/macadamia_dehusking.svg,2026-09-25 20:13:59.072762+00
-thumbnails,simple_solutions,null,macadamia_drying.svg,svg,thumbnails/simple_solutions -> macadamia_drying.svg,simple_solutions/macadamia_drying.svg,2026-09-25 20:13:58.16612+00
-thumbnails,simple_solutions,null,macadamia_storage.svg,svg,thumbnails/simple_solutions -> macadamia_storage.svg,simple_solutions/macadamia_storage.svg,2026-09-25 20:13:59.15821+00
-thumbnails,simple_solutions,null,oxy_acetylene.svg,svg,thumbnails/simple_solutions -> oxy_acetylene.svg,simple_solutions/oxy_acetylene.svg,2026-09-25 20:14:00.030195+00
-thumbnails,simple_solutions,null,tractor_logbook.svg,svg,thumbnails/simple_solutions -> tractor_logbook.svg,simple_solutions/tractor_logbook.svg,2026-09-25 20:13:59.059669+00
-thumbnails,simple_solutions,null,tractor_operation.svg,svg,thumbnails/simple_solutions -> tractor_operation.svg,simple_solutions/tractor_operation.svg,2026-09-25 20:13:58.970764+00
-thumbnails,simple_solutions,null,welding.svg,svg,thumbnails/simple_solutions -> welding.svg,simple_solutions/welding.svg,2026-09-25 20:13:58.25179+00
+```sql
+--
+-- PostgreSQL database dump
+--
+
+\restrict xksefeBOjc5hZVxvO8kPM3rsjAHpNHbG2R4Ev9PUafQEhLMIKlhfGv5KE2uj7Am
+
+-- Dumped from database version 17.6
+-- Dumped by pg_dump version 17.11 (Ubuntu 17.11-1.pgdg24.04+2)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA public;
+
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
+
+--
+-- Name: claim_additional_grower_subsidy(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.claim_additional_grower_subsidy(p_grower_code text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$declare
+  v_caller_id    uuid := auth.uid();
+  v_caller_role  text;
+  v_company_id   uuid;
+  v_registry_row public.partner_grower_registry%rowtype;
+  v_partner_row  public.corporate_partners%rowtype;
+  v_crop         text;
+  v_sponsored    text[];
+  v_purchased    text[];
+  v_codes        text[];
+  v_was_boltOn   boolean := false;
+begin
+  if v_caller_id is null then
+    raise exception 'Not authenticated.';
+  end if;
+
+  select company_id, role into v_company_id, v_caller_role
+  from public.profiles
+  where id = v_caller_id;
+
+  if v_company_id is null then
+    raise exception 'Your account is not linked to an organization.';
+  end if;
+
+  if coalesce(v_caller_role, '') not in ('Master Admin') then
+    raise exception 'Only an organization admin can link a processor grower code.';
+  end if;
+
+  if p_grower_code is null or btrim(p_grower_code) = '' then
+    raise exception 'No grower code supplied.';
+  end if;
+
+  select * into v_registry_row
+  from public.partner_grower_registry
+  where upper(grower_code) = upper(btrim(p_grower_code))
+  for update;
+
+  if not found then
+    raise exception 'Grower code not recognized.';
+  end if;
+
+  if not coalesce(v_registry_row.is_active, false) then
+    raise exception 'This grower code is no longer active.';
+  end if;
+
+  if v_registry_row.claimed_by_company_id is not null
+     and v_registry_row.claimed_by_company_id <> v_company_id then
+    raise exception 'This grower code has already been claimed by another organization.';
+  end if;
+
+  select * into v_partner_row
+  from public.corporate_partners
+  where id = v_registry_row.partner_id;
+
+  if not found then
+    raise exception 'Sponsoring partner record is missing.';
+  end if;
+
+  v_crop := v_partner_row.sponsored_crop_pack;
+
+  select coalesce(purchased_crop_packs, '{}'::text[]) into v_purchased
+  from public.companies where id = v_company_id for update;
+
+  v_was_boltOn := v_purchased @> array[v_crop]::text[];
+
+  select array(
+    select distinct unnest(coalesce((select sponsored_crop_packs from public.companies where id = v_company_id), '{}'::text[]) || array[v_crop]::text[])
+  ) into v_sponsored;
+
+  select array(
+    select distinct unnest(coalesce((select partner_grower_codes from public.companies where id = v_company_id), '{}'::text[]) || array[upper(btrim(p_grower_code))]::text[])
+  ) into v_codes;
+
+  update public.companies
+  set sponsored_crop_packs = v_sponsored,
+      partner_grower_codes = v_codes,
+      -- Bolt-on → sponsored transition: a crop can't be both self-funded and
+      -- processor-sponsored at once. array_remove is a no-op if it wasn't there.
+      purchased_crop_packs = array_remove(coalesce(purchased_crop_packs, '{}'::text[]), v_crop)
+  where id = v_company_id;
+
+  update public.partner_grower_registry
+  set claimed_by_company_id = v_company_id,
+      claimed_at = now()
+  where id = v_registry_row.id
+    and claimed_by_company_id is null;
+
+  -- Queue the Paystack cancellation for the Edge Function worker to pick up.
+  -- This never touches Paystack directly from here - see note at top of file.
+  if v_was_boltOn then
+    update public.crop_pack_addon_subscriptions
+    set status = 'pending_cancellation',
+        cancellation_requested_at = now()
+    where company_id = v_company_id
+      and crop_name = v_crop
+      and status = 'active';
+  end if;
+
+  return jsonb_build_object(
+    'success', true,
+    'crop', v_crop,
+    'partner_name', v_partner_row.name,
+    'partner_logo_url', v_partner_row.logo_url,
+    'sponsored_crop_packs', v_sponsored,
+    'bolt_on_cancelled', v_was_boltOn
+  );
+end;$$;
+
+
+--
+-- Name: get_my_company_id(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_my_company_id() RETURNS uuid
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT company_id
+  FROM public.profiles
+  WHERE id = auth.uid()
+$$;
+
+
+--
+-- Name: get_partner_portal_data(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_partner_portal_data(p_token text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_partner_id   uuid;
+  v_partner      record;
+  v_growers      jsonb;
+  v_modules      jsonb;
+  v_total_codes  int;
+begin
+  -- 1. Validate Token (active, unexpired, unrevoked)
+  select partner_id into v_partner_id
+  from public.partner_portal_tokens
+  where token = p_token
+    and (expires_at is null or expires_at > now())
+    and revoked_at is null;
+
+  if v_partner_id is null then
+    return jsonb_build_object('success', false, 'error', 'Invalid or expired access token.');
+  end if;
+
+  -- 2. Partner Metadata & Allocation
+  select id, name, slug, logo_url, sponsored_crop_pack, contact_email
+  into v_partner
+  from public.corporate_partners
+  where id = v_partner_id;
+
+  select count(*) into v_total_codes
+  from public.partner_grower_registry
+  where partner_id = v_partner_id
+    and is_active = true;
+
+  -- 3. True Module Breakdown across all growers for this partner (Last 90 Days)
+  select coalesce(jsonb_agg(m_row), '[]'::jsonb) into v_modules
+  from (
+    select 
+      tr.module_title as module_name,
+      count(*) as completions
+    from public.training_records tr
+    join public.partner_grower_registry pgr on pgr.claimed_by_company_id = tr.company_id
+    where pgr.partner_id = v_partner_id
+      and tr.completed_at >= (current_date - interval '90 days')
+    group by tr.module_title
+    order by completions desc
+    limit 6
+  ) m_row;
+
+  -- 4. Grower Roster with Audit-Grade Evidence
+  select coalesce(jsonb_agg(g_row), '[]'::jsonb) into v_growers
+  from (
+    select 
+      pgr.grower_code,
+      c.id as company_id,
+      coalesce(c.name, pgr.company_name) as company_name,
+      pgr.claimed_at is not null as is_claimed,
+      coalesce(c.is_subsidized, false) as is_subsidized,
+      
+      -- Workforce Denominator (SIZA/GlobalGAP: trained vs total on estate)
+      coalesce(w_stats.total_workforce, c.seat_limit, 10) as total_workforce_headcount,
+
+      -- Headcount vs Total Completions
+      coalesce(t_stats.unique_headcount, 0) as unique_workers_inducted_90d,
+      coalesce(t_stats.total_completions, 0) as total_training_records_90d,
+      coalesce(t_stats.distinct_modules, 0) as distinct_modules_completed,
+      t_stats.last_training_at,
+      
+      -- Signature Integrity Metric
+      case 
+        when coalesce(t_stats.total_completions, 0) = 0 then 100
+        else round((t_stats.signed_completions::numeric / t_stats.total_completions::numeric) * 100)
+      end as signature_integrity_pct,
+
+      -- Dark Supplier Definition (>60 days inactive)
+      case 
+        when t_stats.last_training_at is null then true
+        when t_stats.last_training_at < (current_date - interval '60 days') then true
+        else false
+      end as is_dark_supplier,
+
+      -- Statutory Baseline Risk Assessments
+      coalesce(bra_stats.bra_overdue, 0) as baseline_reviews_overdue,
+      coalesce(bra_stats.bra_total, 0) as baseline_reviews_total,
+      bra_stats.last_bra_date,
+      bra_stats.next_bra_due_date,
+      
+      -- Equipment/Task-Level Operational Risk Assessments
+      coalesce(ora_stats.ora_total, 0) as operational_assessments_total
+
+    from public.partner_grower_registry pgr
+    left join public.companies c on c.id = pgr.claimed_by_company_id
+    
+    -- Workforce headcount calculation
+    left join lateral (
+      select count(*) as total_workforce
+      from public.profiles p
+      where p.company_id = c.id
+    ) w_stats on true
+
+    -- Training metrics & digital signature verification join
+    left join lateral (
+      select 
+        count(distinct tr.employee_name) as unique_headcount,
+        count(*) as total_completions,
+        count(*) filter (
+          where tr.supervisor_signature_data is not null 
+             or tr.signature_url is not null
+        ) as signed_completions,
+        count(distinct tr.module_title) as distinct_modules,
+        max(tr.completed_at) as last_training_at
+      from public.training_records tr
+      where tr.company_id = c.id
+        and tr.completed_at >= (current_date - interval '90 days')
+    ) t_stats on true
+
+    -- Baseline Risk Assessments
+    left join lateral (
+      select 
+        count(*) filter (where cba.review_due_date < current_date) as bra_overdue,
+        count(*) as bra_total,
+        max(cba.assessment_date) as last_bra_date,
+        min(cba.review_due_date) as next_bra_due_date
+      from public.company_baseline_assessments cba
+      where cba.company_id = c.id
+    ) bra_stats on true
+
+    -- Operational Risk Assessments
+    left join lateral (
+      select count(*) as ora_total
+      from public.company_risk_assessments cra
+      where cra.company_id = c.id
+    ) ora_stats on true
+
+    where pgr.partner_id = v_partner_id
+      and pgr.is_active = true
+    order by c.name nulls last, pgr.grower_code asc
+  ) g_row;
+
+  return jsonb_build_object(
+    'success', true,
+    'partner', jsonb_build_object(
+      'id', v_partner.id,
+      'name', v_partner.name,
+      'slug', v_partner.slug,
+      'logo_url', v_partner.logo_url,
+      'sponsored_crop_pack', v_partner.sponsored_crop_pack,
+      'contact_email', v_partner.contact_email,
+      'total_allotted_growers', v_total_codes
+    ),
+    'modules', v_modules,
+    'growers', v_growers
+  );
+end;
+$$;
+
+
+--
+-- Name: provision_company_baseline_register(uuid, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.provision_company_baseline_register(p_company_id uuid, p_designated_person text) RETURNS TABLE(inserted integer, total integer)
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+    AS $$
+DECLARE 
+  v_inserted integer;
+BEGIN
+  IF p_designated_person IS NULL OR btrim(p_designated_person) = '' THEN
+    RAISE EXCEPTION 'p_designated_person is required (designated_person_name is NOT NULL)';
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM public.companies WHERE id = p_company_id) THEN
+    RAISE EXCEPTION 'Company UUID % does not exist in registry', p_company_id;
+  END IF;
+
+  INSERT INTO public.company_baseline_assessments
+    (company_id, template_id, title, category, assessment_date, review_due_date,
+     designated_person_name, hazards_register, status)
+  SELECT 
+    p_company_id, 
+    t.id, 
+    t.title, 
+    t.category, 
+    CURRENT_DATE,
+    (CURRENT_DATE + make_interval(months => coalesce(t.review_interval_months, 12)))::date,
+    btrim(p_designated_person), 
+    t.hazards_register,
+    'Active'
+  FROM public.baseline_ra_templates t
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.company_baseline_assessments c
+    WHERE c.company_id = p_company_id AND c.template_id = t.id
+  );
+
+  GET DIAGNOSTICS v_inserted = ROW_COUNT;
+  
+  RETURN QUERY SELECT 
+    v_inserted,
+    (SELECT count(*)::int FROM public.company_baseline_assessments WHERE company_id = p_company_id);
+END;
+$$;
+
+
+--
+-- Name: provision_company_subscription(text, text, text, text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.provision_company_subscription(p_company_name text, p_user_email text, p_paystack_ref text, p_target_tier text, p_grower_code text DEFAULT NULL::text) RETURNS uuid
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_user_id uuid := auth.uid();
+  v_new_company_id uuid;
+  v_seat_limit int;
+  v_first_name text;
+  v_last_name text;
+  v_registry_row record;
+  v_sponsored jsonb := '[]'::jsonb;
+  v_final_tier text := p_target_tier;
+begin
+  if v_user_id is null then
+    raise exception 'provision_company_subscription must be called by an authenticated user';
+  end if;
+
+  if v_final_tier not in ('basic', 'essential', 'enterprise') then
+    raise exception 'Invalid target tier: %', v_final_tier;
+  end if;
+
+  select coalesce(raw_user_meta_data->>'first_name', 'User'),
+         coalesce(raw_user_meta_data->>'last_name', '')
+    into v_first_name, v_last_name
+  from auth.users
+  where id = v_user_id;
+
+  -- Authoritative grower-code validation + claim
+  if p_grower_code is not null and length(trim(p_grower_code)) > 0 then
+    select pgr.*, cp.name as partner_name, cp.logo_url as partner_logo_url, cp.sponsored_crop_pack
+      into v_registry_row
+    from public.partner_grower_registry pgr
+    join public.corporate_partners cp on cp.id = pgr.partner_id
+    where upper(pgr.grower_code) = upper(trim(p_grower_code))
+      and pgr.is_active = true
+      and cp.is_active = true
+    for update;
+
+    if not found or v_registry_row.claimed_by_company_id is not null then
+      raise exception 'Grower code % is invalid, already claimed, or expired', p_grower_code;
+    end if;
+
+    v_final_tier := 'enterprise';
+    v_sponsored := jsonb_build_array(
+      jsonb_build_object(
+        'crop', v_registry_row.sponsored_crop_pack,
+        'partner_name', v_registry_row.partner_name,
+        'partner_logo_url', v_registry_row.partner_logo_url
+      )
+    );
+  end if;
+
+  v_seat_limit := case v_final_tier
+    when 'basic' then 1
+    when 'essential' then 4
+    when 'enterprise' then 8
+  end;
+
+  v_new_company_id := gen_random_uuid();
+
+  insert into public.companies (
+    id, name, tier, subscription_status, seat_limit,
+    paystack_subscription_code, sponsored_crop_packs,
+    partner_grower_codes, contact_email
+  ) values (
+    v_new_company_id, p_company_name, v_final_tier, 'active', v_seat_limit,
+    p_paystack_ref, v_sponsored,
+    case when p_grower_code is not null then array[upper(trim(p_grower_code))] else '{}' end,
+    p_user_email
+  );
+
+  insert into public.profiles (id, first_name, last_name, role, company_id, tier)
+  values (v_user_id, v_first_name, v_last_name, 'Master Admin', v_new_company_id, v_final_tier)
+  on conflict (id) do update set
+    first_name = excluded.first_name,
+    last_name = excluded.last_name,
+    role = excluded.role,
+    company_id = excluded.company_id,
+    tier = excluded.tier;
+
+  if v_registry_row.id is not null then
+    update public.partner_grower_registry
+    set claimed_by_company_id = v_new_company_id,
+        claimed_at = now()
+    where id = v_registry_row.id;
+  end if;
+
+  return v_new_company_id;
+end;
+$$;
+
+
+--
+-- Name: purchase_crop_pack_addon(uuid, uuid, text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.purchase_crop_pack_addon(p_company_id uuid, p_user_id uuid, p_crop_name text, p_paystack_ref text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_purchased           text[];
+  v_profile_company_id  uuid;
+  v_inserted            boolean;
+begin
+  if p_company_id is null then
+    raise exception 'Missing company_id.';
+  end if;
+
+  if p_crop_name is null or btrim(p_crop_name) = '' then
+    raise exception 'No crop specified.';
+  end if;
+
+  if p_paystack_ref is null or btrim(p_paystack_ref) = '' then
+    raise exception 'Missing payment reference.';
+  end if;
+
+  -- Validate that user_id genuinely belongs to company_id
+  if p_user_id is not null then
+    select company_id into v_profile_company_id
+    from public.profiles
+    where id = p_user_id;
+
+    if v_profile_company_id is null then
+      raise exception 'Unknown user_id %.', p_user_id;
+    end if;
+
+    if v_profile_company_id <> p_company_id then
+      raise exception 'user_id % does not belong to company_id %.', p_user_id, p_company_id;
+    end if;
+  end if;
+
+  -- Atomic insert: only update companies if this is a brand-new, uncredited purchase
+  with ins as (
+    insert into public.crop_pack_addon_purchases
+      (company_id, crop_name, paystack_ref, purchased_by)
+    values
+      (p_company_id, p_crop_name, p_paystack_ref, p_user_id)
+    on conflict (paystack_ref) do nothing
+    returning company_id
+  )
+  select exists(select 1 from ins) into v_inserted;
+
+  if not v_inserted then
+    select purchased_crop_packs into v_purchased
+    from public.companies
+    where id = p_company_id;
+
+    return jsonb_build_object(
+      'success', false,
+      'reason', 'ref_already_processed',
+      'crop', p_crop_name,
+      'purchased_crop_packs', coalesce(v_purchased, '{}'::text[])
+    );
+  end if;
+
+  select array(
+    select distinct unnest(coalesce(purchased_crop_packs, '{}'::text[]) || array[p_crop_name]::text[])
+  ) into v_purchased
+  from public.companies
+  where id = p_company_id;
+
+  if v_purchased is null then
+    raise exception 'Company % not found while crediting crop pack purchase (ref %).', p_company_id, p_paystack_ref;
+  end if;
+
+  update public.companies
+  set purchased_crop_packs = v_purchased
+  where id = p_company_id;
+
+  return jsonb_build_object(
+    'success', true,
+    'crop', p_crop_name,
+    'purchased_crop_packs', v_purchased
+  );
+end;
+$$;
+
+
+--
+-- Name: remove_team_member(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.remove_team_member(p_target_user_id uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_caller_company_id uuid;
+  v_caller_role       text;
+  v_target_company_id uuid;
+  v_target_role       text;
+  v_updated_rows      int;
+begin
+  if p_target_user_id = auth.uid() then
+    raise exception 'You cannot remove yourself via this function.' using errcode = '42501';
+  end if;
+
+  -- Resolve the CALLER's identity from their own row, server-side.
+  -- This SELECT is inside a SECURITY DEFINER function, so it does
+  -- not go through the profiles RLS policy - no recursion risk.
+  select company_id, role
+    into v_caller_company_id, v_caller_role
+  from public.profiles
+  where id = auth.uid();
+
+  if v_caller_company_id is null then
+    raise exception 'Caller has no associated company.' using errcode = 'P0001';
+  end if;
+
+  if v_caller_role not in ('Master Admin', 'Primary Admin') then
+    raise exception 'Insufficient privileges: only a Master Admin or Primary Admin may remove team members.' using errcode = '42501';
+  end if;
+
+  -- Lock the target row so a double-click / concurrent removal
+  -- can't double-decrement the seat count.
+  select company_id, role
+    into v_target_company_id, v_target_role
+  from public.profiles
+  where id = p_target_user_id
+  for update;
+
+  if v_target_company_id is null then
+    raise exception 'Target user was not found, or is already unassigned.' using errcode = 'P0002';
+  end if;
+
+  if v_target_company_id != v_caller_company_id then
+    raise exception 'Target user does not belong to your company.' using errcode = '42501';
+  end if;
+
+  if v_target_role in ('Master Admin', 'Primary Admin') then
+    raise exception 'Admins cannot be removed via this function.' using errcode = '42501';
+  end if;
+
+  update public.profiles
+  set company_id = null,
+      role       = 'Unassigned',
+      tier       = 'basic'
+  where id = p_target_user_id;
+
+  get diagnostics v_updated_rows = row_count;
+
+  return jsonb_build_object(
+    'success', true,
+    'updated_user_id', p_target_user_id,
+    'rows_affected', v_updated_rows
+  );
+end;
+$$;
+
+
+--
+-- Name: submit_processor_referral(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.submit_processor_referral(p_crop_name text, p_processor_name text) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_company_id uuid;
+begin
+  -- Resolve company_id from calling profile
+  select company_id into v_company_id
+  from public.profiles
+  where id = auth.uid();
+
+  insert into public.processor_referral_leads (
+    user_id,
+    company_id,
+    crop_name,
+    processor_name
+  )
+  values (
+    auth.uid(),
+    v_company_id,
+    trim(p_crop_name),
+    trim(p_processor_name)
+  );
+end;
+$$;
+
+
+--
+-- Name: sync_profile_to_auth_meta(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sync_profile_to_auth_meta() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+BEGIN
+  UPDATE auth.users
+  SET raw_user_meta_data = jsonb_set(
+    jsonb_set(
+      jsonb_set(
+        coalesce(raw_user_meta_data, '{}'::jsonb),
+        '{first_name}',
+        to_jsonb(coalesce(NEW.first_name, ''))
+      ),
+      '{last_name}',
+      to_jsonb(coalesce(NEW.last_name, ''))
+    ),
+    '{full_name}',
+    to_jsonb(trim(coalesce(NEW.first_name, '') || ' ' || coalesce(NEW.last_name, '')))
+  )
+  WHERE id = NEW.id;
+
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: upgrade_company_tier(text, text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.upgrade_company_tier(p_target_tier text, p_paystack_ref text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+DECLARE
+  v_company_id UUID;
+  v_user_role TEXT;
+BEGIN
+  -- Resolve caller's profile and company
+  SELECT company_id, role INTO v_company_id, v_user_role
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  IF v_company_id IS NULL THEN
+    RAISE EXCEPTION 'No company associated with caller profile.';
+  END IF;
+
+  -- Only company admins may change plans
+  IF LOWER(v_user_role) NOT IN ('admin', 'primary admin', 'master admin') THEN
+    RAISE EXCEPTION 'Only an authorized administrator may modify subscription tiers.';
+  END IF;
+
+  -- Validate target tier input
+  IF LOWER(p_target_tier) NOT IN ('basic', 'essential', 'enterprise') THEN
+    RAISE EXCEPTION 'Invalid target tier: %', p_target_tier;
+  END IF;
+
+  -- Atomically apply upgrade
+  UPDATE public.companies
+  SET 
+    tier = LOWER(p_target_tier),
+    subscription_status = 'active',
+    paystack_subscription_code = COALESCE(p_paystack_ref, paystack_subscription_code),
+    seat_limit = CASE 
+      WHEN LOWER(p_target_tier) = 'basic' THEN 1
+      WHEN LOWER(p_target_tier) = 'essential' THEN 4
+      WHEN LOWER(p_target_tier) = 'enterprise' THEN 8
+      ELSE 1 
+    END,
+    updated_at = NOW()
+  WHERE id = v_company_id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'tier', LOWER(p_target_tier),
+    'company_id', v_company_id
+  );
+END;
+$$;
+
+
+--
+-- Name: validate_grower_code(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.validate_grower_code(p_grower_code text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+declare
+  v_registry_row public.partner_grower_registry%rowtype;
+  v_partner_row  public.corporate_partners%rowtype;
+begin
+  if p_grower_code is null or btrim(p_grower_code) = '' then
+    return jsonb_build_object('valid', false, 'message', 'No grower code supplied.');
+  end if;
+
+  select * into v_registry_row
+  from public.partner_grower_registry
+  where upper(grower_code) = upper(btrim(p_grower_code));
+
+  if not found then
+    return jsonb_build_object('valid', false, 'message', 'Grower code not recognized.');
+  end if;
+
+  if not coalesce(v_registry_row.is_active, false) then
+    return jsonb_build_object('valid', false, 'message', 'This grower code is no longer active.');
+  end if;
+
+  select * into v_partner_row
+  from public.corporate_partners
+  where id = v_registry_row.partner_id;
+
+  if not found then
+    return jsonb_build_object('valid', false, 'message', 'Sponsoring partner record is missing.');
+  end if;
+
+  return jsonb_build_object(
+    'valid', true,
+    'crop', v_partner_row.sponsored_crop_pack,
+    'partner_name', v_partner_row.name,
+    'partner_logo_url', v_partner_row.logo_url,
+    'already_claimed', v_registry_row.claimed_by_company_id is not null
+  );
+end;
+$$;
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: baseline_ra_templates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.baseline_ra_templates (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    title text NOT NULL,
+    category text NOT NULL,
+    regulation_reference text,
+    review_interval_months integer DEFAULT 12,
+    hazards_register jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: companies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.companies (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    subscription_status text DEFAULT 'active'::text,
+    seat_limit integer DEFAULT 5,
+    tier text DEFAULT 'Base'::text,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    paystack_subscription_code text,
+    paystack_customer_code text,
+    vat_number text,
+    postal_address text,
+    phone text,
+    contact_email text,
+    partner_grower_codes text[] DEFAULT '{}'::text[],
+    sponsored_crop_packs text[] DEFAULT '{}'::text[],
+    purchased_crop_packs text[] DEFAULT '{}'::text[],
+    is_subsidized boolean DEFAULT false NOT NULL,
+    unlock_all_crops boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: company_baseline_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.company_baseline_assessments (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid,
+    template_id uuid,
+    title text NOT NULL,
+    category text NOT NULL,
+    assessment_date date DEFAULT CURRENT_DATE NOT NULL,
+    review_due_date date NOT NULL,
+    designated_person_name text NOT NULL,
+    designated_person_signature text,
+    hazards_register jsonb DEFAULT '[]'::jsonb NOT NULL,
+    status text DEFAULT 'Active'::text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: company_risk_assessments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.company_risk_assessments (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid,
+    template_id uuid,
+    title text NOT NULL,
+    work_area text NOT NULL,
+    equipment_id text,
+    assessor_name text NOT NULL,
+    assessment_date date DEFAULT CURRENT_DATE NOT NULL,
+    review_due_date date NOT NULL,
+    risk_items jsonb DEFAULT '[]'::jsonb NOT NULL,
+    ppe_verified jsonb DEFAULT '[]'::jsonb NOT NULL,
+    assessor_signature text,
+    status text DEFAULT 'Active'::text,
+    created_at timestamp with time zone DEFAULT now(),
+    pre_use_verified jsonb DEFAULT '[]'::jsonb
+);
+
+
+--
+-- Name: corporate_partners; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.corporate_partners (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    slug text NOT NULL,
+    logo_url text,
+    sponsored_crop_pack text NOT NULL,
+    contact_email text,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: crop_pack_addon_purchases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.crop_pack_addon_purchases (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid NOT NULL,
+    crop_name text NOT NULL,
+    paystack_ref text NOT NULL,
+    purchased_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: crop_pack_addon_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.crop_pack_addon_subscriptions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid NOT NULL,
+    crop_name text NOT NULL,
+    paystack_subscription_code text,
+    paystack_email_token text,
+    status text DEFAULT 'active'::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    cancellation_requested_at timestamp with time zone,
+    cancelled_at timestamp with time zone,
+    CONSTRAINT crop_pack_addon_subscriptions_status_check CHECK ((status = ANY (ARRAY['active'::text, 'pending_cancellation'::text, 'cancelled'::text])))
+);
+
+
+--
+-- Name: partner_grower_registry; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.partner_grower_registry (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    partner_id uuid,
+    grower_code text NOT NULL,
+    company_name text NOT NULL,
+    contact_email text,
+    is_active boolean DEFAULT true,
+    claimed_by_company_id uuid,
+    claimed_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: partner_portal_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.partner_portal_tokens (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    partner_id uuid NOT NULL,
+    token text DEFAULT (gen_random_uuid())::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    expires_at timestamp with time zone DEFAULT (now() + '90 days'::interval),
+    revoked_at timestamp with time zone
+);
+
+
+--
+-- Name: training_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.training_records (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    company_id uuid,
+    employee_name text NOT NULL,
+    module_title text NOT NULL,
+    completed_at date DEFAULT CURRENT_DATE NOT NULL,
+    status text DEFAULT 'Verified'::text NOT NULL,
+    supervisor_name text,
+    signature_url text,
+    training_type text DEFAULT 'Individual'::text,
+    employee_number text,
+    gender text,
+    batch_session_id uuid,
+    supervisor_signature_data text,
+    employee_signature_data text
+);
+
+
+--
+-- Name: partner_supply_chain_metrics; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.partner_supply_chain_metrics AS
+ SELECT cp.id AS partner_id,
+    cp.name AS partner_name,
+    c.id AS company_id,
+    c.name AS company_name,
+    pgr.grower_code,
+    pgr.claimed_at,
+    c.is_subsidized,
+    count(tr.id) AS total_training_records_90d,
+    count(DISTINCT tr.module_title) AS distinct_modules_completed,
+    max(tr.completed_at) AS last_training_at,
+    ((max(tr.completed_at) IS NULL) OR (max(tr.completed_at) < (CURRENT_DATE - '60 days'::interval))) AS is_dark_supplier,
+    count(cba.id) FILTER (WHERE (cba.review_due_date < CURRENT_DATE)) AS baseline_reviews_overdue,
+    count(cba.id) AS baseline_reviews_total,
+        CASE
+            WHEN (count(tr.id) >= 5) THEN jsonb_build_object('male', count(tr.id) FILTER (WHERE (lower(tr.gender) = 'male'::text)), 'female', count(tr.id) FILTER (WHERE (lower(tr.gender) = 'female'::text)), 'unspecified', count(tr.id) FILTER (WHERE ((tr.gender IS NULL) OR (lower(tr.gender) <> ALL (ARRAY['male'::text, 'female'::text])))))
+            ELSE NULL::jsonb
+        END AS gender_mix_suppressed_under_5
+   FROM ((((public.corporate_partners cp
+     JOIN public.partner_grower_registry pgr ON (((pgr.partner_id = cp.id) AND (pgr.is_active = true))))
+     JOIN public.companies c ON ((c.id = pgr.claimed_by_company_id)))
+     LEFT JOIN public.training_records tr ON (((tr.company_id = c.id) AND (tr.completed_at >= (CURRENT_DATE - '90 days'::interval)))))
+     LEFT JOIN public.company_baseline_assessments cba ON ((cba.company_id = c.id)))
+  GROUP BY cp.id, cp.name, c.id, c.name, pgr.grower_code, pgr.claimed_at, c.is_subsidized;
+
+
+--
+-- Name: processor_referral_leads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.processor_referral_leads (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    user_id uuid,
+    company_id uuid,
+    crop_name text NOT NULL,
+    processor_name text NOT NULL,
+    status text DEFAULT 'pending'::text NOT NULL
+);
+
+
+--
+-- Name: profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.profiles (
+    id uuid NOT NULL,
+    first_name text,
+    last_name text,
+    role text DEFAULT 'Staff'::text,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    avatar_url text,
+    company_id uuid,
+    tier text DEFAULT 'basic'::text
+);
+
+
+--
+-- Name: risk_assessment_templates; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.risk_assessment_templates (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    title text NOT NULL,
+    sub_tag text NOT NULL,
+    hazards jsonb DEFAULT '[]'::jsonb NOT NULL,
+    required_ppe jsonb DEFAULT '[]'::jsonb NOT NULL,
+    pre_use_checks jsonb DEFAULT '[]'::jsonb NOT NULL,
+    safe_work_procedures jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    emergency_procedures jsonb DEFAULT '[]'::jsonb,
+    curriculum_slug text,
+    CONSTRAINT check_rat_slug_format CHECK (((curriculum_slug IS NULL) OR (curriculum_slug ~ '^[a-z0-9_]+$'::text)))
+);
+
+
+--
+-- Name: sandbox_jsonb_backup; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sandbox_jsonb_backup (
+    table_name text NOT NULL,
+    row_id text NOT NULL,
+    column_name text NOT NULL,
+    original_value jsonb,
+    backed_up_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: sops; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sops (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    title text NOT NULL,
+    description text,
+    category text DEFAULT 'Agriculture'::text,
+    sub_tag text DEFAULT 'General Safety'::text,
+    doc_url text NOT NULL,
+    video_id text,
+    company_id uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    company_name text,
+    curriculum_slug text,
+    partner_docs jsonb DEFAULT '{}'::jsonb NOT NULL,
+    CONSTRAINT check_sops_slug_format CHECK (((curriculum_slug IS NULL) OR (curriculum_slug ~ '^[a-z0-9_]+$'::text)))
+);
+
+
+--
+-- Name: COLUMN sops.partner_docs; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.sops.partner_docs IS 'Map of partner_id (UUID string) -> public URL for pre-formatted co-branded .docx files.';
+
+
+--
+-- Name: support_tickets; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.support_tickets (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid,
+    user_id uuid,
+    user_name text,
+    user_email text NOT NULL,
+    ticket_type text NOT NULL,
+    subject text NOT NULL,
+    message text NOT NULL,
+    status text DEFAULT 'open'::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT support_tickets_status_check CHECK ((status = ANY (ARRAY['open'::text, 'in_progress'::text, 'resolved'::text, 'closed'::text]))),
+    CONSTRAINT support_tickets_ticket_type_check CHECK ((ticket_type = ANY (ARRAY['technical_support'::text, 'video_request'::text, 'audit_compliance'::text, 'billing_inquiry'::text, 'crop_subsidy'::text, 'general'::text])))
+);
+
+
+--
+-- Name: user_video_progress; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_video_progress (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    video_id text NOT NULL,
+    video_title text,
+    progress_seconds numeric DEFAULT 0 NOT NULL,
+    duration_seconds numeric DEFAULT 0 NOT NULL,
+    percentage numeric DEFAULT 0 NOT NULL,
+    is_completed boolean DEFAULT false,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+
+--
+-- Name: videos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.videos (
+    id text NOT NULL,
+    title text NOT NULL,
+    category text DEFAULT 'Agriculture'::text,
+    language text DEFAULT 'English'::text,
+    total_seconds integer NOT NULL,
+    thumbnail_url text,
+    description text,
+    objectives jsonb DEFAULT '[]'::jsonb,
+    company_id uuid,
+    sub_tag text,
+    company_name text,
+    questions jsonb DEFAULT '[]'::jsonb,
+    curriculum_slug text,
+    partner_thumbnails jsonb DEFAULT '{}'::jsonb,
+    CONSTRAINT check_videos_slug_format CHECK (((curriculum_slug IS NULL) OR (curriculum_slug ~ '^[a-z0-9_]+$'::text)))
+);
+
+
+--
+-- Name: baseline_ra_templates baseline_ra_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.baseline_ra_templates
+    ADD CONSTRAINT baseline_ra_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: baseline_ra_templates baseline_ra_templates_title_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.baseline_ra_templates
+    ADD CONSTRAINT baseline_ra_templates_title_key UNIQUE (title);
+
+
+--
+-- Name: company_baseline_assessments company_baseline_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_baseline_assessments
+    ADD CONSTRAINT company_baseline_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: company_baseline_assessments company_baseline_template_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_baseline_assessments
+    ADD CONSTRAINT company_baseline_template_unique UNIQUE (company_id, template_id);
+
+
+--
+-- Name: corporate_partners corporate_partners_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.corporate_partners
+    ADD CONSTRAINT corporate_partners_name_key UNIQUE (name);
+
+
+--
+-- Name: corporate_partners corporate_partners_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.corporate_partners
+    ADD CONSTRAINT corporate_partners_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: corporate_partners corporate_partners_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.corporate_partners
+    ADD CONSTRAINT corporate_partners_slug_key UNIQUE (slug);
+
+
+--
+-- Name: crop_pack_addon_purchases crop_pack_addon_purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crop_pack_addon_purchases
+    ADD CONSTRAINT crop_pack_addon_purchases_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: crop_pack_addon_purchases crop_pack_addon_purchases_ref_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crop_pack_addon_purchases
+    ADD CONSTRAINT crop_pack_addon_purchases_ref_unique UNIQUE (paystack_ref);
+
+
+--
+-- Name: crop_pack_addon_subscriptions crop_pack_addon_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crop_pack_addon_subscriptions
+    ADD CONSTRAINT crop_pack_addon_subscriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: company_risk_assessments farm_risk_assessments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_risk_assessments
+    ADD CONSTRAINT farm_risk_assessments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: companies farms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.companies
+    ADD CONSTRAINT farms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: partner_grower_registry partner_grower_registry_grower_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_grower_registry
+    ADD CONSTRAINT partner_grower_registry_grower_code_key UNIQUE (grower_code);
+
+
+--
+-- Name: partner_grower_registry partner_grower_registry_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_grower_registry
+    ADD CONSTRAINT partner_grower_registry_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: partner_portal_tokens partner_portal_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_portal_tokens
+    ADD CONSTRAINT partner_portal_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: partner_portal_tokens partner_portal_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_portal_tokens
+    ADD CONSTRAINT partner_portal_tokens_token_key UNIQUE (token);
+
+
+--
+-- Name: processor_referral_leads processor_referral_leads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.processor_referral_leads
+    ADD CONSTRAINT processor_referral_leads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: risk_assessment_templates rat_title_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.risk_assessment_templates
+    ADD CONSTRAINT rat_title_unique UNIQUE (title);
+
+
+--
+-- Name: risk_assessment_templates risk_assessment_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.risk_assessment_templates
+    ADD CONSTRAINT risk_assessment_templates_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: sandbox_jsonb_backup sandbox_jsonb_backup_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sandbox_jsonb_backup
+    ADD CONSTRAINT sandbox_jsonb_backup_pkey PRIMARY KEY (table_name, row_id, column_name);
+
+
+--
+-- Name: sops sops_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sops
+    ADD CONSTRAINT sops_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: support_tickets support_tickets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_tickets
+    ADD CONSTRAINT support_tickets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: training_records training_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.training_records
+    ADD CONSTRAINT training_records_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_video_progress user_video_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_video_progress
+    ADD CONSTRAINT user_video_progress_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_video_progress user_video_progress_user_id_video_id_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_video_progress
+    ADD CONSTRAINT user_video_progress_user_id_video_id_key UNIQUE (user_id, video_id);
+
+
+--
+-- Name: videos videos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.videos
+    ADD CONSTRAINT videos_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_baseline_ra_templates_cat; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_baseline_ra_templates_cat ON public.baseline_ra_templates USING btree (category);
+
+
+--
+-- Name: idx_cba_company_template_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_cba_company_template_date ON public.company_baseline_assessments USING btree (company_id, template_id, assessment_date DESC);
+
+
+--
+-- Name: idx_company_baseline_assessments_cid; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_company_baseline_assessments_cid ON public.company_baseline_assessments USING btree (company_id);
+
+
+--
+-- Name: idx_crop_pack_addon_subscriptions_active_unique; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_crop_pack_addon_subscriptions_active_unique ON public.crop_pack_addon_subscriptions USING btree (company_id, crop_name) WHERE (status = 'active'::text);
+
+
+--
+-- Name: idx_partner_grower_registry_claimed_by; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_partner_grower_registry_claimed_by ON public.partner_grower_registry USING btree (claimed_by_company_id);
+
+
+--
+-- Name: unique_active_claimed_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_active_claimed_code ON public.partner_grower_registry USING btree (grower_code) WHERE (claimed_by_company_id IS NOT NULL);
+
+
+--
+-- Name: processor_referral_leads on_processor_referral_insert; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER on_processor_referral_insert AFTER INSERT ON public.processor_referral_leads FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://ujhfkvoaaebdntuheyqo.supabase.co/functions/v1/notify-referral-lead', 'POST', '{"Content-type":"application/json","x-webhook-secret":"[REDACTED]"}', '{}', '5000');
+
+
+--
+-- Name: support_tickets on_support_ticket_created; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER on_support_ticket_created AFTER INSERT ON public.support_tickets FOR EACH ROW EXECUTE FUNCTION supabase_functions.http_request('https://ujhfkvoaaebdntuheyqo.supabase.co/functions/v1/notify-support-ticket', 'POST', '{"Content-type":"application/json"}', '{}', '5000');
+
+
+--
+-- Name: profiles trigger_sync_profile_meta; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_sync_profile_meta AFTER UPDATE OF first_name, last_name ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.sync_profile_to_auth_meta();
+
+
+--
+-- Name: company_baseline_assessments company_baseline_assessments_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_baseline_assessments
+    ADD CONSTRAINT company_baseline_assessments_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: company_baseline_assessments company_baseline_assessments_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_baseline_assessments
+    ADD CONSTRAINT company_baseline_assessments_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.baseline_ra_templates(id);
+
+
+--
+-- Name: company_risk_assessments company_risk_assessments_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_risk_assessments
+    ADD CONSTRAINT company_risk_assessments_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: company_risk_assessments company_risk_assessments_template_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_risk_assessments
+    ADD CONSTRAINT company_risk_assessments_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.risk_assessment_templates(id);
+
+
+--
+-- Name: crop_pack_addon_purchases crop_pack_addon_purchases_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crop_pack_addon_purchases
+    ADD CONSTRAINT crop_pack_addon_purchases_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: crop_pack_addon_purchases crop_pack_addon_purchases_purchased_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crop_pack_addon_purchases
+    ADD CONSTRAINT crop_pack_addon_purchases_purchased_by_fkey FOREIGN KEY (purchased_by) REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+
+--
+-- Name: crop_pack_addon_subscriptions crop_pack_addon_subscriptions_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.crop_pack_addon_subscriptions
+    ADD CONSTRAINT crop_pack_addon_subscriptions_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: partner_grower_registry partner_grower_registry_claimed_by_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_grower_registry
+    ADD CONSTRAINT partner_grower_registry_claimed_by_company_id_fkey FOREIGN KEY (claimed_by_company_id) REFERENCES public.companies(id) ON DELETE SET NULL;
+
+
+--
+-- Name: partner_grower_registry partner_grower_registry_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_grower_registry
+    ADD CONSTRAINT partner_grower_registry_partner_id_fkey FOREIGN KEY (partner_id) REFERENCES public.corporate_partners(id) ON DELETE CASCADE;
+
+
+--
+-- Name: partner_portal_tokens partner_portal_tokens_partner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.partner_portal_tokens
+    ADD CONSTRAINT partner_portal_tokens_partner_id_fkey FOREIGN KEY (partner_id) REFERENCES public.corporate_partners(id) ON DELETE CASCADE;
+
+
+--
+-- Name: processor_referral_leads processor_referral_leads_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.processor_referral_leads
+    ADD CONSTRAINT processor_referral_leads_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: processor_referral_leads processor_referral_leads_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.processor_referral_leads
+    ADD CONSTRAINT processor_referral_leads_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: profiles profiles_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE SET NULL;
+
+
+--
+-- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: sops sops_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sops
+    ADD CONSTRAINT sops_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: support_tickets support_tickets_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_tickets
+    ADD CONSTRAINT support_tickets_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE SET NULL;
+
+
+--
+-- Name: support_tickets support_tickets_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.support_tickets
+    ADD CONSTRAINT support_tickets_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: training_records training_records_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.training_records
+    ADD CONSTRAINT training_records_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: user_video_progress user_video_progress_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_video_progress
+    ADD CONSTRAINT user_video_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: videos videos_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.videos
+    ADD CONSTRAINT videos_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: profiles Admins can update company member profiles; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can update company member profiles" ON public.profiles FOR UPDATE TO authenticated USING ((EXISTS ( SELECT 1
+   FROM public.profiles admin_p
+  WHERE ((admin_p.id = auth.uid()) AND (admin_p.company_id = profiles.company_id) AND ((lower(admin_p.role) ~~ '%admin%'::text) OR (lower(admin_p.role) = 'master admin'::text)))))) WITH CHECK (true);
+
+
+--
+-- Name: companies Admins can update own company; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins can update own company" ON public.companies FOR UPDATE TO authenticated USING ((id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid())))) WITH CHECK ((id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: baseline_ra_templates Allow authenticated users to read baseline templates; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow authenticated users to read baseline templates" ON public.baseline_ra_templates FOR SELECT TO authenticated USING (true);
+
+
+--
+-- Name: companies Allow insert on companies during registration; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow insert on companies during registration" ON public.companies FOR INSERT WITH CHECK (true);
+
+
+--
+-- Name: companies Allow members to update their company; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow members to update their company" ON public.companies FOR UPDATE TO authenticated USING ((id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid())))) WITH CHECK ((id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: risk_assessment_templates Allow read access to all users; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow read access to all users" ON public.risk_assessment_templates FOR SELECT USING (true);
+
+
+--
+-- Name: corporate_partners Allow read corporate partners; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow read corporate partners" ON public.corporate_partners FOR SELECT TO authenticated USING (true);
+
+
+--
+-- Name: profiles Allow self insert on profiles; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow self insert on profiles" ON public.profiles FOR INSERT TO authenticated WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: profiles Allow self update on profiles; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow self update on profiles" ON public.profiles FOR UPDATE TO authenticated USING ((auth.uid() = id)) WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: profiles Allow users to update their profiles; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow users to update their profiles" ON public.profiles FOR UPDATE TO authenticated USING ((auth.uid() = id)) WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: sops Allow users to view accessible SOPs; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Allow users to view accessible SOPs" ON public.sops FOR SELECT TO authenticated USING (((company_id IS NULL) OR (company_id = ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid())
+ LIMIT 1))));
+
+
+--
+-- Name: videos Authenticated users can view videos; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Authenticated users can view videos" ON public.videos FOR SELECT TO authenticated USING (true);
+
+
+--
+-- Name: videos Public can view master catalog videos; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Public can view master catalog videos" ON public.videos FOR SELECT TO authenticated, anon USING ((company_id IS NULL));
+
+
+--
+-- Name: company_risk_assessments Tenants can view and insert own risk assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Tenants can view and insert own risk assessments" ON public.company_risk_assessments USING ((company_id = ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: support_tickets Users can create support tickets; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can create support tickets" ON public.support_tickets FOR INSERT TO authenticated WITH CHECK ((auth.uid() = user_id));
+
+
+--
+-- Name: company_risk_assessments Users can insert company risk assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert company risk assessments" ON public.company_risk_assessments FOR INSERT TO authenticated WITH CHECK (((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))) OR (company_id IS NULL)));
+
+
+--
+-- Name: training_records Users can insert company training records; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert company training records" ON public.training_records FOR INSERT WITH CHECK ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: company_baseline_assessments Users can insert own company baseline assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert own company baseline assessments" ON public.company_baseline_assessments FOR INSERT TO authenticated WITH CHECK ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: user_video_progress Users can insert own video progress; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert own video progress" ON public.user_video_progress FOR INSERT TO authenticated WITH CHECK ((auth.uid() = user_id));
+
+
+--
+-- Name: profiles Users can insert their own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: user_video_progress Users can insert/update own video progress; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can insert/update own video progress" ON public.user_video_progress FOR INSERT WITH CHECK ((auth.uid() = user_id));
+
+
+--
+-- Name: support_tickets Users can read company support tickets; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can read company support tickets" ON public.support_tickets FOR SELECT TO authenticated USING ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: company_baseline_assessments Users can update own company baseline assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update own company baseline assessments" ON public.company_baseline_assessments FOR UPDATE TO authenticated USING ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid())))) WITH CHECK ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: profiles Users can update own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING ((auth.uid() = id));
+
+
+--
+-- Name: user_video_progress Users can update own video progress; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update own video progress" ON public.user_video_progress FOR UPDATE TO authenticated USING ((auth.uid() = user_id));
+
+
+--
+-- Name: profiles Users can update their own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING ((auth.uid() = id));
+
+
+--
+-- Name: company_risk_assessments Users can view company risk assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view company risk assessments" ON public.company_risk_assessments FOR SELECT TO authenticated USING (((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))) OR (company_id IS NULL)));
+
+
+--
+-- Name: training_records Users can view company training records; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view company training records" ON public.training_records FOR SELECT USING ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: companies Users can view own company; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own company" ON public.companies FOR SELECT TO authenticated USING ((id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: crop_pack_addon_subscriptions Users can view own company addon subscriptions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own company addon subscriptions" ON public.crop_pack_addon_subscriptions FOR SELECT TO authenticated USING ((company_id = public.get_my_company_id()));
+
+
+--
+-- Name: company_baseline_assessments Users can view own company baseline assessments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own company baseline assessments" ON public.company_baseline_assessments FOR SELECT TO authenticated USING ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: processor_referral_leads Users can view own company referral leads; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own company referral leads" ON public.processor_referral_leads FOR SELECT TO authenticated USING ((company_id IN ( SELECT profiles.company_id
+   FROM public.profiles
+  WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: user_video_progress Users can view own video progress; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view own video progress" ON public.user_video_progress FOR SELECT TO authenticated USING ((auth.uid() = user_id));
+
+
+--
+-- Name: profiles Users can view profiles in same company; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view profiles in same company" ON public.profiles FOR SELECT USING (((id = auth.uid()) OR (company_id = public.get_my_company_id())));
+
+
+--
+-- Name: partner_grower_registry Users can view their own company's claimed grower codes; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view their own company's claimed grower codes" ON public.partner_grower_registry FOR SELECT TO authenticated USING ((claimed_by_company_id = public.get_my_company_id()));
+
+
+--
+-- Name: baseline_ra_templates; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.baseline_ra_templates ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: companies; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: company_baseline_assessments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.company_baseline_assessments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: company_risk_assessments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.company_risk_assessments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: corporate_partners; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.corporate_partners ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: crop_pack_addon_purchases; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.crop_pack_addon_purchases ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: crop_pack_addon_subscriptions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.crop_pack_addon_subscriptions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: partner_grower_registry; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.partner_grower_registry ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: partner_portal_tokens; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.partner_portal_tokens ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: processor_referral_leads; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.processor_referral_leads ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: risk_assessment_templates; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.risk_assessment_templates ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sandbox_jsonb_backup; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sandbox_jsonb_backup ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sops; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sops ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: support_tickets; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: training_records; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.training_records ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_video_progress; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.user_video_progress ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: videos; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict xksefeBOjc5hZVxvO8kPM3rsjAHpNHbG2R4Ev9PUafQEhLMIKlhfGv5KE2uj7Am
+
+```

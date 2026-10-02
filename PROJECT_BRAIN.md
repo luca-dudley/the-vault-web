@@ -344,7 +344,8 @@ graph TD
 | [`supabase/functions/notify-referral-lead/index.ts`](file:///home/luca/dev/the-vault-web/supabase/functions/notify-referral-lead/index.ts) | Deno edge function dispatching transactional emails via Resend when a grower submits a processor referral. Features timing-safe auth and HTML escaping. | Deno, Resend REST API. | Resend API (`alerts@simpleza.co.za`). |
 | [`supabase/functions/notify-support-ticket/index.ts`](file:///home/luca/dev/the-vault-web/supabase/functions/notify-support-ticket/index.ts) | Deno edge function dispatching transactional emails via Resend when a user submits a support ticket in `support.html`. | Deno, Resend REST API. | Resend API (`alerts@simpleza.co.za`). |
 | [`supabase/functions/partner-monthly-digest/index.ts`](file:///home/luca/dev/the-vault-web/supabase/functions/partner-monthly-digest/index.ts) | Cron-triggered Deno edge function generating revolving 35-day tokens and emailing compliance digests to corporate partner contacts. | Deno, Supabase Admin Client, Resend REST API. | `corporate_partners`, `partner_portal_tokens`, Resend API. |
-| [`docs/*.pdf`](file:///home/luca/dev/the-vault-web/docs) | Statutory legal documentation: Aggregated Underwriter Data Feed Terms, Cookie & Local Storage Policy, Corporate Partner Subsidy Agreement, Master Terms of Service, POPIA Section 21 Operator Agreement, Statutory Risk Assessment Appointee Schedule, and Website Privacy Policy. | Static PDF documents. | Static download links. |
+| [`docs/architecture/specs/UNIFIED_INDUCTION_AND_ROSTER_SPEC.md`](file:///home/luca/dev/the-vault-web/docs/architecture/specs/UNIFIED_INDUCTION_AND_ROSTER_SPEC.md) | Comprehensive architectural and schema specification for the unified induction pipeline, Single Supervisor Statutory Gate (ECTA §13), and farm employee roster sync engine (`company_employees`). | Markdown architectural blueprint. | `company_employees`, `training_records`, RPCs (`log_induction_session`, `sync_company_roster`). |
+| [`docs/legal/*.pdf`](file:///home/luca/dev/the-vault-web/docs/legal) | Statutory legal documentation: Aggregated Underwriter Data Feed Terms, Cookie & Local Storage Policy, Corporate Partner Subsidy Agreement, Master Terms of Service, POPIA Section 21 Operator Agreement, Statutory Risk Assessment Appointee Schedule, and Website Privacy Policy. | Static PDF documents. | Static download links. |
 
 ---
 
@@ -445,7 +446,24 @@ graph TD
   - Hardened dynamic button states during immutable record generation (`DIGITALLY SIGNING & LOGGING IMMUTABLE RECORD...`).
   - Strengthened jsPDF exported disclaimers across training certificates and Baseline Risk Assessments to explicitly confirm procedural benchmark nature and affirm on-site physical verification by registered Section 16(2) appointees.
 
+### Unified Induction Architecture, Schema Sync & Legal Asset Reorganization (2026-10-02)
+- **Architectural Specification Baseline (`docs/architecture/specs/UNIFIED_INDUCTION_AND_ROSTER_SPEC.md`)**:
+  - Authored comprehensive specification eliminating manual worker canvas signature repeaters in favor of a Single Supervisor Statutory Gate under ECTA Section 13 and OHSA Section 8(2)(e).
+  - Designed multi-tenant `public.company_employees` table with unique constraint on `(company_id, employee_number)` and RLS policies.
+  - Specified zero-build client-side CSV parser with header aliasing (`HEADER_ALIASES`) and atomic `sync_company_roster` RPC supporting seasonal soft-deactivation (`is_active = false`).
+  - Specified atomic `log_induction_session` RPC reducing batch network payloads by ~98.6% and enforcing statutory batch credibility caps (recommendation: 50, hard ceiling: 80).
+  - Resolved 5-year statutory retention rules across OHSA, SIZA Social Standard v8, GlobalG.A.P. IFA v6, and POPIA §14(1)(a), establishing an immutable frozen snapshot model on `training_records` with `ON DELETE SET NULL`.
+  - Formulated 4-stage rollout plan: (1) Supabase Migrations & RPCs, (2) HR Roster Management UI, (3) Unified Induction Drawer, (4) Compliance & Renewal Reporting.
+- **Legal Asset Directory Reorganization & Link Verification**:
+  - Consolidated all 7 statutory PDFs from root `docs/` into organized subfolder [`docs/legal/`](file:///home/luca/dev/the-vault-web/docs/legal).
+  - Updated and audited every static hyperlink and download attribute across `index.html`, `partner-portal.html`, `profile-modal.html`, `records.html`, and `systems.html`, resolving path and filename discrepancies.
+- **Direct Live Schema Sync Tooling (`scripts/sync_schema.sh`)**:
+  - Upgraded `./scripts/sync_schema.sh` to leverage direct `pg_dump` via `DATABASE_URL` with automated secret sanitization (`x-webhook-secret`), formatting `.ai/SUPABASE_SCHEMA.md` into clean DDL.
+- **Architect Persona Strict Operating Directives (`.agents/agents/architect/agent.md`)**:
+  - Re-anchored architect agent as an advisory, read-only system design persona requiring formal ADR authoring in `docs/architecture/decisions/`.
+
 ### Upcoming Priority Tasks
-1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
-2. **Paystack Bolt-On Automation**: Verify live webhook processing of `charge.success` events for `PLN_8n5qrpeh23evvnu` across production testing farms.
-3. **Cloudflare Security Headers**: Configure `_headers` file in Cloudflare Pages to enforce strict Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), and frame options.
+1. **Unified Induction & Roster Rollout**: Execute Stage 1 Supabase SQL migration (`company_employees` table, `log_induction_session`, and `sync_company_roster` RPCs).
+2. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
+3. **Paystack Bolt-On Automation**: Verify live webhook processing of `charge.success` events for `PLN_8n5qrpeh23evvnu` across production testing farms.
+4. **Cloudflare Security Headers**: Configure `_headers` file in Cloudflare Pages to enforce strict Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), and frame options.

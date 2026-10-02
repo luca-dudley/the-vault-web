@@ -1,21 +1,47 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-SCHEMA_FILE=".ai/SUPABASE_SCHEMA.md"
-TMP_SCHEMA="/tmp/live_schema.sql"
+TARGET_FILE=".ai/SUPABASE_SCHEMA.md"
+TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
-echo "[INFO] Fetching latest live Supabase schema..."
-
-# 1. If Supabase CLI is linked, dump schema directly
-if npx supabase db dump --schema-only -f "$TMP_SCHEMA" >/dev/null 2>&1; then
-    cat << 'HEADER' > "$SCHEMA_FILE"
-# The Vault: Supabase Master Schema & Storage Policies
-> Auto-generated via Supabase CLI. Do not manually edit.
-
-HEADER
-    cat "$TMP_SCHEMA" >> "$SCHEMA_FILE"
-    rm -f "$TMP_SCHEMA"
-    echo "[SUCCESS] .ai/SUPABASE_SCHEMA.md updated from live Supabase instance."
-else
-    echo "[WARN] Supabase CLI link not active or offline. Keeping existing schema file."
+# 1. Load connection string from .env if present
+if [ -f ".env" ]; then
+  export $(grep -v '^#' .env | xargs)
 fi
+
+if [ -z "${DATABASE_URL:-}" ]; then
+  echo "Error: DATABASE_URL is not set in your .env file."
+  echo "Add: DATABASE_URL=\"postgresql://postgres:[PASSWORD]@db.ujhfkvoaaebdntuheyqo.supabase.co:5432/postgres\""
+  exit 1
+fi
+
+echo "==> [1/2] Connecting directly to Supabase via pg_dump..."
+mkdir -p .ai
+
+# Start markdown file
+cat <<HEADER > "$TARGET_FILE"
+# Live Supabase Schema Manifest
+> **Last Synchronized:** $TIMESTAMP
+> **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
+
+---
+
+## 1. Relational Database Schema & Policies (DDL)
+
+\`\`\`sql
+HEADER
+
+# 2. Introspect schema (schema-only, public schema, clean layout)
+pg_dump "$DATABASE_URL" \
+  --schema-only \
+  --schema=public \
+  --no-owner \
+  --no-privileges >> "$TARGET_FILE"
+
+sed -i 's/"x-webhook-secret":"[^"]*"/"x-webhook-secret":"[REDACTED]"/g' "$TARGET_FILE"
+
+cat <<FOOTER >> "$TARGET_FILE"
+\`\`\`
+FOOTER
+
+echo "==> [2/2] Successfully dumped live schema into $TARGET_FILE!"
