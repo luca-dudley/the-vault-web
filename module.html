@@ -73,34 +73,42 @@
     }
 
     #sidebar,
+    #app-sidebar,
     #mainContent {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* Collapsed Sidebar Rules */
-    #sidebar.collapsed {
+    #sidebar.collapsed,
+    #app-sidebar.collapsed {
       width: 5rem !important;
       padding-left: 0.5rem;
       padding-right: 0.5rem;
     }
     #sidebar.collapsed .sidebar-text,
+    #app-sidebar.collapsed .sidebar-text,
     #sidebar.collapsed .sidebar-category-header,
-    #sidebar.collapsed #sidebarToggle span {
+    #app-sidebar.collapsed .sidebar-category-header,
+    #sidebar.collapsed #sidebarToggle span,
+    #app-sidebar.collapsed #sidebarToggle span {
       display: none !important;
     }
-    #sidebar.collapsed .sidebar-nav-btn {
+    #sidebar.collapsed .sidebar-nav-btn,
+    #app-sidebar.collapsed .sidebar-nav-btn {
       justify-content: center;
       padding-left: 0;
       padding-right: 0;
       padding-top: 0.75rem;
       padding-bottom: 0.75rem;
     }
-    #sidebar.collapsed .sidebar-nav-btn svg {
+    #sidebar.collapsed .sidebar-nav-btn svg,
+    #app-sidebar.collapsed .sidebar-nav-btn svg {
       margin: 0;
       width: 1.5rem;
       height: 1.5rem;
     }
-    #sidebar.collapsed #sidebarToggle svg {
+    #sidebar.collapsed #sidebarToggle svg,
+    #app-sidebar.collapsed #sidebarToggle svg {
       transform: rotate(180deg);
     }
 
@@ -122,173 +130,14 @@
 </head>
 <body class="bg-[#f8fafc] text-slate-800 font-sans min-h-screen overflow-x-hidden">
 
-  <!-- Mobile Header -->
-  <header class="lg:hidden sticky top-0 z-40 bg-[#f8fafc] text-slate-800 border-b border-slate-200">
-    <div class="h-16 px-4 flex items-center justify-between">
-      <button id="mobile-menu-btn" type="button" aria-label="Open sidebar" aria-expanded="false" class="min-h-11 min-w-11 p-2 rounded-lg hover:bg-slate-200 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <a href="vault.html" class="flex items-center gap-2" aria-label="Go to Video Library">
-        <span class="font-serif text-lg font-bold text-foreground">The Vault</span>
-      </a>
-      <button onclick="openProfileModal()" class="w-9 h-9 flex items-center justify-center">
-        <div class="relative w-9 h-9 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs overflow-hidden border border-slate-300">
-          <span data-dynamic-initials>?</span>
-          <img data-dynamic-profile-img class="absolute inset-0 w-full h-full object-cover hidden" alt="Profile">
-        </div>
-      </button>
-    </div>
-  </header>
-
-  <!-- 1. FULL WIDTH TOP BAR (DESKTOP) -->
-  <header class="hidden lg:flex sticky top-0 z-40 w-full border-b border-slate-200/90 bg-[#f8fafc] backdrop-blur px-8 py-3.5 h-[72px] items-center justify-between">
-    <a href="vault.html" class="flex items-center gap-3.5 group shrink-0 ml-2">
-      <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
-        </svg>
-      </div>
-      <span class="font-serif text-[1.75rem] font-bold text-foreground tracking-tight">The Vault</span>
-    </a>
-
-    <!-- Right-Hand Controls -->
-    <div class="flex items-center gap-5 shrink-0">
-      <div class="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-700 shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="topbar-company-name" class="font-medium truncate max-w-[140px]">Simple Solutions</span>
-        <span class="text-slate-300">|</span>
-        <span id="topbar-tier-tag" class="font-bold text-primary uppercase text-[10px] tracking-wide">Enterprise</span>
-      </div>
-
-      <!-- Live Partner Subsidy Dropdown Pill -->
-      <div id="topbar-sponsor-pill-container" class="relative hidden">
-        <button id="topbar-sponsor-btn" onclick="toggleSponsorDropdown(event)" type="button" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all">
-          <span class="w-2 h-2 rounded-full bg-primary/70"></span>
-          <span id="topbar-sponsor-label">Sponsors</span>
-          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-
-        <!-- Dropdown Menu -->
-        <div id="topbar-sponsor-dropdown" class="hidden absolute right-0 sm:left-0 sm:right-auto mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden py-1.5">
-          <div class="px-4 py-2 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Subsidies</span>
-            <span id="topbar-sponsor-count" class="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">0 Active</span>
-          </div>
-          <div id="topbar-sponsor-items" class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-            <!-- Injected via profile-engine.js -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Functional Notification Dropdown -->
-      <div class="relative">
-        <button id="notification-bell-btn" onclick="toggleNotificationDropdown(event)" class="relative p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition-colors shadow-sm" title="Notifications">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-          <span id="bell-unread-dot" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-        </button>
-
-        <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
-          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <span class="text-xs font-bold text-foreground uppercase tracking-wider">Notifications</span>
-            <button onclick="markAllNotificationsRead()" class="text-[11px] font-medium text-primary hover:underline">Mark all read</button>
-          </div>
-          <div class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-            <div class="p-3.5 hover:bg-slate-50 transition-colors flex gap-3 items-start">
-              <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0 text-sm">🚀</span>
-              <div>
-                <p class="text-xs font-semibold text-slate-800">Workspace Active</p>
-                <p class="text-[11px] text-slate-500 leading-snug mt-0.5">Your organization's Vault streaming modules are unlocked and ready.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="h-6 w-px bg-slate-300/80"></div>
-
-      <button onclick="openProfileModal()" class="flex items-center gap-3 p-1.5 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 transition-all text-left group">
-        <div class="relative w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center overflow-hidden border border-slate-300 shadow-sm">
-          <span data-dynamic-initials>?</span>
-          <img data-dynamic-profile-img class="absolute inset-0 w-full h-full object-cover hidden" alt="Avatar">
-        </div>
-        <div class="hidden sm:block leading-tight">
-          <p id="topbar-user-name" class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Loading...</p>
-          <p id="topbar-user-role" class="text-xs text-muted">Primary Admin</p>
-        </div>
-        <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- Sidebar -->
+  <!-- Baseline Structural Layout Containers (Zero-FOUC Shell) -->
+  <header id="app-header" class="fixed top-0 left-0 right-0 z-40 h-[72px] bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6"></header>
   <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/40 lg:hidden" aria-hidden="true"></div>
-  <aside id="sidebar" class="fixed left-0 top-0 bottom-0 z-50 w-64 -translate-x-full lg:translate-x-0 transition-transform duration-300 lg:top-[72px] lg:z-30 border-r border-slate-200/80 bg-[#f8fafc] flex flex-col justify-between p-4">
-    <div class="space-y-6">
-      <div>
-        <p class="sidebar-category-header px-3 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Workspace</p>
-        <nav class="space-y-1.5">
-          <!-- Video Library (Active) -->
-          <a href="vault.html" title="Video Library" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-semibold bg-primary text-white shadow-sm transition-all">
-            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span class="sidebar-text truncate">Video Library</span>
-          </a>
-
-          <!-- Training Records -->
-          <a href="records.html" title="Training Records" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <span class="sidebar-text truncate">Training Records</span>
-          </a>
-
-          <!-- Standard Operating Procedures (Enterprise Locked) -->
-          <a href="sop.html" title="Standard Operating Procedures" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span class="sidebar-text truncate">SOPs</span>
-          </a>
-
-          <!-- Digital Risk Assessments -->
-          <a href="risk-assessments.html" title="Risk Assessments" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-            </svg>
-            <span class="sidebar-text truncate">Risk Assessments</span>
-          </a>
-
-          <!-- Help & Support -->
-          <a href="support.html" title="Help & Support" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span class="sidebar-text truncate">Help & Support</span>
-          </a>
-        </nav>
-      </div>
-    </div>
-
-    <!-- Collapse Trigger Button -->
-    <div class="pt-3 border-t border-slate-200/80">
-      <button id="sidebarToggle" type="button" class="w-full flex items-center justify-center gap-2 p-2.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 rounded-xl transition-all shadow-sm" title="Toggle Sidebar">
-        <svg class="w-4 h-4 shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-        </svg>
-        <span class="truncate">Collapse View</span>
-      </button>
-    </div>
-  </aside>
+  <aside id="app-sidebar" class="fixed left-0 top-0 bottom-0 z-50 w-64 -translate-x-full lg:translate-x-0 transition-transform duration-300 lg:top-[72px] lg:z-30 border-r border-slate-200/80 bg-[#f8fafc] flex flex-col justify-between p-4"></aside>
 
   <!-- Main Player Workspace -->
-  <main id="mainContent" class="ml-0 lg:ml-64 p-4 sm:p-10">
-    <div class="max-w-5xl mx-auto">
+  <main id="mainContent" class="ml-0 lg:ml-64 pt-[72px] min-h-screen">
+    <div class="p-4 sm:p-10 max-w-5xl mx-auto">
       
       <!-- Back Navigation & Meta -->
       <div class="flex items-center justify-between mb-6">
@@ -313,6 +162,32 @@
           allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen>
         </iframe>
+      </div>
+
+      <!-- Dynamic Multilingual Audio Stream Switcher Dropdown (Section 3.2) -->
+      <div id="audioStreamSwitcherContainer" class="hidden mt-4 flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200/90 rounded-xl px-4 py-3 shadow-sm">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+            </svg>
+          </div>
+          <div>
+            <label for="moduleLanguageSelect" class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Audio Language Track</label>
+            <p id="moduleLanguageSubtext" class="text-[11px] text-muted">Switch narration stream while preserving playback position</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative w-full sm:w-56">
+            <select id="moduleLanguageSelect" onchange="switchAudioStream(this.value)" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-8 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+              <option value="en">English</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Module Details -->
@@ -371,8 +246,8 @@
   </main>
 
   <!-- NATIVE COMPLIANCE & SIGN-OFF MODAL -->
-  <div id="complianceModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center overflow-y-auto">
-    <div class="relative w-full h-full sm:h-auto sm:max-w-2xl sm:rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+  <div id="complianceModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
       
       <!-- Modal Header -->
       <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
@@ -386,54 +261,80 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="p-4 sm:p-6 max-h-[calc(100vh-72px)] sm:max-h-[75vh] overflow-y-auto space-y-6">
+      <div class="p-4 sm:p-6 max-h-[calc(100vh-140px)] sm:max-h-[75vh] overflow-y-auto space-y-6">
         
         <!-- Module Context Banner -->
-        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs">
           <div>
-            <span class="text-muted block">Active Training Module</span>
+            <span class="text-muted block text-[11px]">Active Training Module</span>
             <span id="modalModuleTitle" class="font-bold text-slate-800 text-sm">--</span>
           </div>
-          <div class="text-right">
-            <span class="text-muted block">Date</span>
+          <div class="sm:text-right">
+            <span class="text-muted block text-[11px]">Induction Date</span>
             <span id="modalCurrentDate" class="font-semibold text-slate-700">--</span>
           </div>
         </div>
 
-        <!-- Mode Toggle: Individual vs Group -->
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Training Format</label>
-          <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-            <button type="button" id="modeBtnIndividual" onclick="setLogMode('Individual')" class="py-2 text-xs font-semibold rounded-lg bg-white text-primary shadow-sm transition-all">
-              Individual Worker (1)
+        <!-- STEP 1: SELECT TRAINEES FROM FARM ROSTER -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-600">Step 1: Select Trainees from Farm Roster</label>
+            <span id="traineeCountBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">0 Trainees Selected</span>
+          </div>
+
+          <!-- Advisory / Warning Banner -->
+          <div id="traineeAdvisoryBanner" class="hidden p-3 rounded-xl text-xs font-medium border"></div>
+
+          <!-- Search Control -->
+          <div class="relative w-full">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" id="traineeSearchInput" placeholder="Search employee name or number..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:border-primary bg-white transition-colors shadow-xs">
+          </div>
+
+          <!-- Action buttons: Select All Filtered / Clear -->
+          <div class="flex items-center justify-between text-xs pt-1">
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnSelectAllFiltered" onclick="selectAllFilteredTrainees()" class="text-primary hover:underline font-semibold cursor-pointer">Select All Filtered</button>
+              <span class="text-slate-300">•</span>
+              <button type="button" onclick="clearTraineeSelection()" class="text-slate-500 hover:text-red-600 cursor-pointer">Clear Selection</button>
+            </div>
+            <span id="activeCrewCount" class="text-muted text-[11px]">0 active crew on file</span>
+          </div>
+
+          <!-- Trainee Checklist Container -->
+          <div id="rosterChecklistLoading" class="hidden py-8 text-center text-xs text-muted">
+            <div class="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary mx-auto mb-2"></div>
+            Loading active farm roster...
+          </div>
+          <div id="rosterChecklistContainer" class="min-h-[140px] max-h-60 overflow-y-auto block space-y-1.5 border border-slate-200 rounded-xl p-2 bg-slate-50/50 mt-2 mb-3">
+            <!-- Trainee checkbox items rendered here -->
+          </div>
+          <div id="rosterChecklistEmpty" class="hidden p-6 text-center text-xs text-muted border border-dashed border-slate-200 rounded-xl bg-slate-50 mt-2 mb-3">
+            No matching active workers found. Use Quick-Add below to add an unlisted worker.
+          </div>
+
+          <!-- Pinned Trigger Button directly underneath main block -->
+          <div class="pt-1">
+            <button type="button" id="btnAddGuestWorker" onclick="addGuestWorkerRow()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 cursor-pointer">
+              <span class="font-bold text-sm">+</span>
+              <span>Quick-Add Unlisted Guest Worker</span>
             </button>
-            <button type="button" id="modeBtnGroup" onclick="setLogMode('Group')" class="py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
-              Group Session (Batch)
-            </button>
+          </div>
+
+          <!-- Dynamic Guest Worker List rendered below the button -->
+          <div id="guestWorkersList" class="space-y-2 mt-2">
+            <!-- Guest worker rows inserted dynamically below button -->
           </div>
         </div>
 
-        <!-- Worker Rows Container -->
-        <div>
-          <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Trainee Details</label>
-            <span id="workerCountBadge" class="text-xs text-muted">1 Trainee</span>
-          </div>
-
-          <div id="traineeRowsContainer" class="space-y-2.5">
-            <!-- Dynamic worker rows inserted here -->
-          </div>
-
-          <button type="button" id="addTraineeRowBtn" onclick="addTraineeRow()" class="mt-3 w-full py-2 border-2 border-dashed border-slate-300 hover:border-primary text-xs font-semibold text-slate-600 hover:text-primary rounded-xl transition-all hidden flex items-center justify-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add Another Worker
-          </button>
-        </div>
-
-        <!-- Supervisor Declaration & Signature -->
+        <!-- STEP 2: SUPERVISOR STATUTORY VERIFICATION GATE (ECTA §13) -->
         <div class="border-t border-slate-200 pt-5 space-y-4">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">Step 2: Statutory Supervisor Verification Gate (ECTA §13)</label>
+
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Supervising Officer</label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Supervising Officer</label>
             <input type="text" id="modalSupervisorName" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-primary" placeholder="e.g. Siyabonga Maseko">
           </div>
 
@@ -449,7 +350,7 @@
                 <p class="font-bold text-slate-900 text-xs">I, the undersigned Supervisor / Section 16(2) Appointee, formally declare and confirm that:</p>
                 <ol class="list-decimal pl-4 space-y-1 text-slate-800 text-[11px]">
                   <li>I have conducted and supervised this induction / risk assessment on the estate.</li>
-                  <li>The employees listed have physically attended, reviewed the materials in an understood language, and were verbally assessed on the comprehension questions.</li>
+                  <li>The employees selected have physically attended, reviewed the materials in an understood language, and were verbally assessed on the comprehension questions.</li>
                   <li>On-site physical hazard controls, machinery guarding, and mandatory PPE have been independently evaluated, verified, and enforced on this facility in terms of OHSA Section 8.</li>
                   <li>I acknowledge that Simple Solutions provides baseline educational guides only and holds zero liability for on-site operations.</li>
                 </ol>
@@ -459,8 +360,8 @@
 
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Supervisor Signature</label>
-              <button type="button" onclick="clearSignaturePad()" class="text-[11px] text-muted hover:text-red-600 underline">Clear Signature</button>
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Supervisor Signature Pad</label>
+              <button type="button" onclick="clearSignaturePad()" class="text-[11px] text-muted hover:text-red-600 underline cursor-pointer">Clear Signature</button>
             </div>
             <div class="border border-slate-300 rounded-xl overflow-hidden bg-white shadow-inner">
               <canvas id="supervisorSignaturePad" class="block w-full h-32 cursor-crosshair" style="touch-action: none;"></canvas>
@@ -472,65 +373,42 @@
         <div class="pt-2">
           <button type="button" id="submitComplianceBtn" onclick="submitComplianceLog()" disabled class="w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <span>LOG TRAINING RECORD</span>
+            <span id="submitComplianceBtnText">SELECT AT LEAST 1 TRAINEE</span>
           </button>
         </div>
 
       </div>
-    </div>
-  </div>
-
-  <!-- TOUCH-SCREEN WORKER SIGNATURE POPUP MODAL -->
-  <div id="workerSignModal" class="fixed inset-0 z-[60] hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-    <div class="relative w-full max-w-lg max-h-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-      
-      <!-- Header -->
-      <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <div>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Worker Acknowledgement</span>
-          <h4 id="workerSignModalName" class="text-base font-serif font-bold text-foreground mt-1">Sign Attendance</h4>
-        </div>
-        <button type="button" onclick="closeWorkerSignatureModal()" class="p-1.5 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <!-- Signing Canvas Area -->
-      <div class="p-4 sm:p-6 space-y-4">
-        <p class="text-xs text-slate-500">Please sign in the box below using your finger or stylus to confirm attendance:</p>
-        
-        <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 relative shadow-inner">
-          <canvas id="workerPopupCanvas" width="500" height="200" class="block w-full h-48 sm:h-52 cursor-crosshair touch-none bg-white"></canvas>
-          <div class="absolute bottom-2 left-3 pointer-events-none text-[10px] text-slate-300 uppercase tracking-widest font-semibold">
-            Signature Line ✕
-          </div>
-        </div>
-
-        <!-- Controls: Clear / Cross vs Confirm / Tick -->
-        <div class="grid grid-cols-2 gap-3 pt-2">
-          <button type="button" onclick="clearWorkerPopupCanvas()" class="min-h-12 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-200 text-slate-700 text-xs font-bold transition-all shadow-sm">
-            <span class="text-base">✕</span>
-            <span>Clear / Reset</span>
-          </button>
-          <button type="button" onclick="confirmWorkerSignature()" class="min-h-12 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-md">
-            <span class="text-base">✓</span>
-            <span>Accept Signature</span>
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <script>
     // =========================================================================
-    // UNIFIED ACCURATE SIGNATURE & COMPLIANCE ENGINE
+    // UNIFIED INDUCTION INTAKE & STATUTORY SUPERVISOR ENGINE (ECTA §13)
     // =========================================================================
-    let currentLogMode = 'Individual';
-    let activeSigningRowId = null;
-
     let sigCanvas, sigCtx, isSupervisorDrawing = false;
-    let workerCanvas, workerCtx, isWorkerDrawing = false;
+    let activeRosterCrew = [];
+    let selectedTraineeIds = new Set();
+    let customUnlistedTrainees = [];
+    let rosterFilterQuery = '';
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => {
+      switch (character) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+        default: return character;
+      }
+    });
+
+    async function waitForDbClient(maxWaitMs = 5000) {
+      const start = Date.now();
+      while (!window.dbClient && Date.now() - start < maxWaitMs) {
+        await new Promise(r => setTimeout(r, 50));
+      }
+      return !!window.dbClient;
+    }
 
     // Helper: Exact coordinate calculation mapping client touch/mouse to canvas pixels
     function getCanvasCoordinates(canvas, clientX, clientY) {
@@ -549,7 +427,6 @@
       const rect = sigCanvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
 
-      // Match internal canvas pixel grid to CSS display box
       sigCanvas.width = rect.width * dpr;
       sigCanvas.height = rect.height * dpr;
 
@@ -559,7 +436,6 @@
       sigCtx.lineCap = 'round';
       sigCtx.lineJoin = 'round';
 
-      // Mouse Listeners
       sigCanvas.onmousedown = (e) => {
         isSupervisorDrawing = true;
         const pos = getCanvasCoordinates(sigCanvas, e.clientX, e.clientY);
@@ -579,7 +455,6 @@
         }
       });
 
-      // Touch Listeners (Mobile)
       sigCanvas.ontouchstart = (e) => {
         e.preventDefault();
         isSupervisorDrawing = true;
@@ -604,28 +479,12 @@
       };
     }
 
-    function checkComplianceFormValidity() {
-      const submitBtn = document.getElementById('submitComplianceBtn');
-      const checkbox = document.getElementById('supervisorDeclarationCheck');
-      if (!submitBtn) return;
-
-      const isChecked = checkbox && checkbox.checked;
-      const hasSignature = !isSignatureBlank();
-
-      if (isChecked && hasSignature) {
-        submitBtn.disabled = false;
-        submitBtn.className = 'w-full bg-primary text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
-      } else {
-        submitBtn.disabled = true;
-        submitBtn.className = 'w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
-      }
-    }
-
     function clearSignaturePad() {
       if (!sigCanvas || !sigCtx) return;
       sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
       checkComplianceFormValidity();
     }
+    window.clearSignaturePad = clearSignaturePad;
 
     function isSignatureBlank() {
       if (!sigCanvas) return true;
@@ -635,184 +494,424 @@
       return sigCanvas.toDataURL() === blank.toDataURL();
     }
 
-    // --- WORKER POPUP SIGNATURE PAD ---
-    function initWorkerCanvas() {
-      workerCanvas = document.getElementById('workerPopupCanvas');
-      if (!workerCanvas) return;
+    // --- ACTIVE ROSTER INGESTION FOR INDUCTION DRAWER ---
+    async function loadActiveRosterForInduction() {
+      const loadingEl = document.getElementById('rosterChecklistLoading');
+      const containerEl = document.getElementById('rosterChecklistContainer');
+      const emptyEl = document.getElementById('rosterChecklistEmpty');
 
-      // 2x HiDPI resolution to prevent pixelation on PDF exports
-      workerCanvas.width = 800;
-      workerCanvas.height = 320;
-
-      workerCtx = workerCanvas.getContext('2d');
-      workerCtx.strokeStyle = '#000000'; // Crisp black ink
-      workerCtx.lineWidth = 3.5;
-      workerCtx.lineCap = 'round';
-      workerCtx.lineJoin = 'round';
-
-      // Mouse
-      workerCanvas.onmousedown = (e) => {
-        isWorkerDrawing = true;
-        const pos = getCanvasCoordinates(workerCanvas, e.clientX, e.clientY);
-        workerCtx.beginPath();
-        workerCtx.moveTo(pos.x, pos.y);
-      };
-      workerCanvas.onmousemove = (e) => {
-        if (!isWorkerDrawing) return;
-        const pos = getCanvasCoordinates(workerCanvas, e.clientX, e.clientY);
-        workerCtx.lineTo(pos.x, pos.y);
-        workerCtx.stroke();
-      };
-      window.addEventListener('mouseup', () => { isWorkerDrawing = false; });
-
-      // Touch
-      workerCanvas.ontouchstart = (e) => {
-        e.preventDefault();
-        isWorkerDrawing = true;
-        const touch = e.touches[0];
-        const pos = getCanvasCoordinates(workerCanvas, touch.clientX, touch.clientY);
-        workerCtx.beginPath();
-        workerCtx.moveTo(pos.x, pos.y);
-      };
-      workerCanvas.ontouchmove = (e) => {
-        if (!isWorkerDrawing) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        const pos = getCanvasCoordinates(workerCanvas, touch.clientX, touch.clientY);
-        workerCtx.lineTo(pos.x, pos.y);
-        workerCtx.stroke();
-      };
-      workerCanvas.ontouchend = () => { isWorkerDrawing = false; };
-    }
-
-    function openWorkerSignatureModal(rowId) {
-      activeSigningRowId = rowId;
-      const row = document.getElementById(rowId);
-      const nameInput = row?.querySelector('.worker-name')?.value?.trim();
-      const codeInput = row?.querySelector('.worker-code')?.value?.trim();
-
-      const modalTitle = document.getElementById('workerSignModalName');
-      if (modalTitle) {
-        modalTitle.textContent = nameInput 
-          ? `Sign: ${nameInput} ${codeInput ? `(${codeInput})` : ''}` 
-          : 'Worker Signature';
+      if (!activeRosterCrew || activeRosterCrew.length === 0) {
+        loadingEl?.classList.remove('hidden');
+        containerEl?.classList.add('hidden');
+        emptyEl?.classList.add('hidden');
       }
 
-      document.getElementById('workerSignModal')?.classList.remove('hidden');
-      setTimeout(() => {
-        initWorkerCanvas();
-        clearWorkerPopupCanvas();
-      }, 50);
-    }
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready');
 
-    function closeWorkerSignatureModal() {
-      document.getElementById('workerSignModal')?.classList.add('hidden');
-      activeSigningRowId = null;
-    }
+        // Verify session is established before querying RLS table
+        const { data: sessionData } = await window.dbClient.auth.getSession();
+        if (!sessionData?.session?.user) {
+          console.warn('[Induction Roster] Auth session not resolved yet; attempting fetch anyway.');
+        }
 
-    function clearWorkerPopupCanvas() {
-      if (!workerCanvas || !workerCtx) return;
-      workerCtx.clearRect(0, 0, workerCanvas.width, workerCanvas.height);
-    }
+        const { data: employees, error } = await window.dbClient
+          .from('company_employees')
+          .select('id, employee_number, first_name, last_name, id_passport_number, gender, team_or_orchard, is_active')
+          .eq('is_active', true)
+          .order('employee_number', { ascending: true });
 
-    function isWorkerCanvasBlank() {
-      if (!workerCanvas) return true;
-      const blank = document.createElement('canvas');
-      blank.width = workerCanvas.width;
-      blank.height = workerCanvas.height;
-      return workerCanvas.toDataURL() === blank.toDataURL();
-    }
+        if (error) throw error;
 
-    function confirmWorkerSignature() {
-      if (isWorkerCanvasBlank()) {
-        alert('Please draw your signature before clicking accept.');
+        activeRosterCrew = (employees || []).sort((a, b) => {
+          const numA = (a.employee_number || '').trim();
+          const numB = (b.employee_number || '').trim();
+          if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+          if (numA) return -1;
+          if (numB) return 1;
+          const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+          const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+          return nameA.localeCompare(nameB);
+        });
+
+        const countEl = document.getElementById('activeCrewCount') || document.getElementById('rosterAvailableCount');
+        if (countEl) countEl.textContent = `${activeRosterCrew.length} active crew on file`;
+
+        renderTraineeChecklist();
+      } catch (err) {
+        console.error('Failed to load active employees for induction:', err);
+        if (containerEl && (!activeRosterCrew || activeRosterCrew.length === 0)) {
+          containerEl.innerHTML = `<div class="p-4 text-xs text-red-600">Failed to load company roster: ${escapeHtml(err.message)}</div>`;
+          containerEl.classList.remove('hidden');
+        }
+      } finally {
+        loadingEl?.classList.add('hidden');
+      }
+    }
+    window.loadActiveRosterForInduction = loadActiveRosterForInduction;
+    window.loadCompanyEmployees = loadActiveRosterForInduction;
+
+    function renderTraineeChecklist(employees = activeRosterCrew) {
+      const containerEl = document.getElementById('rosterChecklistContainer');
+      const emptyEl = document.getElementById('rosterChecklistEmpty');
+      const searchInput = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      const btnSelectAll = document.getElementById('btnSelectAllFiltered');
+      if (!containerEl) return;
+
+      const crew = Array.isArray(employees) && employees.length > 0 ? employees : activeRosterCrew;
+      const query = (searchInput?.value || rosterFilterQuery || '').trim().toLowerCase();
+
+      // If search input is empty, do NOT render the entire roster
+      if (!query) {
+        emptyEl?.classList.add('hidden');
+        containerEl.classList.remove('hidden');
+
+        // If no workers selected yet, display search prompt placeholder
+        if (selectedTraineeIds.size === 0) {
+          containerEl.innerHTML = `
+            <div class="py-10 px-4 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-2 select-none">
+              <svg class="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <p class="font-semibold text-slate-600">Start typing to find crew members</p>
+              <p class="text-[11px] text-slate-400">Search by worker name, clock number, or ID to select trainees</p>
+            </div>
+          `;
+          if (btnSelectAll) {
+            btnSelectAll.textContent = 'Select All Filtered (0)';
+            btnSelectAll.classList.add('opacity-40', 'cursor-not-allowed');
+            btnSelectAll.classList.remove('cursor-pointer');
+          }
+          return;
+        }
+
+        // If workers are already selected, display only the selected workers sorted by employee number
+        const selectedCrew = (crew || []).filter(emp => selectedTraineeIds.has(emp.id));
+        selectedCrew.sort((a, b) => {
+          const numA = (a.employee_number || '').trim();
+          const numB = (b.employee_number || '').trim();
+          if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+          if (numA) return -1;
+          if (numB) return 1;
+          return (`${a.first_name || ''} ${a.last_name || ''}`).localeCompare(`${b.first_name || ''} ${b.last_name || ''}`);
+        });
+
+        const selectedHtml = selectedCrew.map(emp => {
+          const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Worker';
+          const badgeNo = emp.employee_number
+            ? `#${escapeHtml(emp.employee_number)}`
+            : (emp.id_passport_number ? `ID: ${escapeHtml(emp.id_passport_number)}` : 'No #');
+          const teamLabel = emp.team_or_orchard ? `<span class="text-[10px] text-slate-400 font-normal ml-1.5">(${escapeHtml(emp.team_or_orchard)})</span>` : '';
+
+          return `
+            <label class="flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all bg-blue-50/80 border-blue-200 text-primary">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(emp.id)}" checked onchange="toggleTraineeSelection('${escapeHtml(emp.id)}')">
+                <div class="min-w-0 truncate">
+                  <span class="font-mono text-xs font-bold text-slate-900">${badgeNo}</span>
+                  <span class="text-xs font-semibold ml-1.5 text-slate-800">${escapeHtml(fullName)}</span>
+                  ${teamLabel}
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(emp.gender || '—')}</span>
+            </label>
+          `;
+        }).join('');
+
+        containerEl.innerHTML = `
+          <div class="flex items-center justify-between px-2.5 py-1.5 bg-slate-100 rounded-lg text-[11px] text-slate-600 font-semibold mb-1">
+            <span>Currently Selected Trainees (${selectedCrew.length})</span>
+            <span class="text-slate-400 font-normal">Type above to find more</span>
+          </div>
+          ${selectedHtml}
+        `;
+
+        if (btnSelectAll) {
+          btnSelectAll.textContent = 'Select All Filtered (0)';
+          btnSelectAll.classList.add('opacity-40', 'cursor-not-allowed');
+          btnSelectAll.classList.remove('cursor-pointer');
+        }
         return;
       }
 
-      if (!activeSigningRowId) return;
+      // User is actively searching: filter and sort matches naturally by employee_number
+      const matches = (crew || []).filter(emp => {
+        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.toLowerCase();
+        const num = (emp.employee_number || '').toLowerCase();
+        const idNum = (emp.id_passport_number || '').toLowerCase();
+        return name.includes(query) || num.includes(query) || idNum.includes(query);
+      });
 
-      const row = document.getElementById(activeSigningRowId);
-      if (row) {
-        const sigInput = row.querySelector('.worker-sig-data');
-        const sigBtn = row.querySelector('.worker-sig-btn');
+      matches.sort((a, b) => {
+        const numA = (a.employee_number || '').trim();
+        const numB = (b.employee_number || '').trim();
+        if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+        if (numA) return -1;
+        if (numB) return 1;
+        const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+        const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+        return nameA.localeCompare(nameB);
+      });
 
-        if (sigInput) sigInput.value = workerCanvas.toDataURL('image/png');
-
-        if (sigBtn) {
-          sigBtn.className = 'worker-sig-btn shrink-0 min-h-11 flex items-center gap-1 px-3 py-2 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-bold shadow-sm transition-all';
-          sigBtn.innerHTML = `<span>✓</span><span class="btn-text">Signed</span>`;
-        }
-      }
-
-      closeWorkerSignatureModal();
-    }
-
-    function setLogMode(mode) {
-      currentLogMode = mode;
-      const btnInd = document.getElementById('modeBtnIndividual');
-      const btnGrp = document.getElementById('modeBtnGroup');
-      const addBtn = document.getElementById('addTraineeRowBtn');
-      const container = document.getElementById('traineeRowsContainer');
-
-      if (mode === 'Individual') {
-        if (btnInd) btnInd.className = 'py-2 text-xs font-semibold rounded-lg bg-white text-primary shadow-sm transition-all';
-        if (btnGrp) btnGrp.className = 'py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
-        addBtn?.classList.add('hidden');
-        if (container) {
-          container.innerHTML = '';
-          addTraineeRow();
+      if (matches.length === 0) {
+        containerEl.innerHTML = `
+          <div class="py-8 px-4 text-center text-xs text-slate-500">
+            No active workers found matching "${escapeHtml(query)}". Use Quick-Add below to add an unlisted worker.
+          </div>
+        `;
+        containerEl.classList.remove('hidden');
+        emptyEl?.classList.add('hidden');
+        if (btnSelectAll) {
+          btnSelectAll.textContent = 'Select All Filtered (0)';
+          btnSelectAll.classList.add('opacity-40', 'cursor-not-allowed');
+          btnSelectAll.classList.remove('cursor-pointer');
         }
       } else {
-        if (btnGrp) btnGrp.className = 'py-2 text-xs font-semibold rounded-lg bg-white text-primary shadow-sm transition-all';
-        if (btnInd) btnInd.className = 'py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
-        addBtn?.classList.remove('hidden');
-        if (container && container.children.length === 1) {
-          addTraineeRow();
+        emptyEl?.classList.add('hidden');
+        containerEl.classList.remove('hidden');
+
+        containerEl.innerHTML = matches.map(emp => {
+          const isChecked = selectedTraineeIds.has(emp.id);
+          const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Worker';
+          const badgeNo = emp.employee_number
+            ? `#${escapeHtml(emp.employee_number)}`
+            : (emp.id_passport_number ? `ID: ${escapeHtml(emp.id_passport_number)}` : 'No #');
+          const teamLabel = emp.team_or_orchard ? `<span class="text-[10px] text-slate-400 font-normal ml-1.5">(${escapeHtml(emp.team_or_orchard)})</span>` : '';
+
+          return `
+            <label class="flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all ${isChecked ? 'bg-blue-50/80 border-blue-200 text-primary' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'}">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(emp.id)}" ${isChecked ? 'checked' : ''} onchange="toggleTraineeSelection('${escapeHtml(emp.id)}')">
+                <div class="min-w-0 truncate">
+                  <span class="font-mono text-xs font-bold text-slate-900">${badgeNo}</span>
+                  <span class="text-xs font-semibold ml-1.5 text-slate-800">${escapeHtml(fullName)}</span>
+                  ${teamLabel}
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(emp.gender || '—')}</span>
+            </label>
+          `;
+        }).join('');
+
+        if (btnSelectAll) {
+          btnSelectAll.textContent = `Select All Filtered (${matches.length})`;
+          btnSelectAll.classList.remove('opacity-40', 'cursor-not-allowed');
+          btnSelectAll.classList.add('cursor-pointer');
         }
       }
-      updateWorkerCountBadge();
+
+      const countEl = document.getElementById('activeCrewCount') || document.getElementById('rosterAvailableCount');
+      if (countEl) countEl.textContent = `${activeRosterCrew.length} active crew on file`;
     }
+    window.renderTraineeChecklist = renderTraineeChecklist;
 
-    function addTraineeRow() {
-      const container = document.getElementById('traineeRowsContainer');
-      if (!container) return;
+    function toggleTraineeSelection(id) {
+      if (selectedTraineeIds.has(id)) {
+        selectedTraineeIds.delete(id);
+      } else {
+        selectedTraineeIds.add(id);
+      }
+      renderTraineeChecklist();
+      checkComplianceFormValidity();
+    }
+    window.toggleTraineeSelection = toggleTraineeSelection;
 
-      const rowIndex = container.children.length;
-      const rowId = `trainee-row-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      const row = document.createElement('div');
-      row.id = rowId;
-      row.className = 'trainee-row flex flex-wrap sm:flex-nowrap items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl transition-all';
-      
-      row.innerHTML = `
-        <input type="text" class="worker-code w-20 sm:w-24 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono outline-none focus:border-primary uppercase" placeholder="P1732">
-        <input type="text" class="worker-name flex-1 min-w-[140px] px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-primary" placeholder="Worker Full Name">
-        <select class="worker-gender w-16 px-1.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none cursor-pointer">
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        
-        <input type="hidden" class="worker-sig-data" value="">
+    function selectAllFilteredTrainees() {
+      const searchInput = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      const query = (searchInput?.value || rosterFilterQuery || '').trim().toLowerCase();
 
-        <button type="button" onclick="openWorkerSignatureModal('${rowId}')" class="worker-sig-btn shrink-0 min-h-11 flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shadow-sm transition-all cursor-pointer">
-          <span>✍️</span>
-          <span class="btn-text">Sign</span>
-        </button>
+      if (!query) return;
 
-        ${currentLogMode === 'Group' && rowIndex > 0 ? `
-          <button type="button" onclick="this.closest('.trainee-row').remove(); updateWorkerCountBadge();" class="min-h-11 min-w-11 flex items-center justify-center p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors" title="Remove Worker">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      const matches = activeRosterCrew.filter(emp => {
+        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.toLowerCase();
+        const num = (emp.employee_number || '').toLowerCase();
+        const idNum = (emp.id_passport_number || '').toLowerCase();
+        return name.includes(query) || num.includes(query) || idNum.includes(query);
+      });
+
+      matches.forEach(emp => selectedTraineeIds.add(emp.id));
+      renderTraineeChecklist();
+      checkComplianceFormValidity();
+    }
+    window.selectAllFilteredTrainees = selectAllFilteredTrainees;
+
+    function clearTraineeSelection() {
+      selectedTraineeIds.clear();
+      renderTraineeChecklist();
+      checkComplianceFormValidity();
+    }
+    window.clearTraineeSelection = clearTraineeSelection;
+
+    // --- DYNAMIC GUEST WORKERS REPEATER ---
+    let guestWorkerRowCounter = 0;
+
+    function createGuestWorkerRowHtml(rowId, data = {}) {
+      const name = data.name || '';
+      const number = data.number || '';
+      const gender = data.gender || 'Male';
+
+      return `
+        <div class="guest-worker-row flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg shadow-xs" data-row-id="${rowId}">
+          <div class="flex-1">
+            <input type="text" class="guest-name w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs" placeholder="Worker full name *" value="${escapeHtml(name)}" oninput="checkComplianceFormValidity()">
+          </div>
+          <div class="w-full sm:w-36">
+            <input type="text" class="guest-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs uppercase" placeholder="ID or Clock #" value="${escapeHtml(number)}" oninput="checkComplianceFormValidity()">
+          </div>
+          <div class="w-full sm:w-28">
+            <select class="guest-gender w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs cursor-pointer" onchange="checkComplianceFormValidity()">
+              <option value="Male" ${gender === 'Male' ? 'selected' : ''}>Male</option>
+              <option value="Female" ${gender === 'Female' ? 'selected' : ''}>Female</option>
+              <option value="Other" ${gender === 'Other' ? 'selected' : ''}>Other</option>
+            </select>
+          </div>
+          <button type="button" onclick="removeGuestWorkerRow(this)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer self-end sm:self-auto shrink-0 flex items-center gap-1 text-xs" title="Remove worker">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="sm:hidden text-red-600 font-medium">Remove</span>
           </button>
-        ` : ''}
+        </div>
       `;
-      container.appendChild(row);
-      updateWorkerCountBadge();
     }
 
-    function updateWorkerCountBadge() {
-      const badge = document.getElementById('workerCountBadge');
-      const count = document.querySelectorAll('.trainee-row').length;
-      if (badge) badge.textContent = `${count} ${count === 1 ? 'Trainee' : 'Trainees'}`;
+    function addGuestWorkerRow(data = {}) {
+      const listEl = document.getElementById('guestWorkersList');
+      if (!listEl) return;
+      guestWorkerRowCounter++;
+      const rowId = `guest_row_${guestWorkerRowCounter}`;
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = createGuestWorkerRowHtml(rowId, data);
+      const rowEl = tempDiv.firstElementChild;
+      listEl.appendChild(rowEl);
+      rowEl.querySelector('.guest-name')?.focus();
+      checkComplianceFormValidity();
+      return rowEl;
+    }
+    window.addGuestWorkerRow = addGuestWorkerRow;
+
+    function removeGuestWorkerRow(btn) {
+      const row = btn.closest('.guest-worker-row');
+      if (row) {
+        row.remove();
+        checkComplianceFormValidity();
+      }
+    }
+    window.removeGuestWorkerRow = removeGuestWorkerRow;
+
+    function toggleQuickAddWorker() {
+      addGuestWorkerRow();
+    }
+    window.toggleQuickAddWorker = toggleQuickAddWorker;
+
+    function getValidGuestWorkers() {
+      const listEl = document.getElementById('guestWorkersList');
+      if (!listEl) return [];
+
+      const rows = listEl.querySelectorAll('.guest-worker-row');
+      const validGuests = [];
+
+      rows.forEach(row => {
+        const name = row.querySelector('.guest-name')?.value?.trim();
+        const number = row.querySelector('.guest-number')?.value?.trim();
+        const gender = row.querySelector('.guest-gender')?.value || 'Male';
+
+        if (name) {
+          validGuests.push({
+            employee_id: null,
+            employee_name: name,
+            employee_number: number || null,
+            gender: gender
+          });
+        }
+      });
+
+      return validGuests;
+    }
+
+    function getSelectedTraineesList() {
+      const result = [];
+      selectedTraineeIds.forEach(id => {
+        const fromRoster = activeRosterCrew.find(e => e.id === id);
+        if (fromRoster) {
+          result.push({
+            employee_id: fromRoster.id,
+            employee_name: `${fromRoster.first_name || ''} ${fromRoster.last_name || ''}`.trim() || 'Worker',
+            employee_number: fromRoster.employee_number || null,
+            gender: fromRoster.gender || 'Male'
+          });
+        }
+      });
+
+      const validGuests = getValidGuestWorkers();
+      validGuests.forEach(g => {
+        result.push(g);
+      });
+
+      return result;
+    }
+
+    function checkComplianceFormValidity() {
+      const submitBtn = document.getElementById('submitComplianceBtn');
+      const submitBtnText = document.getElementById('submitComplianceBtnText');
+      const checkbox = document.getElementById('supervisorDeclarationCheck');
+      const badge = document.getElementById('traineeCountBadge');
+      const advisory = document.getElementById('traineeAdvisoryBanner');
+      const supInput = document.getElementById('modalSupervisorName');
+
+      const trainees = getSelectedTraineesList();
+      const count = trainees.length;
+      const isChecked = Boolean(checkbox && checkbox.checked);
+      const hasSig = !isSignatureBlank();
+      const hasSupName = Boolean(supInput && supInput.value.trim());
+
+      // Badge styling & text
+      if (badge) {
+        if (count === 0) {
+          badge.textContent = '0 Trainees Selected';
+          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600';
+        } else if (count === 1) {
+          badge.textContent = '1 Trainee (Individual Record)';
+          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800';
+        } else {
+          badge.textContent = `${count} Trainees (Batch Session)`;
+          badge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800';
+        }
+      }
+
+      // Advisory & statutory limits
+      if (advisory) {
+        if (count > 80) {
+          advisory.className = 'p-3 rounded-xl text-xs font-semibold border bg-red-50 text-red-800 border-red-200 block';
+          advisory.innerHTML = `🚫 <strong>Statutory Limit Exceeded:</strong> Induction sessions cannot exceed 80 workers (OHSA / SIZA statutory threshold). You currently have ${count} selected. Please deselect ${count - 80} worker(s).`;
+        } else if (count > 50) {
+          advisory.className = 'p-3 rounded-xl text-xs font-medium border bg-amber-50 text-amber-800 border-amber-200 block';
+          advisory.innerHTML = `⚠️ <strong>Advisory:</strong> Group sessions larger than 50 workers may reduce individual assessment attentiveness.`;
+        } else {
+          advisory.classList.add('hidden');
+        }
+      }
+
+      const isValid = count >= 1 && count <= 80 && isChecked && hasSig && hasSupName;
+
+      if (!submitBtn || !submitBtnText) return;
+
+      if (count === 0) {
+        submitBtnText.textContent = 'SELECT AT LEAST 1 TRAINEE';
+      } else if (count === 1) {
+        submitBtnText.textContent = '🔒 DIGITALLY SIGN & RECORD 1 INDUCTION (INDIVIDUAL)';
+      } else if (count <= 80) {
+        submitBtnText.textContent = `🔒 DIGITALLY SIGN & RECORD ${count} INDUCTIONS (BATCH)`;
+      } else {
+        submitBtnText.textContent = 'LIMIT EXCEEDED (MAX 80 WORKERS)';
+      }
+
+      if (isValid) {
+        submitBtn.disabled = false;
+        submitBtn.className = 'w-full bg-primary text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer';
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.className = 'w-full bg-slate-200 text-slate-400 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center gap-2 cursor-not-allowed';
+      }
     }
 
     function openComplianceModal() {
@@ -825,28 +924,46 @@
       if (dateEl) {
         dateEl.textContent = new Intl.DateTimeFormat('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date());
       }
-      
+
       const userName = document.getElementById('topbar-user-name')?.textContent;
       if (supInput && userName && userName !== 'Loading...') {
         supInput.value = userName;
       }
 
-      setLogMode('Individual');
       const declCheck = document.getElementById('supervisorDeclarationCheck');
       if (declCheck) declCheck.checked = false;
+
+      selectedTraineeIds.clear();
+      customUnlistedTrainees = [];
+      rosterFilterQuery = '';
+
+      const searchInput = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      if (searchInput) searchInput.value = '';
+
+      const guestList = document.getElementById('guestWorkersList');
+      if (guestList) guestList.innerHTML = '';
+
+      // Immediately render cached roster if already available
+      if (activeRosterCrew && activeRosterCrew.length > 0) {
+        renderTraineeChecklist(activeRosterCrew);
+      }
+
       modal?.classList.remove('hidden');
-      
-      // Allow modal DOM layout to settle before calculating canvas rect
+
       setTimeout(() => {
         initSignaturePad();
         clearSignaturePad();
         checkComplianceFormValidity();
       }, 120);
+
+      loadActiveRosterForInduction();
     }
+    window.openComplianceModal = openComplianceModal;
 
     function closeComplianceModal() {
       document.getElementById('complianceModal')?.classList.add('hidden');
     }
+    window.closeComplianceModal = closeComplianceModal;
 
     async function submitComplianceLog() {
       const submitBtn = document.getElementById('submitComplianceBtn');
@@ -863,7 +980,6 @@
         alert('Please formally declare and confirm the mandatory ECTA Section 13 Supervisor Declaration before submitting.');
         return;
       }
-      const supervisor_declaration_confirmed = Boolean(supervisorDeclarationCheckbox.checked);
 
       if (!supName) {
         alert('Please enter the Supervising Officer name.');
@@ -875,80 +991,117 @@
         return;
       }
 
-      const rows = document.querySelectorAll('.trainee-row');
-      const recordsToInsert = [];
-      const batchSessionId = crypto.randomUUID();
+      const trainees = getSelectedTraineesList();
+      if (trainees.length === 0) {
+        alert('Please select at least one trainee from the roster.');
+        return;
+      }
+
+      if (trainees.length > 80) {
+        alert('Induction batch cannot exceed 80 workers.');
+        return;
+      }
+
       const supervisorSigData = sigCanvas.toDataURL('image/png');
       const moduleTitle = window.currentVideoTitle || 'General Safety Module';
-
-      for (let i = 0; i < rows.length; i++) {
-        const code = rows[i].querySelector('.worker-code')?.value?.trim();
-        const name = rows[i].querySelector('.worker-name')?.value?.trim();
-        const gender = rows[i].querySelector('.worker-gender')?.value || 'Male';
-        const workerSigData = rows[i].querySelector('.worker-sig-data')?.value || null;
-
-        if (!name) {
-          alert(`Please enter a worker name for Row #${i + 1}.`);
-          return;
-        }
-
-        recordsToInsert.push({
-          company_id: companyId,
-          employee_name: name,
-          employee_number: code || null,
-          gender: gender,
-          module_title: moduleTitle,
-          training_type: currentLogMode,
-          supervisor_name: supName,
-          supervisor_signature_data: supervisorSigData,
-          employee_signature_data: workerSigData,
-          batch_session_id: currentLogMode === 'Group' ? batchSessionId : null,
-          status: 'Verified',
-          completed_at: new Date().toISOString().split('T')[0]
-        });
-      }
 
       submitBtn.disabled = true;
       submitBtn.className = 'w-full bg-primary/70 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-wait';
       submitBtn.innerHTML = `
         <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
-        DIGITALLY SIGNING &amp; LOGGING IMMUTABLE RECORD...
+        <span>COMMITTING ATOMIC INDUCTION BATCH...</span>
       `;
 
       try {
-        const { error } = await window.dbClient
-          .from('training_records')
-          .insert(recordsToInsert);
+        const { data, error } = await window.dbClient.rpc('log_induction_session', {
+          p_module_title: moduleTitle,
+          p_supervisor_name: supName,
+          p_supervisor_signature: supervisorSigData,
+          p_trainees: trainees
+        });
 
         if (error) throw error;
 
-        // --- GA4 Custom Event: Compliance Log Logged ---
+        // GA4 Custom Event
         if (typeof gtag === 'function') {
           gtag('event', 'compliance_log_submitted', {
             module: moduleTitle,
-            training_type: currentLogMode,
-            trainee_count: recordsToInsert.length,
-            supervisor_declaration_confirmed: supervisor_declaration_confirmed
+            training_type: data.training_type || (trainees.length === 1 ? 'Individual' : 'Batch'),
+            trainee_count: trainees.length,
+            batch_session_id: data.batch_session_id || null
           });
         }
 
-        alert(`✓ Successfully logged ${recordsToInsert.length} verified training record(s) for ${moduleTitle}.`);
+        alert(`✓ Successfully logged ${trainees.length} verified induction(s) (${data.training_type || 'Batch'}). Certificates and attendance register are available in Training Records.`);
         closeComplianceModal();
 
       } catch (err) {
         console.error('Failed submitting compliance log:', err);
         alert(`Error saving records: ${err.message || 'Unknown database error'}`);
       } finally {
-        submitBtn.innerHTML = `
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-          <span>DIGITALLY SIGN, VERIFY &amp; LOG IMMUTABLE RECORD</span>
-        `;
-        checkComplianceFormValidity();
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span id="submitComplianceBtnText">DIGITALLY SIGN &amp; RECORD</span>
+          `;
+          checkComplianceFormValidity();
+        }
       }
     }
+    window.submitComplianceLog = submitComplianceLog;
 
     // =========================================================================
-    // PAGE BOOTSTRAP & PLAYER INITIALIZATION
+    // MULTILINGUAL AUDIO STREAM STATE & HOT-SWAPPER (SECTION 3.2)
+    // =========================================================================
+    window.vimeoPlayer = null;
+    window.currentVideoStreams = {};
+    window.canonicalVideoId = null;
+    window.activeLanguage = 'en';
+
+    /**
+     * Hot-swaps the active Vimeo video stream while preserving current playback position.
+     * @param {string} targetLang - Language key ('en', 'zu', 'af', 'xh')
+     */
+    async function switchAudioStream(targetLang) {
+      if (!window.vimeoPlayer || !window.currentVideoStreams || !window.currentVideoStreams[targetLang]) return;
+
+      try {
+        const streamConfig = window.currentVideoStreams[targetLang];
+        const newVimeoId = streamConfig.vimeo_id;
+
+        // 1. Capture current playback position and paused state before switching
+        const currentSeconds = await window.vimeoPlayer.getCurrentTime();
+        const isPaused = await window.vimeoPlayer.getPaused();
+
+        // 2. Hot-swap video stream using Vimeo SDK loadVideo()
+        await window.vimeoPlayer.loadVideo(newVimeoId);
+
+        // 3. Re-seek to preserved timestamp
+        await window.vimeoPlayer.setCurrentTime(currentSeconds);
+
+        // 4. Restore playback if it was active
+        if (!isPaused) {
+          await window.vimeoPlayer.play();
+        }
+
+        window.activeLanguage = targetLang;
+
+        // 5. Synchronize language selector dropdown value
+        const select = document.getElementById('moduleLanguageSelect');
+        if (select && select.value !== targetLang) {
+          select.value = targetLang;
+        }
+
+        console.log(`[VimeoEngine] Successfully switched audio stream to ${streamConfig.label} (${targetLang}) at ${Math.floor(currentSeconds)}s`);
+      } catch (err) {
+        console.error('[VimeoEngine] Failed to hot-swap audio stream:', err);
+      }
+    }
+    window.switchAudioStream = switchAudioStream;
+
+    // =========================================================================
+    // PAGE BOOTSTRAP & AUTHORITATIVE SECURITY GATE
     // =========================================================================
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -960,30 +1113,52 @@
         return;
       }
 
+      window.canonicalVideoId = String(videoId);
       const dbClient = window.dbClient;
 
-      let { data: video } = await dbClient
-        .from('videos')
-        .select('*')
-        .eq('id', String(videoId))
-        .maybeSingle();
-
-      if (!video) {
-        video = {
-          id: String(videoId),
-          title: `Training Module (${videoId})`,
-          category: 'Agriculture Module',
-          description: 'Standard operational safety module.',
-          total_seconds: 0
-        };
-      }
-
+      // 1. Ensure active session
       const { data: { session } } = await dbClient.auth.getSession();
       if (!session?.user?.id) {
         window.location.replace('index.html');
         return;
       }
 
+      // 2. Authoritative Security Stream Gate (Server-Side Entitlement Resolution)
+      let video = null;
+      try {
+        const { data: streamData, error: streamErr } = await dbClient.rpc('get_module_stream', { p_video_id: String(videoId) });
+        if (streamErr) throw streamErr;
+        video = streamData;
+      } catch (gateErr) {
+        console.warn('[Security Gate] Access denied or error:', gateErr);
+        const playerContainer = document.querySelector('.aspect-video');
+        if (playerContainer) {
+          playerContainer.innerHTML = `
+            <div class="w-full h-full min-h-[360px] bg-slate-900 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center p-8 text-center text-white">
+              <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-400 flex items-center justify-center mb-4 shadow-xl">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
+              <h2 class="text-2xl font-serif font-bold mb-2">Module Access Restricted</h2>
+              <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+                This training module is locked. Your organization requires an upgraded subscription or specialized crop pack subsidy to access this video stream and compliance assessments.
+              </p>
+              <div class="flex items-center gap-3">
+                <a href="vault.html" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-semibold text-white transition-colors">
+                  &larr; Back to Video Library
+                </a>
+                <button onclick="openProfileModal(); switchProfileTab('plans');" class="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shadow-lg transition-colors">
+                  View Subscription &rarr;
+                </button>
+              </div>
+            </div>
+          `;
+        }
+        const compCard = document.getElementById('compliance-card-container');
+        if (compCard) compCard.classList.add('hidden');
+        return;
+      }
+
+      // 3. User & Company Profile Context
       const { data: profile } = await dbClient
         .from('profiles')
         .select('company_id')
@@ -992,11 +1167,11 @@
 
       window.userCompanyId = profile?.company_id || null;
 
-      // module.html doesn't run through profile-engine.js's loadUserProfile()
-      // flow (it does its own lightweight session/company fetch above), so
-      // window.currentCompanySponsors - the partner-attribution join used by
-      // getSponsorEntry() for the co-brand badge below - won't be populated
-      // unless we fetch it here too.
+      // Pre-load active farm roster in background for induction drawer
+      if (typeof loadActiveRosterForInduction === 'function') {
+        loadActiveRosterForInduction().catch(e => console.warn('[Induction] Pre-load roster error:', e));
+      }
+
       if (typeof fetchCompanySponsorPartners === 'function') {
         await fetchCompanySponsorPartners(window.userCompanyId);
       }
@@ -1034,8 +1209,10 @@
           const subTagMap = {
             'Macadamia Processing': 'bg-amber-50 text-amber-700 border-amber-200/60',
             'Banana Processing': 'bg-yellow-50 text-yellow-800 border-yellow-200/60',
+            'Citrus Processing': 'bg-orange-50 text-orange-800 border-orange-200/60',
             'Machinery & Workshop': 'bg-blue-50 text-blue-700 border-blue-200/60',
             'Pumping & Irrigation': 'bg-cyan-50 text-cyan-700 border-cyan-200/60',
+            'Vehicles & Fleet': 'bg-indigo-50 text-indigo-700 border-indigo-200/60',
             'General Safety': 'bg-slate-100 text-slate-700 border-slate-200'
           };
           const badgeColorClass = subTagMap[subTag] || 'bg-slate-100 text-slate-700 border-slate-200';
@@ -1049,6 +1226,7 @@
 
       window.currentVideoTitle = videoTitle;
 
+      // 4. Learning Objectives
       const objectivesList = document.getElementById('moduleObjectives');
       if (objectivesList) {
         objectivesList.innerHTML = '';
@@ -1061,6 +1239,7 @@
         });
       }
 
+      // 5. Comprehension Questions
       const questionsCard = document.getElementById('moduleQuestionsCard');
       const questionsList = document.getElementById('moduleQuestionsList');
       const questionsData = Array.isArray(video.questions) ? video.questions : [];
@@ -1100,84 +1279,14 @@
         }
       }
 
-      // Tier Gate Lockout Interceptor
+      // 6. Partner Attribution Badge
+      const cropName = (typeof getCropFromSubTag === 'function') ? getCropFromSubTag(video.sub_tag) : null;
       const { data: companyData } = await dbClient
         .from('companies')
-        .select('id, tier, is_subsidized, paystack_subscription_code, unlock_all_crops, sponsored_crop_packs, purchased_crop_packs')
+        .select('id, tier, is_subsidized, sponsored_crop_packs')
         .eq('id', profile?.company_id)
         .maybeSingle();
 
-      const userTier = (companyData?.tier || 'basic').toLowerCase();
-      const subCategory = (video.sub_tag || 'General Safety').toLowerCase().trim();
-      const unlockedBasic = ['general safety', 'machinery & workshop'];
-      const isBasicLocked = (userTier === 'basic') && !unlockedBasic.includes(subCategory);
-
-      // Trial Farm / Custom Override (point 2, criterion 3): this specific
-      // video already belongs to the viewer's own company's private branded
-      // library (videos.company_id === companies.id) - full access to it
-      // regardless of subsidy records.
-      const hasCustomLibrary = !!(video.company_id && companyData?.id && video.company_id === companyData.id);
-
-      // Crop-Pack Gating (Layer 2): Essential/Enterprise growers still need this
-      // specific crop pack unlocked (sponsored or bolted-on) for specialized content.
-      const cropName = (typeof getCropFromSubTag === 'function') ? getCropFromSubTag(video.sub_tag) : null;
-      const isCropLocked = !isBasicLocked && !!cropName && typeof isCropUnlocked === 'function' && !isCropUnlocked(companyData, cropName, { hasCustomLibrary });
-
-      if (isBasicLocked) {
-        const playerContainer = document.querySelector('.aspect-video');
-        if (playerContainer) {
-          playerContainer.innerHTML = `
-            <div class="w-full h-full bg-slate-900 flex flex-col items-center justify-center p-8 text-center text-white">
-              <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-400 flex items-center justify-center mb-4 shadow-xl">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              </div>
-              <h2 class="text-2xl font-serif font-bold mb-2">Specialized Module Locked</h2>
-              <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-                <strong>${videoTitle}</strong> is part of the <em>${video.sub_tag || 'Specialized'}</em> catalog. Upgrade to the Essential tier (R280/mo) to unlock complete video streaming and digital compliance logs.
-              </p>
-              <div class="flex items-center gap-3">
-                <a href="vault.html" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">
-                  &larr; Back to Library
-                </a>
-                <button onclick="openProfileModal(); switchProfileTab('plans');" class="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shadow-lg transition-colors">
-                  Upgrade Plan &rarr;
-                </button>
-              </div>
-            </div>
-          `;
-        }
-        return;
-      }
-
-      if (isCropLocked) {
-        const playerContainer = document.querySelector('.aspect-video');
-        if (playerContainer) {
-          playerContainer.innerHTML = `
-            <div class="w-full h-full bg-slate-900 flex flex-col items-center justify-center p-8 text-center text-white">
-              <div class="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-400 flex items-center justify-center mb-4 shadow-xl">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              </div>
-              <h2 class="text-2xl font-serif font-bold mb-2">${cropName} Pack Locked</h2>
-              <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-                <strong>${videoTitle}</strong> is part of the <em>${cropName}</em> crop pack, which isn't active on your account yet. Your plan already covers your core farm modules.
-              </p>
-              <div class="flex items-center gap-3">
-                <a href="vault.html" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium transition-colors">
-                  &larr; Back to Library
-                </a>
-                <button onclick="handleCropPackLockClick('${videoTitle.replace(/'/g, "\\'")}', '${cropName}')" class="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-semibold shadow-lg transition-colors">
-                  Unlock Crop Pack &rarr;
-                </button>
-              </div>
-            </div>
-          `;
-        }
-        return;
-      }
-
-      // Co-branding badge (Layer 2, unlocked + sponsored modules only). Text-only,
-      // matching the vault.html card pill cleanup — the partner logo now only
-      // appears in the thumbnail patch on vault.html, not duplicated in badges.
       const sponsorEntry = (cropName && typeof getSponsorEntry === 'function') ? getSponsorEntry(companyData, cropName) : null;
       const partnerBadge = document.getElementById('modulePartnerBadge');
       if (partnerBadge && sponsorEntry) {
@@ -1186,10 +1295,70 @@
         partnerBadge.innerHTML = `<span class="text-xs font-semibold text-slate-700">Sponsored by ${sponsorEntry.partner_name}</span>`;
       }
 
+      // 7. Multi-Language Audio Streams Setup
+      const defaultLanguageLabel = video.language || 'English & Zulu';
+      const hasMultipleStreams = video.streams && typeof video.streams === 'object' && Object.keys(video.streams).length > 1;
+
+      if (hasMultipleStreams) {
+        window.currentVideoStreams = video.streams;
+      } else {
+        const singleVimeoId = (video.streams && typeof video.streams === 'object' && Object.values(video.streams)[0]?.vimeo_id) || String(videoId);
+        window.currentVideoStreams = {
+          default: {
+            vimeo_id: singleVimeoId,
+            label: defaultLanguageLabel
+          }
+        };
+      }
+
+      const availableLangs = Object.keys(window.currentVideoStreams);
+
+      // Select the current video ID's stream by default
+      let defaultLangKey = availableLangs.find(k => String(window.currentVideoStreams[k].vimeo_id) === String(videoId));
+      if (!defaultLangKey) {
+        // Fallback: match by video.language if label matches
+        const vidLangNorm = defaultLanguageLabel.toLowerCase().trim();
+        defaultLangKey = availableLangs.find(k => (window.currentVideoStreams[k].label || '').toLowerCase().trim() === vidLangNorm);
+      }
+      if (!defaultLangKey) {
+        defaultLangKey = availableLangs[0];
+      }
+      window.activeLanguage = defaultLangKey;
+
+      const switcherContainer = document.getElementById('audioStreamSwitcherContainer');
+      const langSelect = document.getElementById('moduleLanguageSelect');
+      const langSubtext = document.getElementById('moduleLanguageSubtext');
+
+      if (langSelect) {
+        langSelect.innerHTML = '';
+        availableLangs.forEach(langKey => {
+          const opt = document.createElement('option');
+          opt.value = langKey;
+          opt.textContent = window.currentVideoStreams[langKey].label || langKey.toUpperCase();
+          if (langKey === window.activeLanguage) opt.selected = true;
+          langSelect.appendChild(opt);
+        });
+
+        if (availableLangs.length > 1) {
+          langSelect.disabled = false;
+          if (langSubtext) langSubtext.textContent = `${availableLangs.length} multilingual audio tracks available for this module`;
+        } else {
+          langSelect.disabled = true;
+          if (langSubtext) langSubtext.textContent = `${defaultLanguageLabel} audio track only (single language available for this module)`;
+        }
+      }
+
+      if (switcherContainer) {
+        switcherContainer.classList.remove('hidden');
+      }
+
+      // 8. Player Embed & Vimeo SDK Binding
+      const initialVimeoId = window.currentVideoStreams[window.activeLanguage]?.vimeo_id || videoId;
       const iframe = document.querySelector('#videoPlayer');
       if (iframe) {
-        iframe.src = `https://player.vimeo.com/video/${encodeURIComponent(videoId)}?title=0&byline=0&portrait=0&badge=0&autoplay=1#t=${Math.floor(startTime)}s`;
+        iframe.src = `https://player.vimeo.com/video/${encodeURIComponent(initialVimeoId)}?title=0&byline=0&portrait=0&badge=0&autoplay=1#t=${Math.floor(startTime)}s`;
         const player = new Vimeo.Player(iframe);
+        window.vimeoPlayer = player;
         await player.ready();
 
         const saveProgress = async (data) => {
@@ -1207,7 +1376,7 @@
 
           await dbClient.from('user_video_progress').upsert({
             user_id: session.user.id,
-            video_id: String(videoId),
+            video_id: String(window.canonicalVideoId || videoId),
             video_title: video.title,
             progress_seconds: progressSeconds,
             duration_seconds: durationSeconds,
@@ -1244,6 +1413,16 @@
         player.on('pause', (data) => flushProgress(data, true));
         player.on('ended', (data) => flushProgress({ seconds: data?.duration || 0, duration: data?.duration || 0 }, true));
       }
+
+      // Roster trainee search listener
+      const traineeSearch = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      traineeSearch?.addEventListener('input', (e) => {
+        rosterFilterQuery = e.target.value;
+        renderTraineeChecklist();
+      });
+
+      document.getElementById('modalSupervisorName')?.addEventListener('input', checkComplianceFormValidity);
+      document.getElementById('supervisorDeclarationCheck')?.addEventListener('change', checkComplianceFormValidity);
     });
   </script>
 
@@ -1483,6 +1662,10 @@
     }
   </script>
 
+  <script type="module">
+    import { LayoutEngine } from './js/modules/layout.js';
+    LayoutEngine.mount();
+  </script>
   <script src="js/main.js"></script>
   <script src="js/profile-engine.js"></script>
 </body>
