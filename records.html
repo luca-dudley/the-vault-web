@@ -318,7 +318,7 @@
 
           <div id="rosterTableWrapper" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
+              <table id="rosterTable" class="w-full text-left text-xs">
                 <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                   <tr>
                     <th class="px-4 py-3 font-semibold">Clock #</th>
@@ -327,7 +327,6 @@
                     <th class="px-4 py-3 font-semibold">Gender</th>
                     <th class="px-4 py-3 font-semibold">Team / Orchard</th>
                     <th class="px-4 py-3 font-semibold">Status</th>
-                    <th class="px-4 py-3 font-semibold">Last Induction</th>
                     <th class="px-4 py-3 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
@@ -2502,20 +2501,23 @@
 
       tableBody.innerHTML = employees.map(emp => {
         const fullName = `${emp.first_name} ${emp.last_name || ''}`.trim();
-        const lastInductionRaw = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
-        const lastInductionFormatted = lastInductionRaw ? formatDate(lastInductionRaw) : '<span class="text-slate-400 italic">None</span>';
-        const compliance = calculateComplianceStatus(lastInductionRaw);
-        const complianceBadge = emp.is_active
-          ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${compliance.badgeClass}" title="${escapeHtml(compliance.label)}">${escapeHtml(compliance.status)}</span>`
-          : `<span class="text-slate-400 text-[10px] italic">Archived</span>`;
 
         const statusBadge = emp.is_active
           ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active</span>`
           : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Inactive</span>`;
 
-        const actionButton = emp.is_active
-          ? `<button type="button" class="btn-toggle-status px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors cursor-pointer" data-id="${emp.id}" data-current="true" title="Deactivate seasonal worker">Deactivate</button>`
-          : `<button type="button" class="btn-toggle-status px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors cursor-pointer" data-id="${emp.id}" data-current="false" title="Reactivate worker">Activate</button>`;
+        const actionButtons = `
+          <div class="flex items-center justify-end gap-1.5">
+            ${emp.is_active
+              ? `<button type="button" class="btn-toggle-status px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer" data-id="${emp.id}" data-current="true" title="Deactivate seasonal worker">Deactivate</button>`
+              : `<button type="button" class="btn-toggle-status px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors cursor-pointer" data-id="${emp.id}" data-current="false" title="Reactivate worker">Activate</button>`
+            }
+            <button type="button" class="btn-delete-employee inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200/70 hover:border-red-300 transition-colors cursor-pointer" data-id="${emp.id}" data-name="${escapeHtml(fullName)}" title="Delete worker">
+              <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <span>Delete</span>
+            </button>
+          </div>
+        `;
 
         return `
           <tr class="hover:bg-slate-50/70 transition-colors">
@@ -2525,11 +2527,7 @@
             <td class="px-4 py-3 align-middle text-slate-600 text-xs">${escapeHtml(emp.gender || '—')}</td>
             <td class="px-4 py-3 align-middle text-slate-600 text-xs">${escapeHtml(emp.team_or_orchard || '—')}</td>
             <td class="px-4 py-3 align-middle">${statusBadge}</td>
-            <td class="px-4 py-3 align-middle text-slate-600 text-xs">
-              <div>${lastInductionFormatted}</div>
-              <div class="mt-1">${complianceBadge}</div>
-            </td>
-            <td class="px-4 py-3 align-middle text-right">${actionButton}</td>
+            <td class="px-4 py-3 align-middle text-right">${actionButtons}</td>
           </tr>
         `;
       }).join('');
@@ -2539,6 +2537,14 @@
           const empId = btn.dataset.id;
           const currentStatus = btn.dataset.current === 'true';
           toggleEmployeeActiveStatus(empId, currentStatus);
+        });
+      });
+
+      tableBody.querySelectorAll('.btn-delete-employee').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const empId = btn.dataset.id;
+          const workerName = btn.dataset.name || 'this worker';
+          deleteEmployee(empId, workerName);
         });
       });
     }
@@ -2561,6 +2567,66 @@
         alert('Failed to update employee status: ' + (err.message || 'Unknown error'));
       }
     }
+
+    async function deleteEmployee(empId, workerName) {
+      const confirmed = confirm(`Permanently delete ${workerName}? If they have existing training records, they will be set to inactive instead to preserve audit logs.`);
+      if (!confirmed) return;
+
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready');
+
+        const emp = allRosterEmployees.find(e => e.id === empId);
+        if (!emp) return;
+
+        // Check if worker has existing training records
+        let hasRecords = false;
+        if (employeeInductionMap.has(emp.id) || (emp.employee_number && employeeInductionMap.has(emp.employee_number.trim().toLowerCase()))) {
+          hasRecords = true;
+        } else {
+          const { data: recs, error: checkErr } = await window.dbClient
+            .from('training_records')
+            .select('id')
+            .or(`employee_id.eq.${emp.id},employee_number.eq.${emp.employee_number}`)
+            .limit(1);
+
+          if (!checkErr && recs && recs.length > 0) {
+            hasRecords = true;
+          }
+        }
+
+        if (hasRecords) {
+          // Preserve statutory training records: soft-deactivate
+          const { error: updateError } = await window.dbClient
+            .from('company_employees')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', empId);
+
+          if (updateError) throw updateError;
+
+          emp.is_active = false;
+          alert(`${workerName} has existing training records on file and was set to inactive instead to preserve audit logs.`);
+        } else {
+          // Zero training records: hard delete from company_employees
+          const { error: deleteError } = await window.dbClient
+            .from('company_employees')
+            .delete()
+            .eq('id', empId);
+
+          if (deleteError) throw deleteError;
+
+          allRosterEmployees = allRosterEmployees.filter(e => e.id !== empId);
+        }
+
+        // Refresh table and update headcount without page reload
+        updateRosterStatsAndFilters();
+        applyRosterFiltersAndRender();
+      } catch (err) {
+        console.error('Failed to delete employee:', err);
+        alert('Failed to delete employee: ' + (err.message || 'Unknown error'));
+      }
+    }
+    window.deleteEmployee = deleteEmployee;
 
     // =========================================================================
     // RFC 4180 CSV PARSER & IMPORT CONTROLLER

@@ -89,6 +89,23 @@ Key mobile UX conventions:
   - **Plans**: Current tier badge, plan comparison matrix, Paystack upgrade/downgrade modals (`vaultUpgradeReviewModal`), and cancellation workflow.
   - **Team Seats**: Seat limit indicator, team member listing, manager invite link generator (`/invite.html?company=...`), and manager removal via `remove_team_member` RPC.
 
+### Standard Client-Side Helpers & Utility Contracts
+Every authenticated route implements or relies upon standard client-side utility patterns:
+1. **`escapeHtml(value)`**:
+   - Escapes special characters (`&`, `<`, `>`, `"`, `'`) for safe HTML string interpolation into innerHTML.
+   - Prevents XSS when rendering dynamic user data, worker names, clock numbers, or incident narratives.
+2. **`waitForDbClient(maxWaitMs = 5000)`**:
+   - Asynchronous polling loop (50ms interval) awaiting initialization of `window.dbClient` by `js/profile-engine.js`.
+   - Guarantees database queries, roster lookups, and session bootstrapping never fail due to asynchronous race conditions.
+3. **`getCanvasCoordinates(canvas, clientX, clientY)`**:
+   - Scales mouse and touch pointer events to actual high-DPI canvas internal bitmap dimensions: `x = (clientX - rect.left) * (canvas.width / rect.width)`.
+   - Eliminates drawing offset and pointer drift on retina displays and mobile touchscreens across signature pads (`module.html`, `incidents.html`, `records.html`).
+4. **Dynamic Guest Worker Repeater Pattern (`module.html`)**:
+   - Pinned trigger button (`#btnAddGuestWorker`) anchored directly underneath the primary filtered roster container.
+   - Dynamically renders individual guest worker rows (`#guestWorkersList`) beneath the button using `createGuestWorkerRowHtml(rowId, data)`.
+   - Provides per-row deletion via `removeGuestWorkerRow(btn)` with live form validation re-checks and clean layout collapse.
+   - Collects valid unlisted workers via `getValidGuestWorkers()` to merge with selected roster members during statutory sign-off.
+
 ---
 
 ## 3. Backend & Supabase
@@ -636,11 +653,26 @@ graph TD
     - Confirmed Section 4: Narrative Description (`#formDescription`) & Root Cause Analysis (`#formRootCause`).
     - Confirmed Section 5: Corrective & Preventative Actions (`#formCapa`) with Assigned Person (`#formActionAssignedTo`) and Target Date (`#formActionTargetDate`).
     - Confirmed Section 6: Section 16(2) / Safety Officer Signature Canvas (`#signatureCanvas`) and Investigator Name (`#formInvestigatedBy`) & Role (`#formInvestigatorRole`).
+- **Roster Table Cleanup & Permanent Worker Deletion (`records.html`)**:
+  - **Removed "LAST INDUCTION" Column**: Removed `LAST INDUCTION` header (`<th>`) and table data cells (`<td>`), leaving the table columns strictly: `CLOCK #` | `WORKER NAME` | `ID / PASSPORT` | `GENDER` | `TEAM / ORCHARD` | `STATUS` | `ACTION`.
+  - **Audit-Safe "Delete Worker" Action (`deleteEmployee`)**: Added permanent `[ Delete ]` button with trash icon alongside `[ Deactivate ]`.
+  - **Audit Retention Protection**: If worker has existing training records in `training_records`, deactivates worker (`is_active = false`) to preserve statutory compliance audit trails. If zero training records exist, executes hard deletion from `public.company_employees`.
+  - **Instant State Refresh**: Refreshes table and updates headcount counters (`● X Active Crew | ● Y Inactive | Z Total on File`) in place without page reload.
+- **Bilingual Stream Dropdown Alignment & Hot-Swap (`module.html`)**:
+  - **Compound Stream Labels**: Configured `<select id="moduleLanguageSelect">` to map compound language labels from `video.streams` (e.g. `"English & Zulu"` and `"English & Afrikaans"`).
+  - **Default Video ID Stream Selection**: Automatically selects the stream matching the active query video ID (`video.streams[key].vimeo_id === videoId`).
+  - **Single Stream Fallback**: When `video.streams` has &le;1 option or is empty, displays the video's default `language` (e.g., "English & Zulu") and keeps the selector disabled.
+  - **Timestamp-Preserved Hot-Swap**: Seamlessly switches Vimeo streams via `player.loadVideo()`, re-seeks to preserved playback position, restores play state, and guarantees progress tracking and signatures persist under `window.canonicalVideoId`.
 - **Remote Database Schema Synchronization & Manifest Update (`.ai/SUPABASE_SCHEMA.md` & `PROJECT_BRAIN.md`)**:
   - Ran `./scripts/sync_schema.sh` direct `pg_dump` against production Supabase PostgreSQL instance.
   - Formally captured live database schema manifest changes including newly provisioned `company_employees` (roster management) and `incident_reports` (OHSA §24 and SIZA incident tracking) tables.
   - Documented new columns `companies.company_stamp_url`, `training_records.employee_id`, and updated RLS table coverage (20 total tables).
-  - Documented active production RPC functions: `archive_training_record`, `get_module_stream`, `get_vault_catalog`, `log_induction_session`, and `sync_company_roster`.
+- **Trainee Roster Checklist & Streamlined Guest Worker Experience (`module.html`)**:
+  - **Resolved "0 Active Crew" Root Cause**: Identified and fixed missing `escapeHtml` and `waitForDbClient` helper definitions in `module.html` that previously caused silent `ReferenceError` crashes during roster fetch and checklist rendering.
+  - **Search-Driven Roster Display & Sorting by Clock #**: Refactored `#rosterChecklistContainer` to only display worker names once the supervisor begins typing a name or employee number. If the search query is empty, displays a search prompt (or exclusively the currently selected trainees for clean review). Filtered results are naturally sorted by `employee_number`.
+  - **Checklist Height & Responsive Rendering**: Ensured `#rosterChecklistContainer` has an explicit non-zero height (`min-h-[140px] max-h-60 overflow-y-auto block`) and wired `#activeCrewCount` to reflect actual roster counts.
+  - **Pinned Guest Worker Trigger & Layout**: Pinned the `[ + Quick-Add Unlisted Guest Worker ]` button directly underneath the main filtered roster block, rendering newly created guest worker rows below the button so it remains anchored without shifting downward.
+  - **Instant Worker Row Removal**: Each guest worker row includes an instant remove button (`[ − ]` / trash icon) that updates trainee selection totals dynamically and collapses the section cleanly when all rows are removed.
 
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.

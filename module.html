@@ -285,17 +285,12 @@
           <!-- Advisory / Warning Banner -->
           <div id="traineeAdvisoryBanner" class="hidden p-3 rounded-xl text-xs font-medium border"></div>
 
-          <!-- Search & Filter Controls -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div class="relative flex-1">
-              <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input type="text" id="rosterTraineeSearch" placeholder="Search name, clock #, orchard..." class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-primary">
-            </div>
-            <select id="rosterTraineeFilter" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white outline-none cursor-pointer">
-              <option value="all">All Teams / Orchards</option>
-            </select>
+          <!-- Search Control -->
+          <div class="relative w-full">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" id="traineeSearchInput" placeholder="Search employee name or number..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:border-primary bg-white transition-colors shadow-xs">
           </div>
 
           <!-- Action buttons: Select All Filtered / Clear -->
@@ -305,7 +300,7 @@
               <span class="text-slate-300">•</span>
               <button type="button" onclick="clearTraineeSelection()" class="text-slate-500 hover:text-red-600 cursor-pointer">Clear Selection</button>
             </div>
-            <span id="rosterAvailableCount" class="text-muted text-[11px]">0 active crew on file</span>
+            <span id="activeCrewCount" class="text-muted text-[11px]">0 active crew on file</span>
           </div>
 
           <!-- Trainee Checklist Container -->
@@ -313,37 +308,24 @@
             <div class="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary mx-auto mb-2"></div>
             Loading active farm roster...
           </div>
-          <div id="rosterChecklistWrapper" class="max-h-52 sm:max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 shadow-inner">
-            <div id="rosterChecklistContainer">
-              <!-- Trainee checkbox items rendered here -->
-            </div>
-            <div id="rosterChecklistEmpty" class="hidden p-6 text-center text-xs text-muted">
-              No matching active workers found. Use Quick-Add below to add an unlisted worker.
-            </div>
+          <div id="rosterChecklistContainer" class="min-h-[140px] max-h-60 overflow-y-auto block space-y-1.5 border border-slate-200 rounded-xl p-2 bg-slate-50/50 mt-2 mb-3">
+            <!-- Trainee checkbox items rendered here -->
+          </div>
+          <div id="rosterChecklistEmpty" class="hidden p-6 text-center text-xs text-muted border border-dashed border-slate-200 rounded-xl bg-slate-50 mt-2 mb-3">
+            No matching active workers found. Use Quick-Add below to add an unlisted worker.
           </div>
 
-          <!-- Quick-Add Unlisted Worker Trigger & Form -->
+          <!-- Pinned Trigger Button directly underneath main block -->
           <div class="pt-1">
-            <button type="button" id="btnToggleQuickAdd" onclick="toggleQuickAddWorker()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 cursor-pointer">
-              <span id="quickAddToggleIcon">+</span>
+            <button type="button" id="btnAddGuestWorker" onclick="addGuestWorkerRow()" class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 cursor-pointer">
+              <span class="font-bold text-sm">+</span>
               <span>Quick-Add Unlisted Guest Worker</span>
             </button>
+          </div>
 
-            <div id="quickAddWorkerForm" class="hidden mt-2 p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 text-xs">
-              <p class="font-bold text-slate-700 text-[11px]">Add Unlisted Worker for this Induction:</p>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <input type="text" id="quickWorkerCode" placeholder="Clock # (e.g. P1099)" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg outline-none font-mono uppercase">
-                <input type="text" id="quickWorkerName" placeholder="Full Name *" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg outline-none">
-                <div class="flex gap-2">
-                  <select id="quickWorkerGender" class="w-1/2 px-2 py-1.5 bg-white border border-slate-300 rounded-lg outline-none">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <button type="button" onclick="submitQuickWorkerToSession()" class="w-1/2 px-2 py-1.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 cursor-pointer">Add</button>
-                </div>
-              </div>
-            </div>
+          <!-- Dynamic Guest Worker List rendered below the button -->
+          <div id="guestWorkersList" class="space-y-2 mt-2">
+            <!-- Guest worker rows inserted dynamically below button -->
           </div>
         </div>
 
@@ -408,7 +390,25 @@
     let selectedTraineeIds = new Set();
     let customUnlistedTrainees = [];
     let rosterFilterQuery = '';
-    let rosterSelectedTeam = 'all';
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => {
+      switch (character) {
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+        default: return character;
+      }
+    });
+
+    async function waitForDbClient(maxWaitMs = 5000) {
+      const start = Date.now();
+      while (!window.dbClient && Date.now() - start < maxWaitMs) {
+        await new Promise(r => setTimeout(r, 50));
+      }
+      return !!window.dbClient;
+    }
 
     // Helper: Exact coordinate calculation mapping client touch/mouse to canvas pixels
     function getCanvasCoordinates(canvas, clientX, clientY) {
@@ -499,42 +499,49 @@
       const loadingEl = document.getElementById('rosterChecklistLoading');
       const containerEl = document.getElementById('rosterChecklistContainer');
       const emptyEl = document.getElementById('rosterChecklistEmpty');
-      const filterSelect = document.getElementById('rosterTraineeFilter');
 
-      loadingEl?.classList.remove('hidden');
-      containerEl?.classList.add('hidden');
-      emptyEl?.classList.add('hidden');
+      if (!activeRosterCrew || activeRosterCrew.length === 0) {
+        loadingEl?.classList.remove('hidden');
+        containerEl?.classList.add('hidden');
+        emptyEl?.classList.add('hidden');
+      }
 
       try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready');
+
+        // Verify session is established before querying RLS table
+        const { data: sessionData } = await window.dbClient.auth.getSession();
+        if (!sessionData?.session?.user) {
+          console.warn('[Induction Roster] Auth session not resolved yet; attempting fetch anyway.');
+        }
+
         const { data: employees, error } = await window.dbClient
           .from('company_employees')
-          .select('id, employee_number, first_name, last_name, gender, team_or_orchard, is_active')
+          .select('id, employee_number, first_name, last_name, id_passport_number, gender, team_or_orchard, is_active')
           .eq('is_active', true)
           .order('employee_number', { ascending: true });
 
         if (error) throw error;
 
-        activeRosterCrew = employees || [];
+        activeRosterCrew = (employees || []).sort((a, b) => {
+          const numA = (a.employee_number || '').trim();
+          const numB = (b.employee_number || '').trim();
+          if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+          if (numA) return -1;
+          if (numB) return 1;
+          const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+          const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+          return nameA.localeCompare(nameB);
+        });
 
-        // Populate team dropdown
-        if (filterSelect) {
-          const currentVal = filterSelect.value;
-          const teams = Array.from(new Set(activeRosterCrew.map(e => e.team_or_orchard).filter(Boolean))).sort();
-          let opts = '<option value="all">All Teams / Orchards</option>';
-          teams.forEach(t => {
-            opts += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;
-          });
-          filterSelect.innerHTML = opts;
-          if (teams.includes(currentVal)) filterSelect.value = currentVal;
-        }
-
-        const countEl = document.getElementById('rosterAvailableCount');
+        const countEl = document.getElementById('activeCrewCount') || document.getElementById('rosterAvailableCount');
         if (countEl) countEl.textContent = `${activeRosterCrew.length} active crew on file`;
 
         renderTraineeChecklist();
       } catch (err) {
         console.error('Failed to load active employees for induction:', err);
-        if (containerEl) {
+        if (containerEl && (!activeRosterCrew || activeRosterCrew.length === 0)) {
           containerEl.innerHTML = `<div class="p-4 text-xs text-red-600">Failed to load company roster: ${escapeHtml(err.message)}</div>`;
           containerEl.classList.remove('hidden');
         }
@@ -542,79 +549,162 @@
         loadingEl?.classList.add('hidden');
       }
     }
+    window.loadActiveRosterForInduction = loadActiveRosterForInduction;
+    window.loadCompanyEmployees = loadActiveRosterForInduction;
 
-    function renderTraineeChecklist() {
+    function renderTraineeChecklist(employees = activeRosterCrew) {
       const containerEl = document.getElementById('rosterChecklistContainer');
       const emptyEl = document.getElementById('rosterChecklistEmpty');
+      const searchInput = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      const btnSelectAll = document.getElementById('btnSelectAllFiltered');
       if (!containerEl) return;
 
-      const query = (rosterFilterQuery || '').trim().toLowerCase();
-      const team = rosterSelectedTeam || 'all';
+      const crew = Array.isArray(employees) && employees.length > 0 ? employees : activeRosterCrew;
+      const query = (searchInput?.value || rosterFilterQuery || '').trim().toLowerCase();
 
-      // Combine active crew and custom unlisted trainees
-      const allAvailable = [
-        ...activeRosterCrew.map(e => ({
-          id: e.id,
-          employee_number: e.employee_number,
-          full_name: `${e.first_name} ${e.last_name || ''}`.trim(),
-          gender: e.gender || 'Other',
-          team_or_orchard: e.team_or_orchard || '',
-          is_unlisted: false
-        })),
-        ...customUnlistedTrainees.map(u => ({
-          id: u.id,
-          employee_number: u.employee_number,
-          full_name: u.employee_name,
-          gender: u.gender,
-          team_or_orchard: u.team_or_orchard || 'Guest / Unlisted',
-          is_unlisted: true
-        }))
-      ];
+      // If search input is empty, do NOT render the entire roster
+      if (!query) {
+        emptyEl?.classList.add('hidden');
+        containerEl.classList.remove('hidden');
 
-      const filtered = allAvailable.filter(w => {
-        if (team !== 'all' && w.team_or_orchard !== team) return false;
-        if (query) {
-          const num = w.employee_number.toLowerCase();
-          const name = w.full_name.toLowerCase();
-          const t = w.team_or_orchard.toLowerCase();
-          if (!num.includes(query) && !name.includes(query) && !t.includes(query)) return false;
+        // If no workers selected yet, display search prompt placeholder
+        if (selectedTraineeIds.size === 0) {
+          containerEl.innerHTML = `
+            <div class="py-10 px-4 text-center text-xs text-slate-400 flex flex-col items-center justify-center gap-2 select-none">
+              <svg class="w-6 h-6 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <p class="font-semibold text-slate-600">Start typing to find crew members</p>
+              <p class="text-[11px] text-slate-400">Search by worker name, clock number, or ID to select trainees</p>
+            </div>
+          `;
+          if (btnSelectAll) {
+            btnSelectAll.textContent = 'Select All Filtered (0)';
+            btnSelectAll.classList.add('opacity-40', 'cursor-not-allowed');
+            btnSelectAll.classList.remove('cursor-pointer');
+          }
+          return;
         }
-        return true;
-      });
 
-      if (filtered.length === 0) {
-        containerEl.innerHTML = '';
-        containerEl.classList.add('hidden');
-        emptyEl?.classList.remove('hidden');
+        // If workers are already selected, display only the selected workers sorted by employee number
+        const selectedCrew = (crew || []).filter(emp => selectedTraineeIds.has(emp.id));
+        selectedCrew.sort((a, b) => {
+          const numA = (a.employee_number || '').trim();
+          const numB = (b.employee_number || '').trim();
+          if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+          if (numA) return -1;
+          if (numB) return 1;
+          return (`${a.first_name || ''} ${a.last_name || ''}`).localeCompare(`${b.first_name || ''} ${b.last_name || ''}`);
+        });
+
+        const selectedHtml = selectedCrew.map(emp => {
+          const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Worker';
+          const badgeNo = emp.employee_number
+            ? `#${escapeHtml(emp.employee_number)}`
+            : (emp.id_passport_number ? `ID: ${escapeHtml(emp.id_passport_number)}` : 'No #');
+          const teamLabel = emp.team_or_orchard ? `<span class="text-[10px] text-slate-400 font-normal ml-1.5">(${escapeHtml(emp.team_or_orchard)})</span>` : '';
+
+          return `
+            <label class="flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all bg-blue-50/80 border-blue-200 text-primary">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(emp.id)}" checked onchange="toggleTraineeSelection('${escapeHtml(emp.id)}')">
+                <div class="min-w-0 truncate">
+                  <span class="font-mono text-xs font-bold text-slate-900">${badgeNo}</span>
+                  <span class="text-xs font-semibold ml-1.5 text-slate-800">${escapeHtml(fullName)}</span>
+                  ${teamLabel}
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(emp.gender || '—')}</span>
+            </label>
+          `;
+        }).join('');
+
+        containerEl.innerHTML = `
+          <div class="flex items-center justify-between px-2.5 py-1.5 bg-slate-100 rounded-lg text-[11px] text-slate-600 font-semibold mb-1">
+            <span>Currently Selected Trainees (${selectedCrew.length})</span>
+            <span class="text-slate-400 font-normal">Type above to find more</span>
+          </div>
+          ${selectedHtml}
+        `;
+
+        if (btnSelectAll) {
+          btnSelectAll.textContent = 'Select All Filtered (0)';
+          btnSelectAll.classList.add('opacity-40', 'cursor-not-allowed');
+          btnSelectAll.classList.remove('cursor-pointer');
+        }
         return;
       }
 
-      emptyEl?.classList.add('hidden');
-      containerEl.classList.remove('hidden');
+      // User is actively searching: filter and sort matches naturally by employee_number
+      const matches = (crew || []).filter(emp => {
+        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.toLowerCase();
+        const num = (emp.employee_number || '').toLowerCase();
+        const idNum = (emp.id_passport_number || '').toLowerCase();
+        return name.includes(query) || num.includes(query) || idNum.includes(query);
+      });
 
-      containerEl.innerHTML = filtered.map(w => {
-        const isChecked = selectedTraineeIds.has(w.id);
-        return `
-          <label class="flex items-center justify-between p-2.5 hover:bg-slate-50 cursor-pointer select-none transition-colors ${isChecked ? 'bg-blue-50/50' : ''}">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(w.id)}" ${isChecked ? 'checked' : ''} onchange="toggleTraineeSelection('${escapeHtml(w.id)}')">
-              <div class="min-w-0">
-                <span class="font-mono text-xs font-bold text-slate-800">#${escapeHtml(w.employee_number)}</span>
-                <span class="text-xs text-slate-700 font-semibold ml-1.5">${escapeHtml(w.full_name)}</span>
-                ${w.team_or_orchard ? `<span class="text-[10px] text-slate-400 ml-1.5 font-normal">(${escapeHtml(w.team_or_orchard)})</span>` : ''}
-                ${w.is_unlisted ? `<span class="text-[9px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-1 py-0.5 rounded ml-1.5">Unlisted</span>` : ''}
-              </div>
-            </div>
-            <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(w.gender)}</span>
-          </label>
+      matches.sort((a, b) => {
+        const numA = (a.employee_number || '').trim();
+        const numB = (b.employee_number || '').trim();
+        if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+        if (numA) return -1;
+        if (numB) return 1;
+        const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+        const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+        return nameA.localeCompare(nameB);
+      });
+
+      if (matches.length === 0) {
+        containerEl.innerHTML = `
+          <div class="py-8 px-4 text-center text-xs text-slate-500">
+            No active workers found matching "${escapeHtml(query)}". Use Quick-Add below to add an unlisted worker.
+          </div>
         `;
-      }).join('');
+        containerEl.classList.remove('hidden');
+        emptyEl?.classList.add('hidden');
+        if (btnSelectAll) {
+          btnSelectAll.textContent = 'Select All Filtered (0)';
+          btnSelectAll.classList.add('opacity-40', 'cursor-not-allowed');
+          btnSelectAll.classList.remove('cursor-pointer');
+        }
+      } else {
+        emptyEl?.classList.add('hidden');
+        containerEl.classList.remove('hidden');
 
-      const btnSelectAll = document.getElementById('btnSelectAllFiltered');
-      if (btnSelectAll) {
-        btnSelectAll.textContent = `Select All Filtered (${filtered.length})`;
+        containerEl.innerHTML = matches.map(emp => {
+          const isChecked = selectedTraineeIds.has(emp.id);
+          const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Worker';
+          const badgeNo = emp.employee_number
+            ? `#${escapeHtml(emp.employee_number)}`
+            : (emp.id_passport_number ? `ID: ${escapeHtml(emp.id_passport_number)}` : 'No #');
+          const teamLabel = emp.team_or_orchard ? `<span class="text-[10px] text-slate-400 font-normal ml-1.5">(${escapeHtml(emp.team_or_orchard)})</span>` : '';
+
+          return `
+            <label class="flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all ${isChecked ? 'bg-blue-50/80 border-blue-200 text-primary' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'}">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(emp.id)}" ${isChecked ? 'checked' : ''} onchange="toggleTraineeSelection('${escapeHtml(emp.id)}')">
+                <div class="min-w-0 truncate">
+                  <span class="font-mono text-xs font-bold text-slate-900">${badgeNo}</span>
+                  <span class="text-xs font-semibold ml-1.5 text-slate-800">${escapeHtml(fullName)}</span>
+                  ${teamLabel}
+                </div>
+              </div>
+              <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(emp.gender || '—')}</span>
+            </label>
+          `;
+        }).join('');
+
+        if (btnSelectAll) {
+          btnSelectAll.textContent = `Select All Filtered (${matches.length})`;
+          btnSelectAll.classList.remove('opacity-40', 'cursor-not-allowed');
+          btnSelectAll.classList.add('cursor-pointer');
+        }
       }
+
+      const countEl = document.getElementById('activeCrewCount') || document.getElementById('rosterAvailableCount');
+      if (countEl) countEl.textContent = `${activeRosterCrew.length} active crew on file`;
     }
+    window.renderTraineeChecklist = renderTraineeChecklist;
 
     function toggleTraineeSelection(id) {
       if (selectedTraineeIds.has(id)) {
@@ -628,35 +718,19 @@
     window.toggleTraineeSelection = toggleTraineeSelection;
 
     function selectAllFilteredTrainees() {
-      const query = (rosterFilterQuery || '').trim().toLowerCase();
-      const team = rosterSelectedTeam || 'all';
+      const searchInput = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      const query = (searchInput?.value || rosterFilterQuery || '').trim().toLowerCase();
 
-      const allAvailable = [
-        ...activeRosterCrew.map(e => ({
-          id: e.id,
-          employee_number: e.employee_number,
-          full_name: `${e.first_name} ${e.last_name || ''}`.trim(),
-          team_or_orchard: e.team_or_orchard || ''
-        })),
-        ...customUnlistedTrainees.map(u => ({
-          id: u.id,
-          employee_number: u.employee_number,
-          full_name: u.employee_name,
-          team_or_orchard: u.team_or_orchard || ''
-        }))
-      ];
+      if (!query) return;
 
-      allAvailable.forEach(w => {
-        if (team !== 'all' && w.team_or_orchard !== team) return;
-        if (query) {
-          const num = w.employee_number.toLowerCase();
-          const name = w.full_name.toLowerCase();
-          const t = w.team_or_orchard.toLowerCase();
-          if (!num.includes(query) && !name.includes(query) && !t.includes(query)) return;
-        }
-        selectedTraineeIds.add(w.id);
+      const matches = activeRosterCrew.filter(emp => {
+        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.toLowerCase();
+        const num = (emp.employee_number || '').toLowerCase();
+        const idNum = (emp.id_passport_number || '').toLowerCase();
+        return name.includes(query) || num.includes(query) || idNum.includes(query);
       });
 
+      matches.forEach(emp => selectedTraineeIds.add(emp.id));
       renderTraineeChecklist();
       checkComplianceFormValidity();
     }
@@ -669,51 +743,90 @@
     }
     window.clearTraineeSelection = clearTraineeSelection;
 
+    // --- DYNAMIC GUEST WORKERS REPEATER ---
+    let guestWorkerRowCounter = 0;
+
+    function createGuestWorkerRowHtml(rowId, data = {}) {
+      const name = data.name || '';
+      const number = data.number || '';
+      const gender = data.gender || 'Male';
+
+      return `
+        <div class="guest-worker-row flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg shadow-xs" data-row-id="${rowId}">
+          <div class="flex-1">
+            <input type="text" class="guest-name w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs" placeholder="Worker full name *" value="${escapeHtml(name)}" oninput="checkComplianceFormValidity()">
+          </div>
+          <div class="w-full sm:w-36">
+            <input type="text" class="guest-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs uppercase" placeholder="ID or Clock #" value="${escapeHtml(number)}" oninput="checkComplianceFormValidity()">
+          </div>
+          <div class="w-full sm:w-28">
+            <select class="guest-gender w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs cursor-pointer" onchange="checkComplianceFormValidity()">
+              <option value="Male" ${gender === 'Male' ? 'selected' : ''}>Male</option>
+              <option value="Female" ${gender === 'Female' ? 'selected' : ''}>Female</option>
+              <option value="Other" ${gender === 'Other' ? 'selected' : ''}>Other</option>
+            </select>
+          </div>
+          <button type="button" onclick="removeGuestWorkerRow(this)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer self-end sm:self-auto shrink-0 flex items-center gap-1 text-xs" title="Remove worker">
+            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="sm:hidden text-red-600 font-medium">Remove</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function addGuestWorkerRow(data = {}) {
+      const listEl = document.getElementById('guestWorkersList');
+      if (!listEl) return;
+      guestWorkerRowCounter++;
+      const rowId = `guest_row_${guestWorkerRowCounter}`;
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = createGuestWorkerRowHtml(rowId, data);
+      const rowEl = tempDiv.firstElementChild;
+      listEl.appendChild(rowEl);
+      rowEl.querySelector('.guest-name')?.focus();
+      checkComplianceFormValidity();
+      return rowEl;
+    }
+    window.addGuestWorkerRow = addGuestWorkerRow;
+
+    function removeGuestWorkerRow(btn) {
+      const row = btn.closest('.guest-worker-row');
+      if (row) {
+        row.remove();
+        checkComplianceFormValidity();
+      }
+    }
+    window.removeGuestWorkerRow = removeGuestWorkerRow;
+
     function toggleQuickAddWorker() {
-      const form = document.getElementById('quickAddWorkerForm');
-      const icon = document.getElementById('quickAddToggleIcon');
-      if (!form) return;
-      const isHidden = form.classList.contains('hidden');
-      form.classList.toggle('hidden', !isHidden);
-      if (icon) icon.textContent = isHidden ? '−' : '+';
+      addGuestWorkerRow();
     }
     window.toggleQuickAddWorker = toggleQuickAddWorker;
 
-    function submitQuickWorkerToSession() {
-      const codeInput = document.getElementById('quickWorkerCode');
-      const nameInput = document.getElementById('quickWorkerName');
-      const genderInput = document.getElementById('quickWorkerGender');
+    function getValidGuestWorkers() {
+      const listEl = document.getElementById('guestWorkersList');
+      if (!listEl) return [];
 
-      const name = nameInput?.value?.trim();
-      const code = (codeInput?.value?.trim() || 'UNLISTED').toUpperCase();
-      const gender = genderInput?.value || 'Male';
+      const rows = listEl.querySelectorAll('.guest-worker-row');
+      const validGuests = [];
 
-      if (!name) {
-        alert('Please enter a full name for the unlisted worker.');
-        return;
-      }
+      rows.forEach(row => {
+        const name = row.querySelector('.guest-name')?.value?.trim();
+        const number = row.querySelector('.guest-number')?.value?.trim();
+        const gender = row.querySelector('.guest-gender')?.value || 'Male';
 
-      const tempId = `unlisted_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      const worker = {
-        id: tempId,
-        employee_id: null,
-        employee_number: code,
-        employee_name: name,
-        gender: gender,
-        team_or_orchard: 'Guest / Unlisted'
-      };
+        if (name) {
+          validGuests.push({
+            employee_id: null,
+            employee_name: name,
+            employee_number: number || null,
+            gender: gender
+          });
+        }
+      });
 
-      customUnlistedTrainees.push(worker);
-      selectedTraineeIds.add(tempId);
-
-      if (nameInput) nameInput.value = '';
-      if (codeInput) codeInput.value = '';
-
-      toggleQuickAddWorker();
-      renderTraineeChecklist();
-      checkComplianceFormValidity();
+      return validGuests;
     }
-    window.submitQuickWorkerToSession = submitQuickWorkerToSession;
 
     function getSelectedTraineesList() {
       const result = [];
@@ -722,22 +835,18 @@
         if (fromRoster) {
           result.push({
             employee_id: fromRoster.id,
-            employee_name: `${fromRoster.first_name} ${fromRoster.last_name || ''}`.trim(),
-            employee_number: fromRoster.employee_number,
+            employee_name: `${fromRoster.first_name || ''} ${fromRoster.last_name || ''}`.trim() || 'Worker',
+            employee_number: fromRoster.employee_number || null,
             gender: fromRoster.gender || 'Male'
-          });
-          return;
-        }
-        const fromUnlisted = customUnlistedTrainees.find(u => u.id === id);
-        if (fromUnlisted) {
-          result.push({
-            employee_id: null,
-            employee_name: fromUnlisted.employee_name,
-            employee_number: fromUnlisted.employee_number,
-            gender: fromUnlisted.gender || 'Male'
           });
         }
       });
+
+      const validGuests = getValidGuestWorkers();
+      validGuests.forEach(g => {
+        result.push(g);
+      });
+
       return result;
     }
 
@@ -826,6 +935,18 @@
 
       selectedTraineeIds.clear();
       customUnlistedTrainees = [];
+      rosterFilterQuery = '';
+
+      const searchInput = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
+      if (searchInput) searchInput.value = '';
+
+      const guestList = document.getElementById('guestWorkersList');
+      if (guestList) guestList.innerHTML = '';
+
+      // Immediately render cached roster if already available
+      if (activeRosterCrew && activeRosterCrew.length > 0) {
+        renderTraineeChecklist(activeRosterCrew);
+      }
 
       modal?.classList.remove('hidden');
 
@@ -1046,6 +1167,11 @@
 
       window.userCompanyId = profile?.company_id || null;
 
+      // Pre-load active farm roster in background for induction drawer
+      if (typeof loadActiveRosterForInduction === 'function') {
+        loadActiveRosterForInduction().catch(e => console.warn('[Induction] Pre-load roster error:', e));
+      }
+
       if (typeof fetchCompanySponsorPartners === 'function') {
         await fetchCompanySponsorPartners(window.userCompanyId);
       }
@@ -1170,12 +1296,34 @@
       }
 
       // 7. Multi-Language Audio Streams Setup
-      window.currentVideoStreams = (video.streams && typeof video.streams === 'object' && Object.keys(video.streams).length > 0)
-        ? video.streams
-        : { en: { vimeo_id: String(videoId), label: 'English' } };
+      const defaultLanguageLabel = video.language || 'English & Zulu';
+      const hasMultipleStreams = video.streams && typeof video.streams === 'object' && Object.keys(video.streams).length > 1;
+
+      if (hasMultipleStreams) {
+        window.currentVideoStreams = video.streams;
+      } else {
+        const singleVimeoId = (video.streams && typeof video.streams === 'object' && Object.values(video.streams)[0]?.vimeo_id) || String(videoId);
+        window.currentVideoStreams = {
+          default: {
+            vimeo_id: singleVimeoId,
+            label: defaultLanguageLabel
+          }
+        };
+      }
 
       const availableLangs = Object.keys(window.currentVideoStreams);
-      window.activeLanguage = availableLangs.includes('en') ? 'en' : availableLangs[0];
+
+      // Select the current video ID's stream by default
+      let defaultLangKey = availableLangs.find(k => String(window.currentVideoStreams[k].vimeo_id) === String(videoId));
+      if (!defaultLangKey) {
+        // Fallback: match by video.language if label matches
+        const vidLangNorm = defaultLanguageLabel.toLowerCase().trim();
+        defaultLangKey = availableLangs.find(k => (window.currentVideoStreams[k].label || '').toLowerCase().trim() === vidLangNorm);
+      }
+      if (!defaultLangKey) {
+        defaultLangKey = availableLangs[0];
+      }
+      window.activeLanguage = defaultLangKey;
 
       const switcherContainer = document.getElementById('audioStreamSwitcherContainer');
       const langSelect = document.getElementById('moduleLanguageSelect');
@@ -1196,7 +1344,7 @@
           if (langSubtext) langSubtext.textContent = `${availableLangs.length} multilingual audio tracks available for this module`;
         } else {
           langSelect.disabled = true;
-          if (langSubtext) langSubtext.textContent = 'English audio track only (single language available for this module)';
+          if (langSubtext) langSubtext.textContent = `${defaultLanguageLabel} audio track only (single language available for this module)`;
         }
       }
 
@@ -1266,16 +1414,10 @@
         player.on('ended', (data) => flushProgress({ seconds: data?.duration || 0, duration: data?.duration || 0 }, true));
       }
 
-      // Roster trainee search and filter listeners
-      const traineeSearch = document.getElementById('rosterTraineeSearch');
+      // Roster trainee search listener
+      const traineeSearch = document.getElementById('traineeSearchInput') || document.getElementById('rosterTraineeSearch');
       traineeSearch?.addEventListener('input', (e) => {
         rosterFilterQuery = e.target.value;
-        renderTraineeChecklist();
-      });
-
-      const traineeFilter = document.getElementById('rosterTraineeFilter');
-      traineeFilter?.addEventListener('change', (e) => {
-        rosterSelectedTeam = e.target.value;
         renderTraineeChecklist();
       });
 
