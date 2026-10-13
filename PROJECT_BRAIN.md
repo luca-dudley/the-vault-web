@@ -114,12 +114,14 @@ Key mobile UX conventions:
 
 | Table Name | Primary Key | Key Columns & Types | Nullability & Constraints | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| `companies` | `id` (UUID) | `name` (text), `subscription_status` (text, default `'active'`), `seat_limit` (int4, default `5`), `tier` (text, default `'Base'`), `paystack_subscription_code` (text), `paystack_customer_code` (text), `vat_number` (text), `postal_address` (text), `phone` (text), `contact_email` (text), `partner_grower_codes` (text[]), `sponsored_crop_packs` (text[]), `purchased_crop_packs` (text[]), `is_subsidized` (bool, default `false`), `unlock_all_crops` (bool, default `false`), `created_at` (timestamptz) | `name` NOT NULL | Primary tenant accounts. Encapsulates billing state, tier, seat limits, subsidized crop packs, purchased bolt-ons, and claimed partner grower codes. |
+| `companies` | `id` (UUID) | `name` (text), `subscription_status` (text, default `'active'`), `seat_limit` (int4, default `5`), `tier` (text, default `'Base'`), `paystack_subscription_code` (text), `paystack_customer_code` (text), `vat_number` (text), `postal_address` (text), `phone` (text), `contact_email` (text), `partner_grower_codes` (text[]), `sponsored_crop_packs` (text[]), `purchased_crop_packs` (text[]), `is_subsidized` (bool, default `false`), `unlock_all_crops` (bool, default `false`), `company_stamp_url` (text), `created_at` (timestamptz) | `name` NOT NULL | Primary tenant accounts. Encapsulates billing state, tier, seat limits, subsidized crop packs, purchased bolt-ons, official estate stamp URL, and claimed partner grower codes. |
 | `profiles` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `first_name` (text), `last_name` (text), `role` (text, default `'Staff'`), `tier` (text, default `'basic'`), `avatar_url` (text), `created_at` (timestamptz) | `id` maps 1:1 to `auth.users.id`. `company_id` nullable during registration. | User profile linked directly to Supabase Auth users. Maps user to tenant company and seat permissions. |
-| `videos` | `id` (Text) | `title` (text), `description` (text), `category` (text, default `'Agriculture'`), `sub_tag` (text), `language` (text, default `'English'`), `total_seconds` (int4), `thumbnail_url` (text), `partner_thumbnails` (JSONB, default `'{}'`), `objectives` (JSONB, default `'[]'`), `questions` (JSONB, default `'[]'`), `curriculum_slug` (text), `company_id` (UUID fk `companies.id`), `company_name` (text) | `id`, `title`, `total_seconds` NOT NULL. `company_id IS NULL` for master catalog. | Master and tenant-specific video training modules. |
+| `company_employees` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `employee_number` (text), `first_name` (text), `last_name` (text), `id_passport_number` (text), `gender` (text), `team_or_orchard` (text), `is_active` (bool, default `true`), `created_at` (timestamptz), `updated_at` (timestamptz) | `id`, `company_id`, `employee_number`, `first_name`, `last_name`, `is_active` NOT NULL. | Farm workforce directory and employee roster for group induction attendance, certificate generation, and 365-day statutory compliance tracking. |
+| `videos` | `id` (Text) | `title` (text), `description` (text), `category` (text, default `'Agriculture'`), `sub_tag` (text), `language` (text, default `'English'`), `total_seconds` (int4), `thumbnail_url` (text), `partner_thumbnails` (JSONB, default `'{}'`), `objectives` (JSONB, default `'[]'`), `questions` (JSONB, default `'[]'`), `curriculum_slug` (text), `company_id` (UUID fk `companies.id`), `company_name` (text), `streams` (JSONB) | `id`, `title`, `total_seconds` NOT NULL. `company_id IS NULL` for master catalog. | Master and tenant-specific video training modules. |
 | `sops` | `id` (UUID) | `title` (text), `description` (text), `category` (text, default `'Agriculture'`), `sub_tag` (text, default `'General Safety'`), `doc_url` (text), `video_id` (text), `partner_docs` (JSONB, default `'{}'`), `curriculum_slug` (text), `company_id` (UUID fk `companies.id`), `company_name` (text), `created_at` (timestamptz), `updated_at` (timestamptz) | `id`, `title`, `doc_url` NOT NULL. `company_id IS NULL` for master catalog. | Standard Operating Procedures repository with partner-branded document download overrides (`partner_docs`). |
 | `user_video_progress` | `id` (UUID) | `user_id` (UUID), `video_id` (text), `video_title` (text), `progress_seconds` (numeric, default `0`), `duration_seconds` (numeric, default `0`), `percentage` (numeric, default `0`), `is_completed` (bool, default `false`), `updated_at` (timestamptz) | `user_id`, `video_id`, `progress_seconds`, `duration_seconds`, `percentage` NOT NULL. Unique composite index on `(user_id, video_id)`. | Granular per-user video watch progress and completion milestones ($\ge 90\%$). |
-| `training_records` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `module_title` (text), `employee_name` (text), `employee_number` (text), `gender` (text), `training_type` (text, default `'Individual'`), `completed_at` (date, default `CURRENT_DATE`), `status` (text, default `'Verified'`), `supervisor_name` (text), `supervisor_signature_data` (text), `employee_signature_data` (text), `signature_url` (text), `batch_session_id` (UUID), `created_at` (timestamptz) | `id`, `employee_name`, `module_title`, `completed_at`, `status` NOT NULL. | Tamper-evident employee statutory training sign-offs with canvas signatures for individual and group batches. |
+| `training_records` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `employee_id` (UUID fk `company_employees.id`), `module_title` (text), `employee_name` (text), `employee_number` (text), `gender` (text), `training_type` (text, default `'Individual'`), `completed_at` (date, default `CURRENT_DATE`), `status` (text, default `'Verified'`), `supervisor_name` (text), `supervisor_signature_data` (text), `employee_signature_data` (text), `signature_url` (text), `batch_session_id` (UUID), `created_at` (timestamptz) | `id`, `employee_name`, `module_title`, `completed_at`, `status` NOT NULL. | Tamper-evident employee statutory training sign-offs with canvas signatures for individual and group batches. |
+| `incident_reports` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `incident_number` (text), `incident_date` (date), `incident_time` (time), `reported_at` (timestamptz), `location_or_orchard` (text), `employee_id` (UUID fk `company_employees.id`), `injured_person_name` (text), `injured_person_id_number` (text), `injured_person_role` (text), `gender` (text), `incident_severity` (text), `nature_of_injury` (text), `body_part` (text), `equipment_chemical_involved` (text), `incident_description` (text), `root_cause_analysis` (text), `corrective_preventative_actions` (text), `action_assigned_to` (text), `action_target_date` (date), `action_completed_date` (date), `is_section_24_statutory` (bool, default `false`), `section_24_reported_at` (timestamptz), `investigated_by_name` (text), `investigated_by_role` (text), `investigator_signature` (text), `status` (text, default `'Open'`), `attachments` (JSONB, default `'[]'`), `created_at` (timestamptz), `updated_at` (timestamptz) | `id`, `company_id`, `incident_number`, `incident_date`, `incident_time`, `location_or_orchard`, `injured_person_name`, `injured_person_role`, `incident_severity`, `incident_description`, `root_cause_analysis`, `corrective_preventative_actions`, `action_assigned_to`, `action_target_date`, `investigated_by_name`, `investigated_by_role`, `investigator_signature`, `status` NOT NULL. | Statutory workplace incident and near-miss register under OHSA Section 24, DoL Annexure 1, and SIZA Social Audit standards. |
 | `corporate_partners` | `id` (UUID) | `name` (text), `slug` (text), `logo_url` (text), `sponsored_crop_pack` (text), `contact_email` (text), `created_at` (timestamptz) | `id`, `name`, `slug`, `sponsored_crop_pack` NOT NULL. | Commercial processor and packhouse partners sponsoring grower networks. |
 | `partner_grower_registry` | `id` (UUID) | `partner_id` (UUID fk `corporate_partners.id`), `grower_code` (text), `company_name` (text), `contact_email` (text), `is_active` (bool, default `true`), `claimed_by_company_id` (UUID fk `companies.id`), `claimed_at` (timestamptz), `created_at` (timestamptz) | `id`, `grower_code`, `company_name` NOT NULL. | Registry of issued grower codes and their claiming farm enterprise. |
 | `partner_portal_tokens` | `id` (UUID) | `partner_id` (UUID fk `corporate_partners.id`), `token` (text, default `gen_random_uuid()`), `expires_at` (timestamptz, default `now() + '90 days'`), `revoked_at` (timestamptz), `created_at` (timestamptz) | `id`, `partner_id`, `token` NOT NULL. | Encrypted, 35-day revolving magic link tokens for partner compliance portals. |
@@ -188,17 +190,29 @@ Key mobile UX conventions:
     - `SECURITY DEFINER STABLE`. Fast cached lookup returning `company_id` from `profiles` for `auth.uid()`. Used extensively in RLS policies.
 11. **`sync_profile_to_auth_meta()` $\to$ `trigger`**:
     - Trigger function keeping `auth.users.raw_user_meta_data` synchronized with `profiles` first/last names.
+12. **`get_vault_catalog()` $\to$ `jsonb`**:
+    - `SECURITY DEFINER`. Resolves caller's company tier, unlocked crop packs, and sponsored subsidies to return the full video and SOP catalog with computed access entitlements (`is_locked: boolean`).
+13. **`get_module_stream(p_video_id text)` $\to$ `jsonb`**:
+    - `SECURITY DEFINER`. Server-side entitlement validator for video streaming playback. Evaluates user subscription tier (`enterprise` full catalog vs basic), unlocked crop packs, and private estate library boundaries before releasing video stream IDs.
+14. **`archive_training_record(p_record_id uuid)` $\to$ `jsonb`**:
+    - `SECURITY DEFINER`. Enables Master Admins to softly archive training records (`status = 'Archived'`) for retraining supersedence without physical deletion of audit records.
+15. **`log_induction_session(p_module_title text, p_supervisor_name text, p_supervisor_signature text, p_trainees jsonb)` $\to$ `jsonb`**:
+    - `SECURITY DEFINER`. Records group induction batch sessions, linking trainees with `company_employees` and recording digital dual signatures for audit compliance.
+16. **`sync_company_roster(p_employees jsonb, p_deactivate_missing boolean)` $\to$ `jsonb`**:
+    - `SECURITY DEFINER`. Upserts employee rosters from CSV or form input into `company_employees`, matching by employee number and maintaining active compliance status.
 
 ### Row Level Security (RLS) & Auth Policies
 
-All 18 public database tables enforce Row Level Security (`rls_enabled = true`).
+All 20 public database tables enforce Row Level Security (`rls_enabled = true`).
 
 ```mermaid
 graph TD
     User([Authenticated User: auth.uid()]) --> Profile[profiles]
     Profile -->|get_my_company_id()| Company[companies: company_id]
     
+    Company --> CE[company_employees]
     Company --> TR[training_records]
+    Company --> IR[incident_reports]
     Company --> CBA[company_baseline_assessments]
     Company --> CRA[company_risk_assessments]
     Company --> ST[support_tickets]
@@ -462,8 +476,173 @@ graph TD
 - **Architect Persona Strict Operating Directives (`.agents/agents/architect/agent.md`)**:
   - Re-anchored architect agent as an advisory, read-only system design persona requiring formal ADR authoring in `docs/architecture/decisions/`.
 
+### Version 3 (The Vault Hub) Architectural Scoping & Blueprint Refinement (2026-10-06 / 2026-10-07)
+- **Master Blueprint Specification ([`docs/architecture/specs/THE_VAULT_V3_HUB_SPEC.md`](file:///home/luca/dev/the-vault-web/docs/architecture/specs/THE_VAULT_V3_HUB_SPEC.md))**:
+  - Authored and refined comprehensive architectural blueprint following the enterprise endorsement and strategy session with the Lona Group.
+  - **Video Catalog UI Scope Adjustment**: Officially cancelled the horizontal "Netflix-style" carousel on `vault.html` in favor of retaining the clean, high-density categorical responsive grid (`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5`) to prevent hiding compliance modules in low-card crop categories and streamline auditor verification.
+  - **Dynamic Multilingual Audio Stream Switcher**: Retained and detailed Vimeo Player SDK `loadVideo(newVimeoId)` hot-swapping on `module.html`, preserving exact playback timestamp and play/pause state across English, isiZulu, Afrikaans, and isiXhosa.
+  - **Synchronous Anti-FOUC Layout Architecture (`/js/modules/layout.js`)**: Retained baseline structural container tags (`<header id="app-header">`, `<aside id="app-sidebar">`) in static HTML with basic Tailwind dimensions (`h-[72px]`, `w-64`) and background colors, ensuring zero CLS while `LayoutEngine.mount()` synchronously normalizes routes (`getActiveRoute()`) and populates navigation links.
+  - **Dynamic Company Stamp Engine (Aspect-Ratio Preservation)**: Replaced fixed square stamp embedding in `records.html` and `module.html` jsPDF generators with an aspect-ratio calculation algorithm constrained within a `30mm x 25mm` bounding box, preventing distortion of oval farm seals and rectangular corporate marks.
+  - **Farm Roster Specification (`public.company_employees`)**: Confirmed complete DDL schema and strict multi-tenant Row Level Security policies keyed to `get_my_company_id()`, guaranteeing cryptographic tenant isolation between independent farming operations under POPIA Section 19.
+  - **Statutory Incident Reporting Module (`incidents.html`)**: Established dedicated root view for OHSA Section 24 and General Administrative Regulations 9 (GAR 9) compliance, featuring worker roster lookup, 7-day DoL mandatory reporting flag, supervisor signature canvas, and dual jsPDF exports (formal DoL Annexure 1 PDF and SIZA/GlobalG.A.P. Landscape A4 Incident Register).
+  - **Database Hardening & Bloat Cleanup**: Scheduled deprecation of orphaned table `sandbox_jsonb_backup`, cleanup of redundant denormalized `company_name` columns in `videos` and `sops`, and deployment of server-side catalog/stream redaction RPCs (`get_vault_catalog()`, `get_module_stream()`).
+
+### Version 3 (The Vault Hub) Phase 1 Implementation — Foundation, Hardening & Layout (2026-10-08)
+- **Backend Hardening & Catalog Redaction Migration (`supabase/migrations/20261008000000_v3_phase1_baseline.sql`)**:
+  - **Zero-Downtime Safe Cleanup**: Executed safe drop of confirmed orphaned snapshot table `public.sandbox_jsonb_backup` (zero code references, zero foreign keys, zero RLS). Documented explicit deprecation comments for denormalized legacy columns `videos.company_name`, `sops.company_name`, and `training_records.signature_url` without schema-dropping live dependencies.
+  - **Multi-Tenant RLS Policy**: Added missing tenant `SELECT` policy on `public.crop_pack_addon_purchases` constrained to `company_id = public.get_my_company_id()`.
+  - **Authoritative Catalog Redaction RPC (`public.get_vault_catalog()`)**: Implemented `SECURITY DEFINER` catalog function per Section 2.1 of `THE_VAULT_V3_HUB_SPEC.md`. Evaluates company tier and crop entitlements, sets `is_locked`, redacts sensitive Vimeo IDs to `'locked'` and empties questions for unentitled packs, while exposing watermarked teaser thumbnails and keeping core universal safety modules unlocked.
+  - **Authoritative Stream Resolution RPC (`public.get_module_stream(p_video_id text)`)**: Implemented stream gatekeeper function resolving caller company entitlement and returning the true Vimeo ID, raising exception `P0001: Access denied` if unentitled or locked.
+  - **Statutory 5-Year OHSA Retention Guard**: Revoked raw `DELETE` permissions on `public.training_records` from `public` and `authenticated` roles to satisfy statutory compliance under OHSA §8(2)(e) and audit retention guidelines. Deployed `public.archive_training_record(p_record_id uuid)` restricted to `master admin`.
+- **Synchronous Master Layout Engine (`/js/modules/layout.js`)**:
+  - Implemented zero-build native ES6 `LayoutEngine` per Section 1.2 with `getActiveRoute()`, `renderSidebar(activeRoute)`, `renderHeader()`, and `mount()`.
+  - Added clean route normalization (`.replace(/\.html$/, '').toLowerCase()`), ensuring `/records` and `/records.html` both seamlessly highlight active navigation tabs, and mapped child views (`module`) to parent navigation items (`vault`).
+  - Implemented responsive mobile drawer toggle, live tenant indicator (`#header-tenant-indicator`), company tier pill (`#topbar-company-name`, `#topbar-tier-tag`), active subsidy dropdown container (`#topbar-sponsor-pill-container`), notifications, and user avatar anchors.
+  - Sets `document.body.dataset.layoutMounted = 'true'` and dispatches custom event `vault:layout-mounted`.
+- **Zero-FOUC Baseline Containers Refactor**:
+  - Replaced hundreds of lines of duplicate static header and sidebar markup across all authenticated views (`vault.html`, `records.html`, `sop.html`, `risk-assessments.html`, `support.html`, and `module.html`) with baseline structural tags (`<header id="app-header">`, `<div id="sidebar-backdrop">`, `<aside id="app-sidebar">`).
+  - Synchronously invokes `LayoutEngine.mount()` prior to `main.js` and `profile-engine.js`, eliminating layout shifts and race conditions during profile hydration.
+  - Updated `js/main.js` to target `#app-sidebar` and normalize clean routes during active button evaluation.
+
+### Version 3 (The Vault Hub) Phase 2 Implementation — Video Hub & Multilingual Audio Streams (2026-10-08)
+- **Database Migration: Multilingual Streams (`supabase/migrations/20261008010000_v3_phase2_streams.sql`)**:
+  - **Non-Destructive DDL**: Added `streams` (`jsonb DEFAULT '{}'::jsonb`) column to `public.videos` table.
+  - **Multilingual Audio Seeding**: Seeded canonical core training video `1187071628` ("General Farm Employees") and crop pack module `1229871127` ("Citrus Harvesting Safety") with structured multi-track audio streams for English (`en`), isiZulu (`zu`), and Afrikaans (`af`).
+  - **Authoritative Catalog Redaction RPC Upgrade**: Updated `get_vault_catalog()` to include `streams` (redacted to `{}` if locked, delivered if unlocked) and `language`.
+  - **Stream Resolution RPC Upgrade**: Updated `get_module_stream(p_video_id text)` to evaluate tenant access before delivering full stream maps (`video.streams`), auto-defaulting legacy un-migrated modules to English.
+- **Authoritative Catalog Integration on `vault.html`**:
+  - Replaced direct client queries on `videos` table in both `fetchVideoLibraryMap()` and `fetchAndRenderVault()` with authoritative `window.dbClient.rpc('get_vault_catalog')`.
+  - Fully decoupled catalog presentation from client-side gating logic. Cleanly renders unlocked modules, watermarked teaser thumbnails for locked crop packs (`handleCropPackLockClick`) and basic tier modules (`handleLockedModuleClick`), and partner co-branded thumbnails (`partner_thumbnails`).
+- **Security Stream Gate & Hot-Swapper on `module.html`**:
+  - **Authoritative Security Gate**: Embedded `window.dbClient.rpc('get_module_stream', { p_video_id: videoId })` on initial module load. Gracefully catches unauthorized access exceptions (`P0001`) and displays a locked restriction banner with direct navigation back to `vault.html`.
+  - **Accessible Language Switcher**: Added `#audioStreamSwitcherContainer` and dynamically renders language pills (`.language-stream-btn`) when a module has multiple language streams.
+  - **Zero-Flicker Audio Hot-Swapper (`switchAudioStream(targetLang)`)**: Seamlessly hot-swaps video stream using Vimeo SDK `player.loadVideo(newVimeoId)` while preserving playback timestamp (`getCurrentTime()`) and paused state (`getPaused()`) without page reloads.
+  - **Statutory Audit Trail Integrity**: Watch progress (`user_video_progress`) and verified training records (`training_records`) strictly reference `window.canonicalVideoId`, keeping compliance records unified across all language options.
+
+### Version 3 (The Vault Hub) Phase 3 Implementation — Field Workspace & Roster Engine (2026-10-08)
+- **Database Migration: Roster Engine & Atomic Stored Procedures (`supabase/migrations/20261008020000_v3_phase3_roster.sql`)**:
+  - **`public.company_employees` Table**: Created multi-tenant employee roster table with UUID primary key, `company_id` foreign key (`ON DELETE CASCADE`), `UNIQUE(company_id, employee_number)`, and indexes (`idx_company_employees_company_active`, `idx_company_employees_company_team`, `idx_company_employees_search`).
+  - **Tenant RLS & Statutory Deletion Guard**: Implemented strict tenant `SELECT` policy (`company_id = get_my_company_id()`), mutation policy restricted to safety management roles (`master admin`, `admin`, `manager`, `safety officer`), and revoked raw `DELETE` from `public` and `authenticated` roles to enforce soft-deactivation (`is_active = false`).
+  - **Non-Destructive Link on `training_records`**: Added `employee_id uuid REFERENCES public.company_employees(id) ON DELETE SET NULL` with btree index and index on `batch_session_id`, while preserving immutable historical columns (`employee_name`, `employee_number`, `gender`, `supervisor_name`) as frozen snapshots.
+  - **Atomic Roster Synchronization RPC (`public.sync_company_roster`)**: Stored procedure supporting "Upsert & Keep" vs. "Seasonal Replace & Sync" (soft-deactivating departed seasonal workers without touching historical training certificates).
+  - **Atomic Induction Intake RPC (`public.log_induction_session`)**: High-throughput stored procedure committing single and batch induction sessions with ECTA §13 supervisor attestation in a single ACID transaction, enforcing the statutory 80-worker maximum cap.
+  - **Live Schema Synchronization**: Synchronized live database schema via `./scripts/sync_schema.sh` into [`.ai/SUPABASE_SCHEMA.md`](file:///home/luca/dev/the-vault-web/.ai/SUPABASE_SCHEMA.md).
+- **Farm Employee Roster Management View (`records.html`)**:
+  - **Segmented View Navigation**: Deployed toggle control switching between `[ 📋 Training Records Register ]` and `[ 👥 Farm Employee Roster ]`.
+  - **Roster Overview & Metrics**: Real-time stats pills showing Active Crew, Seasonal Inactive Crew, and Total on File, alongside quick-add employee modal (`#addEmployeeModal`).
+  - **Search & Dynamic Filters**: Live search across clock number, full name, ID/passport, and orchard; dynamic team/orchard dropdown; active/inactive filter.
+  - **High-Density Crew Table**: Displays Clock #, Worker Full Name, ID/Passport, Gender, Team/Orchard, Status badge, Last Induction Date (cross-referenced from completed records), and inline Activate/Deactivate status toggle button.
+  - **Zero-Build RFC 4180 CSV Ingestion Pipeline**: Browser-native `FileReader` parser supporting `,`, `;`, and `\t` delimiters with `HEADER_ALIASES` normalizer across South African payroll systems (Sage VIP, Pastel, AgriCol, PaySoft).
+  - **Pre-Commit Modal & Strategy Radios**: Shows detected row count, column mapping badges, 5-row preview, and selection between "Upsert & Keep" and "Seasonal Replace & Sync" before executing `sync_company_roster`.
+- **Unified Induction Intake Drawer & Supervisor Attestation Gate (`module.html`)**:
+  - **Streamlined Workflow**: Removed artificial Individual vs. Group mode toggle and eliminated repetitive 50-worker signature pad loops, dropping network batch payloads by ~98.6%.
+  - **Active Roster Trainee Checklist**: Loads active farm personnel (`is_active = true`), supporting live search, orchard filtering, "Select All Filtered", and individual checkboxes.
+  - **Statutory Guardrails & Advisories**: Real-time counter badge resolving Individual vs. Batch mode, statutory advisory warning for sessions > 50 workers, and hard validation block exceeding 80 workers.
+  - **Quick-Add Unlisted Worker**: Expandable inline form for guest or unlisted seasonal workers that immediately incorporates them into the active induction session.
+  - **ECTA §13 Statutory Supervisor Gate**: Supervising officer declaration checkbox and digital signature pad committing through `log_induction_session` RPC.
+  - **Attendance Register PDF Fallback**: Enhanced landscape register generator in `records.html` to render `[Attested (ECTA §13)]` when individual trainee signatures are omitted.
+
+### Version 3 (The Vault Hub) Phase 4 Implementation — Statutory Incident Register & Stamp Engine (2026-10-08)
+- **Database Migration: Incident Register & Company Stamp (`supabase/migrations/20261008030000_v3_phase4_incidents_stamp.sql`)**:
+  - **Company Stamp DDL**: Added `company_stamp_url text` column to `public.companies` table in a non-destructive manner.
+  - **`public.incident_reports` Table**: Created statutory incident register table conforming strictly to Section 6.2 of `THE_VAULT_V3_HUB_SPEC.md` (`id`, `company_id`, `incident_number`, `incident_date`, `incident_time`, `reported_at`, `location_or_orchard`, `employee_id`, `injured_person_name`, `injured_person_id_number`, `injured_person_role`, `gender`, `incident_severity`, `nature_of_injury`, `body_part`, `equipment_chemical_involved`, `incident_description`, `root_cause_analysis`, `corrective_preventative_actions`, `action_assigned_to`, `action_target_date`, `action_completed_date`, `is_section_24_statutory`, `section_24_reported_at`, `investigated_by_name`, `investigated_by_role`, `investigator_signature`, `status`, `attachments`, `created_at`, `updated_at`).
+  - **Multi-Tenant Indexes & RLS**: Created performance indexes `idx_incidents_company`, `idx_incidents_statutory`, and `idx_incidents_employee`. Enabled RLS with policy `"Tenants can manage their own incident reports"` enforcing `company_id = public.get_my_company_id()`.
+  - **Live Schema Synchronization**: Verified migration on live production Supabase database and updated [`.ai/SUPABASE_SCHEMA.md`](file:///home/luca/dev/the-vault-web/.ai/SUPABASE_SCHEMA.md) via `sync_schema.sh`.
+- **Dedicated Statutory Incident Reporting View (`incidents.html`)**:
+  - **Zero-FOUC Layout Integration**: Deployed root view with semantic baseline layout tags (`<header id="app-header">`, `<div id="sidebar-backdrop">`, `<aside id="app-sidebar">`) mounted via `LayoutEngine.mount()`.
+  - **Summary KPI Strip**: Deployed 4-card metric strip calculating Total Incidents YTD, Near Misses, Lost-Time Injuries (LTI &gt; 3 days), and Safety Streak (Days Since Last Incident).
+  - **Statutory Section 24 Alert Banner**: Real-time warning alert displayed when active incidents trigger South African OHSA Section 24 and General Administrative Regulation 9 mandatory 7-day notification to the Department of Employment and Labour.
+  - **Incident Capture Modal (`#incidentModal`)**: Multi-section form capturing circumstances, active roster worker lookup and autocompletion (`company_employees` where `is_active = true`), severity selection with automatic Section 24 trigger, CAPA assignment, and HTML5 investigator digital signature canvas.
+  - **Dual jsPDF Export Engines**:
+    1. *DoL Annexure 1 Investigation PDF (Portrait A4)*: Prescribed statutory format under General Administrative Regulations 9 (GAR 9) featuring Sections A through H, legal declaration, embedded investigator signature, and verified company stamp.
+    2. *SIZA / GlobalG.A.P. Incident Register (Landscape A4)*: High-density multi-row tabular audit ledger for farm certification inspections with date/time, orchard, injury, root cause, corrective action, responsible person, and official stamp watermark.
+- **Official Estate Stamp Upload UI & Logic (`profile-modal.html` & `js/profile-engine.js`)**:
+  - **Organization Tab Integration**: Added official estate stamp dropzone, preview container (`#company-stamp-preview`), and upload/remove triggers in `profile-modal.html`.
+  - **Storage & Mutation Handlers (`js/profile-engine.js`)**: Implemented `handleCompanyStampUpload(event)` validating file type (PNG/JPG) and size (&le;1.5MB), uploading to Supabase Storage `avatars` bucket at `company-stamps/${companyId}/stamp_${Date.now()}.${ext}`, updating `companies.company_stamp_url`, and refreshing the UI. Added `removeCompanyStamp()` resetting the seal to null.
+  - **Administrative Access Control**: Enforced Primary Admin permissions (`master admin`, `admin`) for stamp modifications, locking controls for non-admin managers.
+- **Dynamic Certificate Stamp Engine with Aspect-Ratio Preservation (`records.html` & `incidents.html`)**:
+  - **Proportional Scaling Algorithm (`renderCertificateStamp`)**: Implemented Section 7.3 algorithm dynamically calculating natural image aspect ratio versus a `30mm x 25mm` bounding box, centering the seal and eliminating distortion for oval farm seals and rectangular marks.
+  - **Vector Seal Fallback**: Programmatic dual-ring vector compliance seal (`THE VAULT COMPLIANCE — OFFICIALLY VERIFIED — OHSA ACT 85 OF 1993`) rendered cleanly when no user stamp is uploaded.
+  - **Certificate Engine Integration**: Refactored both Individual Training Certificate and Group Induction Sign-off Register in `records.html`, as well as DoL Annexure 1 and SIZA audit registers in `incidents.html` to invoke `renderCertificateStamp`.
+- **365-Day Statutory Refresher Tracking (`records.html`)**:
+  - **Compliance Status Engine (`calculateComplianceStatus`)**: Implemented Section 5.2 contract calculating days remaining out of 365 days under OHSA GSR 2(1) (Compliant &ge; 30d [emerald], Expiring Soon &le; 30d [amber], Overdue &lt; 0d [red], Untrained [red/gray]).
+  - **UI Integration**: Added compliance status badges to Employee Directory cards and Farm Employee Roster table rows.
+  - **Active Roster Isolation**: Updated roster metrics strip and added compliance status filter options (`Compliant`, `Expiring Soon`, `Overdue / Untrained`), calculating metrics strictly against active farm workers (`is_active = true`).
+
+### Version 3 (The Vault Hub) UI/UX & Gating Remediation Pass (2026-10-12)
+- **Database Enterprise Catalog Gating Remediation (`supabase/migrations/20261008040000_fix_enterprise_catalog_gating.sql`)**:
+  - Resolved entitlement fallthrough bug in `get_vault_catalog()` and `get_module_stream()` where accounts on `tier = 'enterprise'` saw standard crop packs (Citrus, Macadamia, Banana) locked due to `unlock_all_crops` defaulting to `false`.
+  - Added explicit enterprise evaluation condition (`lower(coalesce(v_tier, '')) = 'enterprise' => is_locked = false`), granting full access to standard agricultural crop packs.
+  - Hardened private estate library rules in `get_module_stream()` to deny cross-tenant streaming of proprietary estate footage.
+  - Added sub-tag keyword entitlement matching for crop names in `sponsored_crop_packs` and `purchased_crop_packs`.
+  - Applied migration to remote database and synchronized schema into [`.ai/SUPABASE_SCHEMA.md`](file:///home/luca/dev/the-vault-web/.ai/SUPABASE_SCHEMA.md) via `./scripts/sync_schema.sh`.
+- **Top Block Scroll Padding Remediation (Fixed Header Compensation)**:
+  - Compensated for `#app-header` fixed 72px height across all 7 views (`vault.html`, `records.html`, `incidents.html`, `sop.html`, `risk-assessments.html`, `support.html`, and `module.html`) using standardized `pt-[72px]` on `<main id="mainContent">`.
+  - Decoupled content padding onto responsive inner wrappers (`p-4 sm:p-8` / `p-4 sm:p-10`), guaranteeing full scroll-to-top visibility of page titles, search inputs, breadcrumbs, and metrics without clipping behind the fixed header.
+- **Centralized Master Header Component Polish (`js/modules/layout.js` & `js/profile-engine.js`)**:
+  - Restored authentic Version 2 brand mark: SVG vault mark in rounded primary container paired with `font-serif font-bold text-slate-900` typography (`text-xl sm:text-2xl lg:text-[1.75rem]`).
+  - Restored all RHS interactive controls: live company name and tier badge pill (`#topbar-company-name`, `#topbar-tier-tag`), partner subsidy dropdown container (`#topbar-sponsor-pill-container`), notifications bell with unread dot indicator, and user profile avatar trigger (`#userAvatar`, `#userName`, and click handler calling `openProfileModal()`).
+  - Fixed profile engine hydration in `js/profile-engine.js` to synchronously bind the user's name to the visible `#userName` header element.
+- **Estate Stamp Card UI & jsPDF Placement Hardening (`profile-modal.html`, `incidents.html`, `records.html`)**:
+  - Polished Estate Stamp card in `profile-modal.html` under Organization tab with 96px dashed preview square, descriptive statutory guidelines, and 44px mobile-first action buttons (`#upload-stamp-btn`, `#remove-stamp-btn`).
+  - Hardened jsPDF coordinates in `incidents.html`:
+    - Added page boundary guard (`currentY > pageHeight - margin - 45`) before Section G in DoL Annexure 1 to prevent signature/stamp collision with footer.
+    - Adjusted pagination ceiling (`startY > pageHeight - 45`) and anchored the stamp neatly (`stampY = Math.min(Math.max(startY + 4, pageHeight - margin - 32), pageHeight - margin - 28)`) with an official verified label in SIZA Incident Register, eliminating row collisions and disclaimer overlap.
+    - Verified `records.html` individual certificate and group induction sign-off blocks maintain clean coordinate margins without overlap.
+- **Incident Register Heading Alignment & Application Footer (`incidents.html`)**:
+  - Aligned page heading typography to standard `font-serif font-bold text-2xl text-slate-900` with muted statutory sub-caption.
+  - Injected standard application footer with Simple Solutions branding, quick links, statutory 5-year OHSA §24 and POPIA §14(1)(a) audit retention notice, and copyright block.
+- **Video Module Language Switcher Dropdown (`module.html`)**:
+  - Implemented styled `<select id="moduleLanguageSelect">` dropdown in the video sub-header / controls bar below the Vimeo player.
+  - Populated options dynamically from `video.streams` (e.g. English, isiZulu, Afrikaans).
+  - Handles single-language videos by displaying "English" as selected and disabling the dropdown with an informative helper note.
+  - Wired `onchange` to `switchAudioStream(selectedLang)` with Vimeo Player SDK hot-swapping via `loadVideo()`, preserving current timestamp (`getCurrentTime()`) and active play/pause state without page reload, keeping watch progress unified on `window.canonicalVideoId`.
+
+### Version 3 (The Vault Hub) Records View Harmonization & Directory Refactor (2026-10-12)
+- **Page-Level Layout Harmonization (`records.html`)**:
+  - **Outer Frame Elimination**: Stripped the enclosing boxed card wrapper (`border border-slate-200 bg-white rounded-2xl p-6` / `max-w-5xl mx-auto w-full p-4 sm:p-8 bg-white rounded-2xl border border-slate-200 shadow-sm`), letting content sit directly on the `#f8fafc` canvas background inside `<div class="max-w-6xl mx-auto w-full">`, mirroring `risk-assessments.html`.
+  - **Permanent Static Title & Subtitle**: Set the main page title permanently to `Training Records` with subtext (`Manage employee compliance, verified induction registers, and farm workforce rosters.`), removing tab title swapping.
+  - **Dynamic Top-Right Action Controls**: Placed tab-specific actions in the top-right of the title block:
+    - *Register Tab*: `[ ⬇ Export Audit Pack (DPA) ]`, `#pdf-quota-pill`, and `Live HR Sync` pill.
+    - *Roster Tab*: `[ ⬆ Import Roster (CSV) ]` and `[ + Add Worker ]`.
+  - **Segmented Sub-View Switcher Row**: Positioned the tab switcher (`[ 📋 Training Records Register ]` vs `[ 👥 Farm Employee Roster ]`) on its own full-width row (`border-b border-slate-200 pb-5 mb-6`) below the title block with dynamic sub-caption description (`#activeViewDescription`).
+  - **Full-Width Search & Filter Bar**: Positioned clean horizontal search inputs and filter dropdowns directly below the switcher row across both tabs. Fixed roster search input ID collision (`#rosterSearchInput`).
+- **Collapsible Employee Directory Table Refactor (`records.html`)**:
+  - **Column Harmonization**: Refactored the employee card accordion table columns to: `MODULE TITLE` | `SUPERVISOR` | `COMPLETION DATE` | `RENEWAL DUE` | `STATUS` | `ACTIONS`.
+  - **Removed Redundant Columns**: Removed the `TRAINING TYPE` column and pill badges, and removed individual certificate downloads and the `CERTIFICATE` column, standardizing compliance audits strictly on Group Induction & Audit Register exports.
+  - **Statutory 365-Day Renewal & Module Status Engine**:
+    - Calculated `RENEWAL DUE` as exactly 365 days after `completed_at` (OHSA GSR 2(1) annual induction cycle).
+    - Rendered granular module `STATUS` badges: `Compliant` (>30d remaining, emerald), `Expiring Soon` (<=30d remaining, amber), and `Overdue` (<0d remaining, red).
+  - **Overall Worker Compliance Rollup (`calculateWorkerCompliance`)**:
+    - Evaluates all active modules for a worker:
+      - If ANY module is overdue -> `Overdue` (red).
+      - Else if ANY module is expiring within 30 days -> `Expiring Soon` (amber).
+      - Else -> `Compliant` (emerald).
+  - **Retraining Module Replacement Engine**:
+    - Deduplicates modules per worker by `module_title` (case-insensitive normalized), keeping ONLY the latest completed record per module. Refresher training cleanly supersedes historical runs in active registers.
+  - **Record & Worker Deletion / Dismissal Handling**:
+    - *Delete Individual Module Record*: Added trash button in `ACTIONS` column with confirmation prompt. Invokes `archive_training_record` RPC (with fallback to direct status update or delete), immediately pruning local state and updating compliance counts without full page refresh.
+    - *Worker Deactivation / Dismissal*: Added `[ Remove / Deactivate Worker ]` button inside the expanded worker card header. Confirms action, updates `company_employees.is_active = false`, updates roster statistics, and immediately reflects status across directory and roster views.
+
+### Version 3 (The Vault Hub) Records & Incidents UI Polish (2026-10-13)
+- **Training Records Metric Strip & Filter Refinement (`records.html`)**:
+  - **Compliance Metric Strip Relocation**: Moved the detailed compliance summary pill (`● 0 Active (0 Valid • 0 Expiring • 0 Overdue/Untrained)`) exclusively to the `[ 📋 Training Records Register ]` view positioned directly above the search & filter bar.
+  - **Clean Roster Headcount Strip**: Replaced the detailed status pill on the `[ 👥 Employee Roster ]` view with a concise headcount strip: `● 0 Active Crew  |  ● 0 Inactive  |  0 Total on File`.
+  - **Removal of Team/Orchard Filter Dropdown**: Removed the `#rosterTeamFilter` (`All Teams / Orchards`) dropdown from the Roster view, retaining strictly the text search input (`#rosterSearchInput`) and active status filter (`#rosterStatusFilter`). Verified no team filter dropdown remains on either view.
+  - **Dynamic State Synchronization**: Hooked `updateRosterStatsAndFilters()` into training records resolution so active compliance metrics automatically refresh upon data loading across both tabs.
+- **Incident Register Subtext & Modal Verification (`incidents.html`)**:
+  - **Header Subtext Caption**: Verified and confirmed subtext caption under the main `Incident Register` heading: `"Log, investigate, and track farm workplace incidents, near misses, and statutory safety records."`.
+  - **Modal Investigation & CAPA Verification**:
+    - Confirmed Section 4: Narrative Description (`#formDescription`) & Root Cause Analysis (`#formRootCause`).
+    - Confirmed Section 5: Corrective & Preventative Actions (`#formCapa`) with Assigned Person (`#formActionAssignedTo`) and Target Date (`#formActionTargetDate`).
+    - Confirmed Section 6: Section 16(2) / Safety Officer Signature Canvas (`#signatureCanvas`) and Investigator Name (`#formInvestigatedBy`) & Role (`#formInvestigatorRole`).
+- **Remote Database Schema Synchronization & Manifest Update (`.ai/SUPABASE_SCHEMA.md` & `PROJECT_BRAIN.md`)**:
+  - Ran `./scripts/sync_schema.sh` direct `pg_dump` against production Supabase PostgreSQL instance.
+  - Formally captured live database schema manifest changes including newly provisioned `company_employees` (roster management) and `incident_reports` (OHSA §24 and SIZA incident tracking) tables.
+  - Documented new columns `companies.company_stamp_url`, `training_records.employee_id`, and updated RLS table coverage (20 total tables).
+  - Documented active production RPC functions: `archive_training_record`, `get_module_stream`, `get_vault_catalog`, `log_induction_session`, and `sync_company_roster`.
+
 ### Upcoming Priority Tasks
-1. **Unified Induction & Roster Rollout**: Execute Stage 1 Supabase SQL migration (`company_employees` table, `log_induction_session`, and `sync_company_roster` RPCs).
-2. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
-3. **Paystack Bolt-On Automation**: Verify live webhook processing of `charge.success` events for `PLN_8n5qrpeh23evvnu` across production testing farms.
-4. **Cloudflare Security Headers**: Configure `_headers` file in Cloudflare Pages to enforce strict Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), and frame options.
+1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
+2. **Paystack Bolt-On Automation**: Verify live webhook processing of `charge.success` events for `PLN_8n5qrpeh23evvnu` across production testing farms.
+3. **Cloudflare Security Headers**: Configure `_headers` file in Cloudflare Pages to enforce strict Content Security Policy (CSP), HTTP Strict Transport Security (HSTS), and frame options.

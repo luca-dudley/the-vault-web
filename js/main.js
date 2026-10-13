@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const sidebar = document.getElementById('sidebar');
+  const sidebar = document.getElementById('app-sidebar') || document.getElementById('sidebar');
   const sidebarToggle = document.getElementById('sidebarToggle');
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
@@ -23,11 +23,15 @@ const setActiveSidebarButton = (buttons, activeButton) => {
     if (activeSvg) activeSvg.classList.remove('text-slate-400');
   };
 
-  const currentPage = window.location.pathname.split('/').pop() || 'vault.html';
+  const rawPage = window.location.pathname.split('/').filter(Boolean).pop() || 'vault';
+  const cleanPage = rawPage.replace(/\.html$/, '').toLowerCase();
+  const normalizedPage = cleanPage === 'module' ? 'vault' : cleanPage;
+
   if (sidebarNavButtons.length > 0) {
     sidebarNavButtons.forEach((button) => {
-      const href = button.getAttribute('href');
-      if (href && href === currentPage) {
+      const rawHref = button.getAttribute('href') || '';
+      const cleanHref = rawHref.replace(/\.html$/, '').toLowerCase();
+      if (cleanHref && cleanHref === normalizedPage) {
         setActiveSidebarButton(sidebarNavButtons, button);
       }
     });

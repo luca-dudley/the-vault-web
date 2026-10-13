@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L0HP7V44GT"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      window['ga-disable-G-L0HP7V44GT'] = true;
+    }
+    if (localStorage.getItem('internal_user') === 'true') {
+      window['ga-disable-G-L0HP7V44GT'] = true;
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-L0HP7V44GT');
+  </script>
+
+  <title>Incident Register - The Vault</title>
+  <link rel="icon" type="image/jpeg" href="assets/branding/Simple_Logo-removebg-preview.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1e3a5f',
+            foreground: '#1a1a2e',
+            muted: '#6b7280',
+            border: '#e5e7eb',
+            'dark-bg': '#0a0a14',
+            'dark-card': '#12121f'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Playfair Display', 'Georgia', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    #sidebar, #app-sidebar, #mainContent {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #sidebar.collapsed, #app-sidebar.collapsed {
+      width: 5rem !important;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    #sidebar.collapsed .sidebar-text, #app-sidebar.collapsed .sidebar-text,
+    #sidebar.collapsed .sidebar-category-header, #app-sidebar.collapsed .sidebar-category-header,
+    #sidebar.collapsed #sidebarToggle span, #app-sidebar.collapsed #sidebarToggle span {
+      display: none !important;
+    }
+    #sidebar.collapsed .sidebar-nav-btn, #app-sidebar.collapsed .sidebar-nav-btn {
+      justify-content: center;
+      padding-left: 0; padding-right: 0; padding-top: 0.75rem; padding-bottom: 0.75rem;
+    }
+    #sidebar.collapsed .sidebar-nav-btn svg, #app-sidebar.collapsed .sidebar-nav-btn svg {
+      margin: 0; width: 1.5rem; height: 1.5rem;
+    }
+    #sidebar.collapsed #sidebarToggle svg, #app-sidebar.collapsed #sidebarToggle svg {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 font-sans min-h-screen overflow-x-hidden">
+
+  <!-- Zero-FOUC Structural Layout Shell -->
+  <header id="app-header" class="fixed top-0 left-0 right-0 z-40 h-[72px] bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6"></header>
+  <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/40 lg:hidden" aria-hidden="true"></div>
+  <aside id="app-sidebar" class="fixed left-0 top-0 bottom-0 z-50 w-64 -translate-x-full lg:translate-x-0 transition-transform duration-300 lg:top-[72px] lg:z-30 border-r border-slate-200/80 bg-[#f8fafc] flex flex-col justify-between p-4"></aside>
+
+  <!-- Main Content Area -->
+  <main id="mainContent" class="ml-0 lg:ml-64 pt-[72px] min-h-screen flex flex-col justify-between relative">
+    <div id="pageContentWrapper" class="p-4 sm:p-8 flex-1 flex flex-col justify-between transition-all duration-300">
+      <div class="max-w-6xl mx-auto w-full p-4 sm:p-8 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-6">
+
+        <!-- Top Header & Actions -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div>
+            <h1 class="font-serif font-bold text-2xl sm:text-3xl text-slate-900">Incident Register</h1>
+            <p class="text-muted text-sm mt-1">Log, investigate, and track farm workplace incidents, near misses, and statutory safety records.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button id="btnExportAuditLedger" type="button" onclick="handleExportAuditRegisterPdf()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all cursor-pointer">
+              <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Export Audit Register (PDF)</span>
+            </button>
+            <button id="btnOpenIncidentModal" type="button" onclick="openIncidentModal()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Log New Incident</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Strip (Section 6.3) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <!-- Total Incidents YTD -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total YTD</span>
+              <span class="p-1.5 rounded-lg bg-blue-100/60 text-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              </span>
+            </div>
+            <p id="kpiTotalYtd" class="text-2xl font-bold text-slate-900 mt-2">0</p>
+            <p class="text-[11px] text-muted mt-0.5">Recorded incidents in 2026</p>
+          </div>
+
+          <!-- Near Misses -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Near Misses</span>
+              <span class="p-1.5 rounded-lg bg-amber-100/60 text-amber-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </span>
+            </div>
+            <p id="kpiNearMisses" class="text-2xl font-bold text-slate-900 mt-2">0</p>
+            <p class="text-[11px] text-muted mt-0.5">Proactive hazard catches</p>
+          </div>
+
+          <!-- Lost-Time Injuries -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Lost-Time (LTI)</span>
+              <span class="p-1.5 rounded-lg bg-red-100/60 text-red-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </span>
+            </div>
+            <p id="kpiLostTime" class="text-2xl font-bold text-slate-900 mt-2">0</p>
+            <p class="text-[11px] text-muted mt-0.5">&gt; 3 days incapacitation</p>
+          </div>
+
+          <!-- Days Since Last Incident -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Safety Streak</span>
+              <span class="p-1.5 rounded-lg bg-emerald-100/60 text-emerald-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </span>
+            </div>
+            <p id="kpiDaysSinceLast" class="text-2xl font-bold text-emerald-700 mt-2">—</p>
+            <p id="kpiDaysSubtitle" class="text-[11px] text-muted mt-0.5">Days since last reported event</p>
+          </div>
+        </div>
+
+        <!-- Section 24 Notification Banner (Visible if any unresolved statutory events exist) -->
+        <div id="section24AlertBox" class="hidden p-4 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-start gap-3">
+          <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div class="text-xs">
+            <p class="font-bold text-red-800">MANDATORY STATUTORY NOTIFICATION ACTIVE (OHSA SECTION 24)</p>
+            <p class="mt-0.5 leading-relaxed text-red-700">One or more incidents on file require formal notification to the Provincial Chief Inspector of the Department of Employment and Labour within 7 days using Form Annexure 1.</p>
+          </div>
+        </div>
+
+        <!-- Filters & Search Bar -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+          <div class="relative flex-1 max-w-sm">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input id="incidentSearchInput" type="text" placeholder="Search ref, injured person, location, injury..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:ring-primary focus:border-primary outline-none transition-colors">
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="severityFilter" class="px-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none cursor-pointer">
+              <option value="all">All Severities</option>
+              <option value="Near Miss">Near Miss</option>
+              <option value="First Aid Only">First Aid Only</option>
+              <option value="Medical Treatment (Doctor)">Medical Treatment</option>
+              <option value="Disabling Injury (> 3 Days Lost Time)">Disabling Injury (&gt; 3 Days)</option>
+              <option value="Fatal / Section 24 Major">Fatal / Section 24 Major</option>
+            </select>
+
+            <select id="statusFilter" class="px-3 py-2 text-xs border border-slate-200 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none cursor-pointer">
+              <option value="all">All Statuses</option>
+              <option value="Open">Open</option>
+              <option value="Under Investigation">Under Investigation</option>
+              <option value="Action Pending">Action Pending</option>
+              <option value="Resolved / Closed">Resolved / Closed</option>
+            </select>
+
+            <label class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 cursor-pointer select-none">
+              <input type="checkbox" id="section24Filter" class="rounded text-primary focus:ring-primary h-3.5 w-3.5">
+              <span>Section 24 Only</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Ledger Table Container -->
+        <div id="incidentsLoadingState" class="hidden flex min-h-[14rem] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10">
+          <div class="flex flex-col items-center gap-3 text-center">
+            <div class="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-primary"></div>
+            <p class="text-xs font-medium text-foreground">Loading statutory incident records...</p>
+          </div>
+        </div>
+
+        <div id="incidentsTableWrapper" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th class="px-4 py-3 font-semibold">Incident Ref</th>
+                  <th class="px-4 py-3 font-semibold">Date &amp; Time</th>
+                  <th class="px-4 py-3 font-semibold">Location / Orchard</th>
+                  <th class="px-4 py-3 font-semibold">Injured Worker</th>
+                  <th class="px-4 py-3 font-semibold">Severity Class</th>
+                  <th class="px-4 py-3 font-semibold">Statutory Trigger</th>
+                  <th class="px-4 py-3 font-semibold">Status</th>
+                  <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incidentsTableBody" class="divide-y divide-slate-100">
+                <!-- Rows injected via renderIncidentsTable() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="incidentsEmptyState" class="hidden rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+          <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <p class="text-sm font-bold text-foreground">Zero Workplace Incidents on Record</p>
+          <p class="mt-1 text-xs text-muted max-w-md mx-auto">Your statutory register is clean. In the event of an occupational injury or near miss, log it here to generate compliant DoL Annexure 1 reports and audit records.</p>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <footer class="mt-16 w-full max-w-7xl mx-auto rounded-2xl bg-[#1e3a5f] px-5 sm:px-8 py-8 text-white shadow-md border border-slate-700/30 shrink-0">
+        <div class="flex flex-col lg:flex-row lg:justify-between gap-8">
+          <div class="max-w-sm space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white p-1.5 shadow-sm shrink-0">
+                <img src="assets/branding/Simple_Logo.jpg" alt="Simple Solutions logo" class="h-full w-full object-contain rounded-full">
+              </div>
+              <div>
+                <p class="text-base font-semibold tracking-tight">Simple Solutions</p>
+                <p class="text-[10px] uppercase tracking-[0.25em] text-slate-300">Safety &amp; Compliance</p>
+              </div>
+            </div>
+            <p class="text-xs leading-relaxed text-slate-300">
+              Streamlining operational architectures for modern business safety and workplace compliance.
+            </p>
+          </div>
+
+          <div class="space-y-2.5">
+            <h3 class="text-xs font-bold uppercase tracking-[0.22em] text-slate-200">Quick Links</h3>
+            <nav class="grid gap-2 text-xs text-slate-300">
+              <a href="vault.html" class="transition-colors hover:text-white hover:underline">The Vault</a>
+              <a href="records.html" class="transition-colors hover:text-white hover:underline">Training Records</a>
+              <a href="incidents.html" class="transition-colors hover:text-white hover:underline">Incident Register</a>
+              <a href="sop.html" class="transition-colors hover:text-white hover:underline">Standard Operating Procedures</a>
+              <a href="support.html" class="transition-colors hover:text-white hover:underline">Help &amp; Support</a>
+            </nav>
+          </div>
+
+          <div class="max-w-xs sm:max-w-sm space-y-2.5">
+            <h3 class="text-xs font-bold uppercase tracking-[0.22em] text-slate-200">Statutory Notice &amp; Retention</h3>
+            <p class="text-xs leading-relaxed text-slate-300">
+              All incident reports preserved for statutory 5-year audit compliance under OHSA §24, General Administrative Regulations 9 (GAR 9), SIZA Principle 4, and POPIA §14(1)(a).
+            </p>
+          </div>
+        </div>
+
+        <div id="partnerChainStrip" class="hidden mt-6 pt-4 border-t border-blue-900/60 text-center text-[11px] font-medium tracking-wide text-slate-300"></div>
+
+        <div class="mt-8 border-t border-blue-900/60 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
+          <p>© 2026 Simple Solutions. All rights reserved.</p>
+          <p class="text-slate-400">Internal Operational Compliance Portal • Section 24 OHSA &amp; POPIA Compliant</p>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Incident Modal (Capture / Edit) -->
+  <div id="incidentModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative w-full max-w-3xl max-h-[92vh] flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden my-auto">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between shrink-0">
+        <div>
+          <h2 id="incidentModalTitle" class="font-serif text-lg sm:text-xl font-bold text-foreground">Record Workplace Incident / Near Miss</h2>
+          <p class="text-xs text-muted">Statutory recording conforming to OHSA Section 24 and GAR Regulation 9.</p>
+        </div>
+        <button type="button" onclick="closeIncidentModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <form id="incidentForm" onsubmit="handleSaveIncident(event)" class="overflow-y-auto p-6 space-y-6 flex-1 text-xs">
+        <input type="hidden" id="incidentId" value="">
+
+        <!-- SECTION 1: INCIDENT CIRCUMSTANCES -->
+        <div>
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-primary"></span>
+            1. Circumstances &amp; Location
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Incident Reference #</label>
+              <input type="text" id="formIncidentNumber" readonly class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500 font-mono text-xs" placeholder="Auto-generated (e.g. INC-2026-001)">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Date of Incident *</label>
+              <input type="date" id="formIncidentDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Time of Incident *</label>
+              <input type="time" id="formIncidentTime" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block font-medium text-slate-700 mb-1">Location / Orchard / Facility Block *</label>
+              <input type="text" id="formLocation" required placeholder="e.g. Citrus Block 12B - Packhouse Sorting Line 2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: INJURED / INVOLVED PERSON -->
+        <div class="pt-4 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-primary"></span>
+              2. Injured Person Details
+            </h3>
+            <span class="text-[11px] text-muted">Select from active employee roster or input manually</span>
+          </div>
+
+          <!-- Roster Autocomplete Select -->
+          <div class="mb-3">
+            <label class="block font-medium text-slate-700 mb-1">Quick-Select from Active Employee Roster</label>
+            <select id="formEmployeePicker" onchange="handleRosterEmployeeSelect(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs cursor-pointer">
+              <option value="">— Select registered worker or choose 'Manual Entry' below —</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Full Name *</label>
+              <input type="text" id="formInjuredName" required placeholder="e.g. Sipho Ndlovu" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">ID / Passport Number</label>
+              <input type="text" id="formInjuredIdNo" placeholder="e.g. 910412 5849 082" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs font-mono">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Occupation / Role *</label>
+              <input type="text" id="formInjuredRole" required placeholder="e.g. Tractor Driver, General Farm Employee" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Gender</label>
+              <select id="formInjuredGender" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs">
+                <option value="">— Select —</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <input type="hidden" id="formEmployeeId" value="">
+        </div>
+
+        <!-- SECTION 3: SEVERITY & STATUTORY SECTION 24 TRIGGER -->
+        <div class="pt-4 border-t border-slate-100">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-primary"></span>
+            3. Severity Classification &amp; Medical Impact
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Incident Severity Class *</label>
+              <select id="formSeverity" required onchange="handleSeverityChange(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs font-semibold">
+                <option value="Near Miss">Near Miss (Hazard / Safe Catch)</option>
+                <option value="First Aid Only">First Aid Only</option>
+                <option value="Medical Treatment (Doctor)">Medical Treatment (Doctor / Clinic)</option>
+                <option value="Disabling Injury (> 3 Days Lost Time)">Disabling Injury (&gt; 3 Days Lost Time)</option>
+                <option value="Fatal / Section 24 Major">Fatal / Section 24 Major Statutory</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Status *</label>
+              <select id="formStatus" required class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs">
+                <option value="Open">Open</option>
+                <option value="Under Investigation">Under Investigation</option>
+                <option value="Action Pending">Action Pending</option>
+                <option value="Resolved / Closed">Resolved / Closed</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Nature of Injury / Illness</label>
+              <input type="text" id="formNatureOfInjury" placeholder="e.g. Deep Laceration, Chemical Burn, Fracture" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Body Part Affected</label>
+              <input type="text" id="formBodyPart" placeholder="e.g. Right Forearm, Left Eye, Lumbar Spine" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block font-medium text-slate-700 mb-1">Equipment / Chemical / Machinery Involved</label>
+              <input type="text" id="formEquipment" placeholder="e.g. Tractor PTO Shaft, Copper Fungicide, Packhouse Sorter Belt" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+          </div>
+
+          <!-- Section 24 Interactive Alert Box -->
+          <div id="formSection24Notice" class="mt-4 p-3.5 rounded-xl border border-red-200 bg-red-50/70 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="inline-flex items-center gap-2 font-bold text-red-900 cursor-pointer">
+                <input type="checkbox" id="formIsSection24" class="rounded text-red-600 focus:ring-red-500 h-4 w-4">
+                <span>Mandatory OHSA Section 24 Statutory Trigger</span>
+              </label>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-800">7-Day Deadline</span>
+            </div>
+            <p class="text-[11px] text-red-700 leading-relaxed">
+              Under Section 24 of Act 85 of 1993 and GAR Regulation 9, any event resulting in death, permanent disability, or &gt;14 days incapacitation requires formal notification to the Provincial Chief Inspector of the Department of Employment and Labour within 7 days using Annexure 1.
+            </p>
+          </div>
+        </div>
+
+        <!-- SECTION 4: NARRATIVE & ROOT CAUSE ANALYSIS -->
+        <div class="pt-4 border-t border-slate-100">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-primary"></span>
+            4. Investigation Narrative &amp; Root Cause Analysis
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Detailed Description of Incident &amp; Circumstances *</label>
+              <textarea id="formDescription" rows="3" required placeholder="Describe what happened chronologically, including what the employee was doing, environmental conditions, and eyewitness observations..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs leading-relaxed"></textarea>
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Root Cause Analysis (Immediate Causes &amp; Systemic Factors) *</label>
+              <textarea id="formRootCause" rows="2" required placeholder="Identify direct physical causes (e.g. missing guard) and underlying root causes (e.g. failure to isolate power, lack of refresher induction)..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs leading-relaxed"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5: CORRECTIVE ACTIONS (CAPA) -->
+        <div class="pt-4 border-t border-slate-100">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-primary"></span>
+            5. Corrective &amp; Preventative Actions (CAPA)
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Action Plan &amp; Preventive Measures *</label>
+              <textarea id="formCapa" rows="2" required placeholder="Specific measures to prevent recurrence (e.g. machine guarding refitted, toolbox talk delivered, standard procedure updated)..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs leading-relaxed"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-medium text-slate-700 mb-1">Action Assigned To *</label>
+                <input type="text" id="formActionAssignedTo" required placeholder="e.g. Workshop Foreman" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-700 mb-1">Target Completion Date *</label>
+                <input type="date" id="formActionTargetDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+              </div>
+              <div>
+                <label class="block font-medium text-slate-700 mb-1">Actual Completed Date</label>
+                <input type="date" id="formActionCompletedDate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 6: INVESTIGATOR DECLARATION & DIGITAL SIGNATURE -->
+        <div class="pt-4 border-t border-slate-100">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-primary"></span>
+            6. Statutory Declaration &amp; Investigator Signature
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Investigated By (Full Name) *</label>
+              <input type="text" id="formInvestigatedBy" required placeholder="e.g. Johan van der Merwe" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+            <div>
+              <label class="block font-medium text-slate-700 mb-1">Investigator Designation / Role *</label>
+              <input type="text" id="formInvestigatorRole" required placeholder="e.g. Section 16(2) Appointee / Safety Officer" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
+            </div>
+          </div>
+
+          <!-- Digital Signature Canvas -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block font-medium text-slate-700">Digital Signature (Investigating Officer) *</label>
+              <button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-red-600 hover:underline">Clear Signature</button>
+            </div>
+            <div class="border border-slate-300 rounded-xl bg-slate-50/50 p-2 relative overflow-hidden">
+              <canvas id="signatureCanvas" width="600" height="130" class="w-full h-28 bg-white rounded-lg border border-slate-200 cursor-crosshair touch-none"></canvas>
+              <span id="signaturePlaceholder" class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-slate-400">Sign with finger or stylus inside box</span>
+            </div>
+            <p class="text-[10px] text-muted mt-1">I certify under OHSA General Administrative Regulation 9 that this investigation was conducted diligently and all statements are factual.</p>
+          </div>
+        </div>
+
+        <!-- Modal Actions Footer -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
+          <button type="button" onclick="closeIncidentModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 font-medium">Cancel</button>
+          <button type="submit" id="btnSubmitIncident" class="px-5 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-sm">Save Incident Report</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Layout Engine and Script Modules -->
+  <script type="module">
+    import { LayoutEngine } from './js/modules/layout.js';
+    LayoutEngine.mount();
+  </script>
+  <script src="js/main.js"></script>
+  <script src="js/profile-engine.js"></script>
+  <script>
+    // Global State for Incidents View
+    let allIncidents = [];
+    let allRosterEmployees = [];
+    let isDrawingSignature = false;
+    let signatureCanvas = null;
+    let signatureCtx = null;
+    let hasSignatureData = false;
+
+    // Helper: Escapes HTML strings
+    function escapeHtml(str) {
+      return String(str ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c] || c));
+    }
+
+    /**
+     * Section 7.3: Dynamic Certificate Stamp Engine (Aspect-Ratio Preservation Algorithm)
+     * Fits corporate seal within a 30mm x 25mm bounding box without stretching, or falls back to vector seal.
+     */
+    async function renderCertificateStamp(doc, company, x, y) {
+      const BOUNDING_BOX = { width: 30, height: 25 }; // Max dimensions in mm
+
+      if (company?.company_stamp_url) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          const loaded = await new Promise((resolve, reject) => {
+            img.onload = () => resolve(true);
+            img.onerror = reject;
+            img.src = company.company_stamp_url;
+          });
+
+          if (loaded && img.naturalWidth > 0 && img.naturalHeight > 0) {
+            const naturalRatio = img.naturalWidth / img.naturalHeight;
+            const boxRatio = BOUNDING_BOX.width / BOUNDING_BOX.height;
+
+            let renderWidth, renderHeight;
+
+            if (naturalRatio > boxRatio) {
+              renderWidth = BOUNDING_BOX.width;
+              renderHeight = BOUNDING_BOX.width / naturalRatio;
+            } else {
+              renderHeight = BOUNDING_BOX.height;
+              renderWidth = BOUNDING_BOX.height * naturalRatio;
+            }
+
+            const offsetX = x + (BOUNDING_BOX.width - renderWidth) / 2;
+            const offsetY = y + (BOUNDING_BOX.height - renderHeight) / 2;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const stampBase64 = canvas.toDataURL('image/png');
+
+            doc.addImage(stampBase64, 'PNG', offsetX, offsetY, renderWidth, renderHeight);
+            return;
+          }
+        } catch (err) {
+          console.warn('[PDFEngine] Failed to render uploaded company stamp, falling back to vector seal:', err);
+        }
+      }
+
+      // Fallback Strategy: Programmatic Vector Seal
+      const centerX = x + BOUNDING_BOX.width / 2;
+      const centerY = y + BOUNDING_BOX.height / 2;
+
+      doc.setDrawColor(30, 58, 95);
+      doc.setLineWidth(0.8);
+      doc.circle(centerX, centerY, 11);
+      doc.setLineWidth(0.3);
+      doc.circle(centerX, centerY, 9.8);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5.5);
+      doc.setTextColor(30, 58, 95);
+      doc.text('THE VAULT COMPLIANCE', centerX, centerY - 3, { align: 'center' });
+      doc.setFontSize(4.5);
+      doc.text('OFFICIALLY VERIFIED', centerX, centerY + 0.5, { align: 'center' });
+      doc.text('OHSA ACT 85 OF 1993', centerX, centerY + 4, { align: 'center' });
+    }
+
+    // Helper: Date & Time Formatter
+    function formatIncidentDateTime(dateStr, timeStr) {
+      if (!dateStr) return '—';
+      try {
+        const d = new Date(dateStr + (timeStr ? `T${timeStr}` : ''));
+        return d.toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' }) + (timeStr ? ` at ${timeStr.slice(0, 5)}` : '');
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    // Severity Badge Class Resolver
+    function getSeverityBadge(severity) {
+      const map = {
+        'Near Miss': 'bg-slate-100 text-slate-700 border-slate-200',
+        'First Aid Only': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        'Medical Treatment (Doctor)': 'bg-amber-50 text-amber-800 border-amber-200',
+        'Disabling Injury (> 3 Days Lost Time)': 'bg-orange-50 text-orange-800 border-orange-200',
+        'Fatal / Section 24 Major': 'bg-red-50 text-red-800 border-red-200 font-bold'
+      };
+      const cls = map[severity] || 'bg-slate-100 text-slate-700 border-slate-200';
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${cls}">${escapeHtml(severity)}</span>`;
+    }
+
+    // Status Badge Class Resolver
+    function getStatusBadge(status) {
+      const map = {
+        'Open': 'bg-amber-100 text-amber-800',
+        'Under Investigation': 'bg-blue-100 text-blue-800',
+        'Action Pending': 'bg-purple-100 text-purple-800',
+        'Resolved / Closed': 'bg-emerald-100 text-emerald-800'
+      };
+      const cls = map[status] || 'bg-slate-100 text-slate-700';
+      return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${cls}">${escapeHtml(status)}</span>`;
+    }
+
+    // 1. Initial Data Fetching
+    async function loadIncidentsData() {
+      const loading = document.getElementById('incidentsLoadingState');
+      const tableWrapper = document.getElementById('incidentsTableWrapper');
+      const emptyState = document.getElementById('incidentsEmptyState');
+
+      loading?.classList.remove('hidden');
+      tableWrapper?.classList.add('hidden');
+      emptyState?.classList.add('hidden');
+
+      try {
+        if (!window.dbClient) throw new Error('Supabase client not initialized');
+
+        // Fetch company incidents
+        const { data: incidents, error } = await window.dbClient
+          .from('incident_reports')
+          .select('*')
+          .order('incident_date', { ascending: false })
+          .order('incident_time', { ascending: false });
+
+        if (error) throw error;
+        allIncidents = incidents || [];
+
+        // Fetch active employee roster for quick prefilling
+        const { data: employees } = await window.dbClient
+          .from('company_employees')
+          .select('id, employee_number, first_name, last_name, id_passport_number, gender, team_or_orchard')
+          .eq('is_active', true)
+          .order('first_name', { ascending: true });
+
+        allRosterEmployees = employees || [];
+        populateEmployeePicker(allRosterEmployees);
+
+        updateKpiMetrics();
+        applyIncidentFiltersAndRender();
+      } catch (err) {
+        console.error('[Incidents] Failed to load incident records:', err);
+        loading?.classList.add('hidden');
+        emptyState?.classList.remove('hidden');
+      }
+    }
+
+    // Populate Roster Dropdown
+    function populateEmployeePicker(employees) {
+      const picker = document.getElementById('formEmployeePicker');
+      if (!picker) return;
+      picker.innerHTML = '<option value="">— Select registered worker or enter manually —</option>' +
+        employees.map(e => `
+          <option value="${e.id}">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')} (${escapeHtml(e.employee_number)}) - ${escapeHtml(e.team_or_orchard || 'General')}</option>
+        `).join('');
+    }
+
+    function handleRosterEmployeeSelect(empId) {
+      if (!empId) return;
+      const emp = allRosterEmployees.find(e => e.id === empId);
+      if (!emp) return;
+
+      document.getElementById('formEmployeeId').value = emp.id;
+      document.getElementById('formInjuredName').value = `${emp.first_name} ${emp.last_name || ''}`.trim();
+      document.getElementById('formInjuredIdNo').value = emp.id_passport_number || '';
+      document.getElementById('formInjuredRole').value = emp.team_or_orchard || 'General Farm Employee';
+      if (emp.gender) document.getElementById('formInjuredGender').value = emp.gender;
+    }
+
+    // 2. KPI Metrics Calculation
+    function updateKpiMetrics() {
+      const currentYear = new Date().getFullYear();
+      const thisYearIncidents = allIncidents.filter(inc => {
+        const d = new Date(inc.incident_date);
+        return d.getFullYear() === currentYear;
+      });
+
+      const totalYtd = thisYearIncidents.length;
+      const nearMisses = thisYearIncidents.filter(i => i.incident_severity === 'Near Miss').length;
+      const lostTime = thisYearIncidents.filter(i => 
+        i.incident_severity === 'Disabling Injury (> 3 Days Lost Time)' || 
+        i.incident_severity === 'Fatal / Section 24 Major'
+      ).length;
+
+      document.getElementById('kpiTotalYtd').textContent = totalYtd;
+      document.getElementById('kpiNearMisses').textContent = nearMisses;
+      document.getElementById('kpiLostTime').textContent = lostTime;
+
+      // Calculate days since last incident
+      const daysEl = document.getElementById('kpiDaysSinceLast');
+      const subEl = document.getElementById('kpiDaysSubtitle');
+      if (allIncidents.length > 0) {
+        const latest = new Date(allIncidents[0].incident_date);
+        const now = new Date();
+        const diffDays = Math.max(0, Math.floor((now - latest) / (1000 * 60 * 60 * 24)));
+        daysEl.textContent = `${diffDays} Days`;
+        subEl.textContent = `Since ${latest.toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' })}`;
+      } else {
+        daysEl.textContent = '365+';
+        subEl.textContent = 'Zero incidents on record';
+      }
+
+      // Check unresolved Section 24 statutory events
+      const sec24Count = allIncidents.filter(i => i.is_section_24_statutory && i.status !== 'Resolved / Closed').length;
+      const alertBox = document.getElementById('section24AlertBox');
+      if (sec24Count > 0) {
+        alertBox?.classList.remove('hidden');
+      } else {
+        alertBox?.classList.add('hidden');
+      }
+    }
+
+    // 3. Filter & Render
+    function applyIncidentFiltersAndRender() {
+      const query = (document.getElementById('incidentSearchInput')?.value || '').trim().toLowerCase();
+      const severity = document.getElementById('severityFilter')?.value || 'all';
+      const status = document.getElementById('statusFilter')?.value || 'all';
+      const sec24Only = document.getElementById('section24Filter')?.checked || false;
+
+      const filtered = allIncidents.filter(inc => {
+        if (severity !== 'all' && inc.incident_severity !== severity) return false;
+        if (status !== 'all' && inc.status !== status) return false;
+        if (sec24Only && !inc.is_section_24_statutory) return false;
+
+        if (query) {
+          const num = (inc.incident_number || '').toLowerCase();
+          const name = (inc.injured_person_name || '').toLowerCase();
+          const idNo = (inc.injured_person_id_number || '').toLowerCase();
+          const loc = (inc.location_or_orchard || '').toLowerCase();
+          const nat = (inc.nature_of_injury || '').toLowerCase();
+          const eq = (inc.equipment_chemical_involved || '').toLowerCase();
+          if (!num.includes(query) && !name.includes(query) && !idNo.includes(query) && !loc.includes(query) && !nat.includes(query) && !eq.includes(query)) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      renderIncidentsTable(filtered);
+    }
+
+    function renderIncidentsTable(incidents) {
+      const loading = document.getElementById('incidentsLoadingState');
+      const tableWrapper = document.getElementById('incidentsTableWrapper');
+      const tableBody = document.getElementById('incidentsTableBody');
+      const emptyState = document.getElementById('incidentsEmptyState');
+
+      loading?.classList.add('hidden');
+
+      if (!incidents || incidents.length === 0) {
+        tableWrapper?.classList.add('hidden');
+        emptyState?.classList.remove('hidden');
+        return;
+      }
+
+      emptyState?.classList.add('hidden');
+      tableWrapper?.classList.remove('hidden');
+
+      if (!tableBody) return;
+
+      tableBody.innerHTML = incidents.map(inc => {
+        const ref = inc.incident_number || 'INC-TEMP';
+        const dt = formatIncidentDateTime(inc.incident_date, inc.incident_time);
+        const worker = `${escapeHtml(inc.injured_person_name)} <span class="text-slate-400">(${escapeHtml(inc.injured_person_role)})</span>`;
+        const severityBadge = getSeverityBadge(inc.incident_severity);
+        const statusBadge = getStatusBadge(inc.status);
+
+        const statutoryBadge = inc.is_section_24_statutory
+          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>DoL 7-Day</span>`
+          : `<span class="text-slate-400 text-[10px]">Internal</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-4 py-3 align-middle font-mono font-bold text-slate-900 text-xs">${escapeHtml(ref)}</td>
+            <td class="px-4 py-3 align-middle text-slate-600 text-xs">${escapeHtml(dt)}</td>
+            <td class="px-4 py-3 align-middle text-slate-800 text-xs max-w-[180px] truncate" title="${escapeHtml(inc.location_or_orchard)}">${escapeHtml(inc.location_or_orchard)}</td>
+            <td class="px-4 py-3 align-middle text-slate-800 text-xs">${worker}</td>
+            <td class="px-4 py-3 align-middle">${severityBadge}</td>
+            <td class="px-4 py-3 align-middle">${statutoryBadge}</td>
+            <td class="px-4 py-3 align-middle">${statusBadge}</td>
+            <td class="px-4 py-3 align-middle text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button type="button" onclick="openIncidentModal('${inc.id}')" class="px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:text-primary hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer" title="View or edit details">
+                  View / Edit
+                </button>
+                <button type="button" onclick="handleExportDolAnnexure1('${inc.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg border border-primary/20 transition-all cursor-pointer" title="Generate Department of Employment & Labour Annexure 1 PDF">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                  <span>Annexure 1</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 4. Modal Interactions & Signature Pad
+    function openIncidentModal(incidentId = null) {
+      const modal = document.getElementById('incidentModal');
+      const form = document.getElementById('incidentForm');
+      form.reset();
+      modal?.classList.remove('hidden');
+      initSignatureCanvas();
+      clearSignatureCanvas();
+
+      if (incidentId) {
+        document.getElementById('incidentModalTitle').textContent = 'Edit Statutory Incident Report';
+        const inc = allIncidents.find(i => i.id === incidentId);
+        if (inc) {
+          document.getElementById('incidentId').value = inc.id;
+          document.getElementById('formIncidentNumber').value = inc.incident_number;
+          document.getElementById('formIncidentDate').value = inc.incident_date;
+          document.getElementById('formIncidentTime').value = inc.incident_time;
+          document.getElementById('formLocation').value = inc.location_or_orchard;
+          document.getElementById('formEmployeeId').value = inc.employee_id || '';
+          document.getElementById('formInjuredName').value = inc.injured_person_name;
+          document.getElementById('formInjuredIdNo').value = inc.injured_person_id_number || '';
+          document.getElementById('formInjuredRole').value = inc.injured_person_role;
+          document.getElementById('formInjuredGender').value = inc.gender || '';
+          document.getElementById('formSeverity').value = inc.incident_severity;
+          document.getElementById('formStatus').value = inc.status;
+          document.getElementById('formNatureOfInjury').value = inc.nature_of_injury || '';
+          document.getElementById('formBodyPart').value = inc.body_part || '';
+          document.getElementById('formEquipment').value = inc.equipment_chemical_involved || '';
+          document.getElementById('formDescription').value = inc.incident_description;
+          document.getElementById('formRootCause').value = inc.root_cause_analysis;
+          document.getElementById('formCapa').value = inc.corrective_preventative_actions;
+          document.getElementById('formActionAssignedTo').value = inc.action_assigned_to;
+          document.getElementById('formActionTargetDate').value = inc.action_target_date;
+          document.getElementById('formActionCompletedDate').value = inc.action_completed_date || '';
+          document.getElementById('formIsSection24').checked = inc.is_section_24_statutory;
+          document.getElementById('formInvestigatedBy').value = inc.investigated_by_name;
+          document.getElementById('formInvestigatorRole').value = inc.investigated_by_role;
+
+          if (inc.investigator_signature) {
+            loadExistingSignature(inc.investigator_signature);
+          }
+        }
+      } else {
+        document.getElementById('incidentModalTitle').textContent = 'Record Workplace Incident / Near Miss';
+        document.getElementById('incidentId').value = '';
+        
+        // Auto-generate reference number for tenant (e.g. INC-2026-001)
+        const year = new Date().getFullYear();
+        const yearCount = allIncidents.filter(i => {
+          const d = new Date(i.incident_date);
+          return d.getFullYear() === year;
+        }).length;
+        const nextSeq = String(yearCount + 1).padStart(3, '0');
+        document.getElementById('formIncidentNumber').value = `INC-${year}-${nextSeq}`;
+
+        const now = new Date();
+        document.getElementById('formIncidentDate').value = now.toISOString().split('T')[0];
+        document.getElementById('formIncidentTime').value = now.toTimeString().slice(0, 5);
+        document.getElementById('formSeverity').value = 'First Aid Only';
+        document.getElementById('formStatus').value = 'Open';
+        document.getElementById('formIsSection24').checked = false;
+
+        // Prefill investigator from user profile if available
+        const userTitle = document.getElementById('topbar-user-role')?.textContent || '';
+        const userName = document.getElementById('topbar-user-name')?.textContent || '';
+        if (userName && userName !== 'User') document.getElementById('formInvestigatedBy').value = userName;
+        if (userTitle) document.getElementById('formInvestigatorRole').value = userTitle;
+      }
+    }
+
+    function closeIncidentModal() {
+      document.getElementById('incidentModal')?.classList.add('hidden');
+      clearSignatureCanvas();
+    }
+
+    function handleSeverityChange(val) {
+      const isSec24 = val === 'Fatal / Section 24 Major' || val === 'Disabling Injury (> 3 Days Lost Time)';
+      const sec24Box = document.getElementById('formIsSection24');
+      if (sec24Box && val === 'Fatal / Section 24 Major') {
+        sec24Box.checked = true;
+      }
+    }
+
+    // HTML5 Signature Canvas
+    function initSignatureCanvas() {
+      signatureCanvas = document.getElementById('signatureCanvas');
+      if (!signatureCanvas) return;
+      signatureCtx = signatureCanvas.getContext('2d');
+      signatureCtx.lineWidth = 2.2;
+      signatureCtx.lineCap = 'round';
+      signatureCtx.lineJoin = 'round';
+      signatureCtx.strokeStyle = '#1e3a5f';
+
+      const getPos = (e) => {
+        const rect = signatureCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const scaleX = signatureCanvas.width / rect.width;
+        const scaleY = signatureCanvas.height / rect.height;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      };
+
+      const start = (e) => {
+        e.preventDefault();
+        isDrawingSignature = true;
+        hasSignatureData = true;
+        document.getElementById('signaturePlaceholder')?.classList.add('hidden');
+        const pos = getPos(e);
+        signatureCtx.beginPath();
+        signatureCtx.moveTo(pos.x, pos.y);
+      };
+
+      const move = (e) => {
+        if (!isDrawingSignature) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        signatureCtx.lineTo(pos.x, pos.y);
+        signatureCtx.stroke();
+      };
+
+      const stop = () => { isDrawingSignature = false; };
+
+      signatureCanvas.onmousedown = start;
+      signatureCanvas.onmousemove = move;
+      window.onmouseup = stop;
+
+      signatureCanvas.ontouchstart = start;
+      signatureCanvas.ontouchmove = move;
+      signatureCanvas.ontouchend = stop;
+    }
+
+    function clearSignatureCanvas() {
+      if (!signatureCanvas) {
+        signatureCanvas = document.getElementById('signatureCanvas');
+      }
+      if (signatureCanvas && !signatureCtx) {
+        signatureCtx = signatureCanvas.getContext('2d');
+      }
+      if (signatureCtx && signatureCanvas) {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      }
+      hasSignatureData = false;
+      document.getElementById('signaturePlaceholder')?.classList.remove('hidden');
+    }
+
+    function loadExistingSignature(base64) {
+      if (!base64 || !signatureCanvas) return;
+      const img = new Image();
+      img.onload = () => {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        signatureCtx.drawImage(img, 0, 0);
+        hasSignatureData = true;
+        document.getElementById('signaturePlaceholder')?.classList.add('hidden');
+      };
+      img.src = base64;
+    }
+
+    // 5. Save Incident to Database
+    async function handleSaveIncident(event) {
+      event.preventDefault();
+      const saveBtn = document.getElementById('btnSubmitIncident');
+      const origText = saveBtn.innerText;
+      saveBtn.innerText = 'Saving...';
+      saveBtn.disabled = true;
+
+      try {
+        if (!hasSignatureData) {
+          alert('Please provide the investigating officer digital signature to certify this report.');
+          saveBtn.innerText = origText;
+          saveBtn.disabled = false;
+          return;
+        }
+
+        const id = document.getElementById('incidentId').value;
+        const signatureBase64 = signatureCanvas.toDataURL('image/png');
+
+        const payload = {
+          incident_number: document.getElementById('formIncidentNumber').value.trim(),
+          incident_date: document.getElementById('formIncidentDate').value,
+          incident_time: document.getElementById('formIncidentTime').value,
+          location_or_orchard: document.getElementById('formLocation').value.trim(),
+          employee_id: document.getElementById('formEmployeeId').value || null,
+          injured_person_name: document.getElementById('formInjuredName').value.trim(),
+          injured_person_id_number: document.getElementById('formInjuredIdNo').value.trim() || null,
+          injured_person_role: document.getElementById('formInjuredRole').value.trim(),
+          gender: document.getElementById('formInjuredGender').value || null,
+          incident_severity: document.getElementById('formSeverity').value,
+          nature_of_injury: document.getElementById('formNatureOfInjury').value.trim() || null,
+          body_part: document.getElementById('formBodyPart').value.trim() || null,
+          equipment_chemical_involved: document.getElementById('formEquipment').value.trim() || null,
+          incident_description: document.getElementById('formDescription').value.trim(),
+          root_cause_analysis: document.getElementById('formRootCause').value.trim(),
+          corrective_preventative_actions: document.getElementById('formCapa').value.trim(),
+          action_assigned_to: document.getElementById('formActionAssignedTo').value.trim(),
+          action_target_date: document.getElementById('formActionTargetDate').value,
+          action_completed_date: document.getElementById('formActionCompletedDate').value || null,
+          is_section_24_statutory: document.getElementById('formIsSection24').checked,
+          section_24_reported_at: document.getElementById('formIsSection24').checked ? new Date().toISOString() : null,
+          investigated_by_name: document.getElementById('formInvestigatedBy').value.trim(),
+          investigated_by_role: document.getElementById('formInvestigatorRole').value.trim(),
+          investigator_signature: signatureBase64,
+          status: document.getElementById('formStatus').value,
+          updated_at: new Date().toISOString()
+        };
+
+        if (id) {
+          const { error } = await window.dbClient
+            .from('incident_reports')
+            .update(payload)
+            .eq('id', id);
+          if (error) throw error;
+        } else {
+          // Resolve current tenant company_id
+          const companyId = window.userCompanyId || window.currentCompanyData?.id;
+          if (!companyId) throw new Error('Company tenant identification missing');
+          payload.company_id = companyId;
+
+          const { error } = await window.dbClient
+            .from('incident_reports')
+            .insert([payload]);
+          if (error) throw error;
+        }
+
+        closeIncidentModal();
+        await loadIncidentsData();
+      } catch (err) {
+        console.error('[Incidents] Save error:', err);
+        alert(`Failed to save incident report: ${err.message || 'Unknown error'}`);
+      } finally {
+        saveBtn.innerText = origText;
+        saveBtn.disabled = false;
+      }
+    }
+
+    // 6. DUAL jsPDF GENERATOR: 
+    // Generator 1: Statutory DoL Annexure 1 (GAR 9) Investigation PDF (Portrait A4)
+    async function handleExportDolAnnexure1(incidentId) {
+      const inc = allIncidents.find(i => i.id === incidentId);
+      if (!inc) return;
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('PDF Generation library loading. Please try again.');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 14;
+      const contentW = pageWidth - (margin * 2);
+
+      const comp = window.currentCompanyData || {};
+      const companyName = comp.name || document.getElementById('topbar-company-name')?.textContent || 'Simple Solutions';
+
+      // Outer Formal Border
+      doc.setDrawColor(30, 58, 95);
+      doc.setLineWidth(0.8);
+      doc.rect(margin, margin, contentW, pageHeight - (margin * 2));
+
+      // Header Block
+      doc.setFillColor(30, 58, 95);
+      doc.rect(margin, margin, contentW, 20, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text('DEPARTMENT OF EMPLOYMENT AND LABOUR • OCCUPATIONAL HEALTH AND SAFETY ACT 85 OF 1993', pageWidth / 2, margin + 6, { align: 'center' });
+      doc.setFontSize(10.5);
+      doc.text('GENERAL ADMINISTRATIVE REGULATIONS 9(1) — ANNEXURE 1', pageWidth / 2, margin + 12, { align: 'center' });
+      doc.setFontSize(7.5);
+      doc.setTextColor(203, 213, 225);
+      doc.text('RECORDING AND INVESTIGATION OF WORKPLACE INCIDENTS', pageWidth / 2, margin + 17, { align: 'center' });
+
+      let currentY = margin + 25;
+
+      // Helper: Section Box Banner
+      const renderSectionHeader = (title) => {
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(203, 213, 225);
+        doc.rect(margin, currentY, contentW, 5.5, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(30, 58, 95);
+        doc.text(title, margin + 3, currentY + 4);
+        currentY += 7.5;
+      };
+
+      // SECTION A: EMPLOYER PARTICULARS
+      renderSectionHeader('SECTION A: EMPLOYER / REGISTERED USER PARTICULARS');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(51, 65, 85);
+      doc.text(`1. Name of Employer: ${companyName}`, margin + 3, currentY);
+      doc.text(`2. Trade Name / Estate: ${companyName}`, margin + (contentW / 2), currentY);
+      currentY += 4.5;
+      doc.text(`3. Physical Address: ${comp.postal_address || 'Registered Headquarters'}`, margin + 3, currentY);
+      doc.text(`4. VAT / Reg No: ${comp.vat_number || 'On File'}`, margin + (contentW / 2), currentY);
+      currentY += 4.5;
+      doc.text(`5. Contact Telephone: ${comp.phone || '025 960 2257'}`, margin + 3, currentY);
+      doc.text(`6. Email: ${comp.contact_email || 'safety@thevault.co.za'}`, margin + (contentW / 2), currentY);
+      currentY += 7;
+
+      // SECTION B: INJURED PERSON
+      renderSectionHeader('SECTION B: PARTICULARS OF INJURED PERSON');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(51, 65, 85);
+      doc.text(`1. Full Names: ${inc.injured_person_name}`, margin + 3, currentY);
+      doc.text(`2. ID / Passport: ${inc.injured_person_id_number || 'N/A'}`, margin + (contentW / 2), currentY);
+      currentY += 4.5;
+      doc.text(`3. Occupation / Role: ${inc.injured_person_role}`, margin + 3, currentY);
+      doc.text(`4. Gender: ${inc.gender || 'Not Specified'}`, margin + (contentW / 2), currentY);
+      currentY += 7;
+
+      // SECTION C: INCIDENT PARTICULARS
+      renderSectionHeader('SECTION C: PARTICULARS OF INCIDENT & CAUSAL SUBSTANCE');
+      doc.text(`1. Date of Incident: ${inc.incident_date}`, margin + 3, currentY);
+      doc.text(`2. Time: ${inc.incident_time}`, margin + 60, currentY);
+      doc.text(`3. Incident Ref #: ${inc.incident_number}`, margin + 115, currentY);
+      currentY += 4.5;
+      doc.text(`4. Specific Location / Block: ${inc.location_or_orchard}`, margin + 3, currentY);
+      currentY += 4.5;
+      doc.text(`5. Severity Classification: ${inc.incident_severity}`, margin + 3, currentY);
+      doc.text(`6. Section 24 Statutory Trigger: ${inc.is_section_24_statutory ? 'YES (MANDATORY 7-DAY DoL NOTICE)' : 'NO (INTERNAL OHSA RECORD)'}`, margin + 85, currentY);
+      currentY += 4.5;
+      doc.text(`7. Nature of Injury / Illness: ${inc.nature_of_injury || 'None Reported'}`, margin + 3, currentY);
+      doc.text(`8. Body Part: ${inc.body_part || 'N/A'}`, margin + (contentW / 2), currentY);
+      currentY += 4.5;
+      doc.text(`9. Equipment / Chemical Involved: ${inc.equipment_chemical_involved || 'None'}`, margin + 3, currentY);
+      currentY += 7;
+
+      // SECTION D: DESCRIPTION
+      renderSectionHeader('SECTION D: DESCRIPTION OF INCIDENT & CIRCUMSTANCES');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      const wrappedDesc = doc.splitTextToSize(inc.incident_description || 'No detailed narrative provided.', contentW - 6);
+      doc.text(wrappedDesc, margin + 3, currentY);
+      currentY += (wrappedDesc.length * 3.5) + 4;
+
+      // SECTION E: ROOT CAUSE
+      renderSectionHeader('SECTION E: ROOT CAUSE ANALYSIS');
+      const wrappedRoot = doc.splitTextToSize(inc.root_cause_analysis || 'Under investigation.', contentW - 6);
+      doc.text(wrappedRoot, margin + 3, currentY);
+      currentY += (wrappedRoot.length * 3.5) + 4;
+
+      // SECTION F: CORRECTIVE ACTIONS
+      renderSectionHeader('SECTION F: PREVENTATIVE & CORRECTIVE ACTIONS (CAPA)');
+      const wrappedCapa = doc.splitTextToSize(inc.corrective_preventative_actions || 'Action plan pending.', contentW - 6);
+      doc.text(wrappedCapa, margin + 3, currentY);
+      currentY += (wrappedCapa.length * 3.5) + 3;
+      doc.text(`Action Assigned To: ${inc.action_assigned_to}   |   Target Date: ${inc.action_target_date}   |   Status: ${inc.status}`, margin + 3, currentY);
+      currentY += 7;
+
+      // SECTION G: DECLARATION & SIGNATURE
+      if (currentY > pageHeight - margin - 45) {
+        doc.addPage();
+        currentY = margin + 10;
+      }
+      renderSectionHeader('SECTION G: STATUTORY DECLARATION & INVESTIGATOR VERIFICATION');
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(6.5);
+      doc.text('I hereby declare that I have investigated the above-mentioned incident in terms of Regulation 9 of the General Administrative Regulations and that the particulars recorded herein are true and correct.', margin + 3, currentY);
+      currentY += 5;
+
+      const sigBoxW = (contentW / 2) - 3;
+      // Left: Investigator Signature
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text(`Investigated By: ${inc.investigated_by_name}`, margin + 3, currentY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.text(`Designation: ${inc.investigated_by_role}`, margin + 3, currentY + 4);
+      doc.text(`Date Recorded: ${inc.reported_at ? inc.reported_at.slice(0, 10) : inc.incident_date}`, margin + 3, currentY + 8);
+
+      if (inc.investigator_signature) {
+        try {
+          doc.addImage(inc.investigator_signature, 'PNG', margin + 3, currentY + 11, 45, 14);
+        } catch (e) {
+          console.warn('[PDF] Failed to embed signature:', e);
+        }
+      }
+
+      // Right: Proportional Official Company Stamp
+      const stampBoxX = margin + (contentW / 2) + 10;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(30, 58, 95);
+      doc.text('OFFICIAL ESTATE VERIFICATION SEAL', stampBoxX + 15, currentY, { align: 'center' });
+      await renderCertificateStamp(doc, comp, stampBoxX, currentY + 3);
+
+      // Bottom Disclaimer Footer
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Statutory Form Annexure 1 • Certified electronically via The Vault by Simple Solutions • Generated: ${new Date().toISOString()}`, pageWidth / 2, pageHeight - margin - 2, { align: 'center' });
+
+      doc.save(`DoL_Annexure_1_${inc.incident_number}.pdf`);
+    }
+
+    // Generator 2: SIZA / GlobalG.A.P. Incident Register (Landscape A4)
+    async function handleExportAuditRegisterPdf() {
+      if (allIncidents.length === 0) {
+        alert('No incidents recorded to generate an audit ledger.');
+        return;
+      }
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('PDF Generation library loading. Please try again.');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageWidth = 297;
+      const pageHeight = 210;
+      const margin = 12;
+
+      const comp = window.currentCompanyData || {};
+      const companyName = comp.name || document.getElementById('topbar-company-name')?.textContent || 'Simple Solutions';
+
+      // Header Banner
+      doc.setFillColor(30, 58, 95);
+      doc.rect(margin, margin, pageWidth - (margin * 2), 16, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+      doc.text(companyName.toUpperCase() + ' — STATUTORY INCIDENT & NEAR-MISS AUDIT REGISTER', margin + 6, margin + 7);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(203, 213, 225);
+      doc.text(`Conforming to SIZA Social & Environmental Standard (Principle 4) & GlobalG.A.P. IFA v6 • Total Records: ${allIncidents.length} • Generated: ${new Date().toLocaleDateString('en-ZA')}`, margin + 6, margin + 12);
+
+      // Table Header
+      let startY = margin + 22;
+      doc.setFillColor(241, 245, 249);
+      doc.rect(margin, startY, pageWidth - (margin * 2), 7, 'F');
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.3);
+      doc.rect(margin, startY, pageWidth - (margin * 2), 7);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(30, 58, 95);
+
+      const cols = [
+        { label: 'REF #', x: margin + 3, w: 22 },
+        { label: 'DATE/TIME', x: margin + 25, w: 26 },
+        { label: 'LOCATION/ORCHARD', x: margin + 51, w: 42 },
+        { label: 'INJURED WORKER', x: margin + 93, w: 35 },
+        { label: 'SEVERITY CLASS', x: margin + 128, w: 35 },
+        { label: 'NATURE OF INJURY', x: margin + 163, w: 30 },
+        { label: 'ROOT CAUSE / ACTIONS', x: margin + 193, w: 50 },
+        { label: 'STATUS', x: margin + 245, w: 22 }
+      ];
+
+      cols.forEach(c => doc.text(c.label, c.x, startY + 4.5));
+
+      startY += 7;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(51, 65, 85);
+
+      // Rows
+      allIncidents.forEach((inc, idx) => {
+        if (startY > pageHeight - 45) {
+          doc.addPage();
+          startY = margin + 10;
+        }
+
+        const isOdd = idx % 2 === 1;
+        if (isOdd) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(margin, startY, pageWidth - (margin * 2), 7.5, 'F');
+        }
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(margin, startY, pageWidth - (margin * 2), 7.5);
+
+        doc.text(inc.incident_number || '—', cols[0].x, startY + 5);
+        doc.text(`${inc.incident_date} ${inc.incident_time ? inc.incident_time.slice(0, 5) : ''}`, cols[1].x, startY + 5);
+        doc.text(doc.splitTextToSize(inc.location_or_orchard || '—', 38)[0], cols[2].x, startY + 5);
+        doc.text(doc.splitTextToSize(inc.injured_person_name || '—', 32)[0], cols[3].x, startY + 5);
+        doc.text(inc.incident_severity || '—', cols[4].x, startY + 5);
+        doc.text(doc.splitTextToSize(inc.nature_of_injury || '—', 28)[0], cols[5].x, startY + 5);
+        doc.text(doc.splitTextToSize((inc.root_cause_analysis || inc.corrective_preventative_actions || '—'), 48)[0], cols[6].x, startY + 5);
+        doc.text(inc.status || '—', cols[7].x, startY + 5);
+
+        startY += 7.5;
+      });
+
+      // Page overflow check for sign-off seal block
+      if (startY > pageHeight - 45) {
+        doc.addPage();
+        startY = margin + 10;
+      }
+
+      // Footer with Official Seal (Anchored neatly without colliding with rows or legal disclaimer)
+      const stampX = pageWidth - margin - 35;
+      const stampY = Math.min(Math.max(startY + 4, pageHeight - margin - 32), pageHeight - margin - 28);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6);
+      doc.setTextColor(30, 58, 95);
+      doc.text('OFFICIAL VERIFIED AUDIT SEAL', stampX + 15, stampY - 1.5, { align: 'center' });
+      await renderCertificateStamp(doc, comp, stampX, stampY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(`Official SIZA / GlobalG.A.P. Incident Register • Preserved for Statutory 5-Year Audit Retention • Verified by Simple Solutions`, margin + 3, pageHeight - margin);
+
+      doc.save(`Incident_Register_${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().getFullYear()}.pdf`);
+    }
+
+    // Expose functions globally for inline HTML event handlers
+    window.openIncidentModal = openIncidentModal;
+    window.closeIncidentModal = closeIncidentModal;
+    window.handleExportAuditRegisterPdf = handleExportAuditRegisterPdf;
+    window.handleExportDolAnnexure1 = handleExportDolAnnexure1;
+    window.handleSaveIncident = handleSaveIncident;
+    window.clearSignatureCanvas = clearSignatureCanvas;
+    window.handleRosterEmployeeSelect = handleRosterEmployeeSelect;
+    window.handleSeverityChange = handleSeverityChange;
+    window.renderCertificateStamp = renderCertificateStamp;
+
+    // Event Listeners for Filters
+    document.addEventListener('DOMContentLoaded', () => {
+      loadIncidentsData();
+
+      document.getElementById('incidentSearchInput')?.addEventListener('input', applyIncidentFiltersAndRender);
+      document.getElementById('severityFilter')?.addEventListener('change', applyIncidentFiltersAndRender);
+      document.getElementById('statusFilter')?.addEventListener('change', applyIncidentFiltersAndRender);
+      document.getElementById('section24Filter')?.addEventListener('change', applyIncidentFiltersAndRender);
+    });
+  </script>
+</body>
+</html>

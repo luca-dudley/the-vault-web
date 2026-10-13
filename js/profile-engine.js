@@ -458,8 +458,11 @@ async function saveUserProfile() {
     const initials = ((fName.charAt(0) || '') + (lName.charAt(0) || '')).toUpperCase() || 'U';
     document.querySelectorAll('[data-dynamic-initials]').forEach(el => el.textContent = initials);
 
-    const topName = document.getElementById('topbar-user-name');
-    if (topName) topName.textContent = `${fName} ${lName}`.trim() || 'User';
+    const displayName = `${fName} ${lName}`.trim() || 'User';
+    ['userName', 'topbar-user-name'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = displayName;
+    });
 
     saveBtn.innerText = 'Saved!';
     setTimeout(() => { saveBtn.innerText = originalText; }, 2000);
@@ -531,6 +534,122 @@ async function saveCompanyProfile() {
     }
   }
 }
+
+// 4a-0. OFFICIAL ESTATE STAMP / SEAL MANAGEMENT (Section 7.2)
+async function handleCompanyStampUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!window.userCompanyId) {
+    alert("No organization ID associated with your account.");
+    return;
+  }
+
+  // Validate format (PNG or JPG) and size (max 1.5MB)
+  if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type.toLowerCase())) {
+    alert("Please upload a PNG or JPG image file (transparent PNG recommended for certificates).");
+    return;
+  }
+
+  if (file.size > 1.5 * 1024 * 1024) {
+    alert("Stamp image must be under 1.5MB in size.");
+    return;
+  }
+
+  const uploadBtn = document.getElementById('upload-stamp-btn');
+  const originalText = uploadBtn ? uploadBtn.innerText : 'Upload Stamp Image';
+  if (uploadBtn) uploadBtn.innerText = 'Uploading...';
+
+  try {
+    const fileExt = file.name.split('.').pop() || 'png';
+    const filePath = `company-stamps/${window.userCompanyId}/stamp_${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await window.dbClient.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = window.dbClient.storage.from('avatars').getPublicUrl(filePath);
+    const stampUrl = data.publicUrl + '?t=' + Date.now();
+
+    const { error: dbError } = await window.dbClient
+      .from('companies')
+      .update({ company_stamp_url: stampUrl })
+      .eq('id', window.userCompanyId);
+
+    if (dbError) throw dbError;
+
+    if (window.currentCompanyData) {
+      window.currentCompanyData.company_stamp_url = stampUrl;
+    }
+
+    // Update UI Preview
+    updateCompanyStampUI(stampUrl);
+
+    if (uploadBtn) uploadBtn.innerText = 'Uploaded!';
+  } catch (err) {
+    console.error('[ProfileEngine] Error uploading company stamp:', err);
+    alert(`Failed to upload stamp: ${err.message || 'Unknown error'}`);
+    if (uploadBtn) uploadBtn.innerText = 'Upload Failed';
+  }
+
+  setTimeout(() => {
+    if (uploadBtn) uploadBtn.innerText = originalText;
+  }, 2500);
+}
+
+async function removeCompanyStamp() {
+  if (!window.userCompanyId) return;
+  if (!confirm('Are you sure you want to remove the official estate stamp?')) return;
+
+  try {
+    const { error } = await window.dbClient
+      .from('companies')
+      .update({ company_stamp_url: null })
+      .eq('id', window.userCompanyId);
+
+    if (error) throw error;
+
+    if (window.currentCompanyData) {
+      window.currentCompanyData.company_stamp_url = null;
+    }
+
+    updateCompanyStampUI(null);
+  } catch (err) {
+    console.error('[ProfileEngine] Error removing company stamp:', err);
+    alert(`Failed to remove stamp: ${err.message || 'Unknown error'}`);
+  }
+}
+
+function updateCompanyStampUI(stampUrl) {
+  const previewImg = document.getElementById('company-stamp-preview');
+  const placeholder = document.getElementById('stamp-placeholder-icon');
+  const removeBtn = document.getElementById('remove-stamp-btn');
+  const input = document.getElementById('company-stamp-input');
+
+  if (input) input.value = '';
+
+  if (stampUrl) {
+    if (previewImg) {
+      previewImg.src = stampUrl;
+      previewImg.classList.remove('hidden');
+    }
+    if (placeholder) placeholder.classList.add('hidden');
+    if (removeBtn) removeBtn.classList.remove('hidden');
+  } else {
+    if (previewImg) {
+      previewImg.src = '';
+      previewImg.classList.add('hidden');
+    }
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (removeBtn) removeBtn.classList.add('hidden');
+  }
+}
+
+window.handleCompanyStampUpload = handleCompanyStampUpload;
+window.removeCompanyStamp = removeCompanyStamp;
+window.updateCompanyStampUI = updateCompanyStampUI;
 
 // 4a-i. PROCESSOR GROWER CODE LINKING (Subsidy Stacking, Layer 2/3)
 // Lets an existing active user claim an *additional* processor's grower code
@@ -927,6 +1046,10 @@ async function loadUserProfile(userId) {
     if (!isPlanAdmin) {
       if (managerCompanyNotice) managerCompanyNotice.classList.remove('hidden');
       if (saveCompanyBtn) saveCompanyBtn.classList.add('hidden');
+      const uploadStampBtn = document.getElementById('upload-stamp-btn');
+      const removeStampBtn = document.getElementById('remove-stamp-btn');
+      if (uploadStampBtn) uploadStampBtn.classList.add('hidden');
+      if (removeStampBtn) removeStampBtn.classList.add('hidden');
       companyInputs.forEach(input => {
         if (input) {
           input.readOnly = true;
@@ -936,6 +1059,8 @@ async function loadUserProfile(userId) {
     } else {
       if (managerCompanyNotice) managerCompanyNotice.classList.add('hidden');
       if (saveCompanyBtn) saveCompanyBtn.classList.remove('hidden');
+      const uploadStampBtn = document.getElementById('upload-stamp-btn');
+      if (uploadStampBtn) uploadStampBtn.classList.remove('hidden');
       companyInputs.forEach(input => {
         if (input) {
           input.readOnly = false;
@@ -985,6 +1110,7 @@ async function loadUserProfile(userId) {
     if (phoneEl) phoneEl.value = companyObj?.phone || '';
     if (addressEl) addressEl.value = companyObj?.postal_address || '';
     if (emailEl) emailEl.value = companyObj?.contact_email || '';
+    updateCompanyStampUI(companyObj?.company_stamp_url);
 
     const fName = profile.first_name || '';
     const lName = profile.last_name || '';
@@ -1005,12 +1131,12 @@ async function loadUserProfile(userId) {
     }
 
     // Sync Modern Top Bar Data
-    const topName = document.getElementById('topbar-user-name');
+    const topNameEls = ['userName', 'topbar-user-name'].map(id => document.getElementById(id)).filter(Boolean);
     const topRole = document.getElementById('topbar-user-role');
     const topCompany = document.getElementById('topbar-company-name');
     const topTier = document.getElementById('topbar-tier-tag');
 
-    if (topName) topName.textContent = `${fName} ${lName}`.trim() || 'User';
+    topNameEls.forEach(el => { el.textContent = `${fName} ${lName}`.trim() || 'User'; });
     if (topRole) topRole.textContent = profile.role || (isPlanAdmin ? 'Primary Admin' : 'Manager');
     if (topCompany) topCompany.textContent = companyObj?.name || 'Simple Solutions';
     if (topTier) topTier.textContent = window.currentCompanyTier.toUpperCase();

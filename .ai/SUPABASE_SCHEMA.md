@@ -1,5 +1,5 @@
 # Live Supabase Schema Manifest
-> **Last Synchronized:** 2026-10-02 09:36:30 UTC
+> **Last Synchronized:** 2026-10-13 08:47:34 UTC
 > **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
 
 ---
@@ -11,7 +11,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict xksefeBOjc5hZVxvO8kPM3rsjAHpNHbG2R4Ev9PUafQEhLMIKlhfGv5KE2uj7Am
+\restrict SEMnfTsgXgcBD8hWXlhiWLd6chfcw3NgZwf5dLzu7g0h3YWgiPCdOUWfCGKTaoE
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.11 (Ubuntu 17.11-1.pgdg24.04+2)
@@ -40,6 +40,34 @@ CREATE SCHEMA public;
 --
 
 COMMENT ON SCHEMA public IS 'standard public schema';
+
+
+--
+-- Name: archive_training_record(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.archive_training_record(p_record_id uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+    -- Only Master Admin can archive records
+    IF NOT EXISTS (
+        SELECT 1 FROM public.profiles 
+        WHERE id = auth.uid() 
+          AND lower(role) = 'master admin'
+          AND company_id = (SELECT company_id FROM public.training_records WHERE id = p_record_id)
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized: Only Master Admins may archive training records.' USING ERRCODE = 'P0001';
+    END IF;
+
+    UPDATE public.training_records
+    SET status = 'Archived'
+    WHERE id = p_record_id;
+
+    RETURN jsonb_build_object('success', true, 'record_id', p_record_id);
+END;
+$$;
 
 
 --
@@ -156,6 +184,107 @@ begin
     'bolt_on_cancelled', v_was_boltOn
   );
 end;$$;
+
+
+--
+-- Name: get_module_stream(text); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_module_stream(p_video_id text) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+    v_caller_id uuid := auth.uid();
+    v_company_id uuid;
+    v_tier text;
+    v_unlock_all boolean;
+    v_is_subsidized boolean;
+    v_sponsored text[];
+    v_purchased text[];
+    v_has_custom_library boolean;
+    v_video record;
+    v_is_locked boolean := true;
+BEGIN
+    IF v_caller_id IS NULL THEN
+        RAISE EXCEPTION 'Not authenticated.' USING ERRCODE = 'P0001';
+    END IF;
+
+    -- Fetch target video metadata
+    SELECT id, title, sub_tag, category, description, total_seconds,
+           curriculum_slug, company_id, objectives, questions, language, streams
+    INTO v_video
+    FROM public.videos
+    WHERE id = p_video_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Module not found: %', p_video_id USING ERRCODE = 'P0002';
+    END IF;
+
+    -- Resolve caller company context
+    SELECT p.company_id, c.tier, c.unlock_all_crops, c.is_subsidized,
+           coalesce(c.sponsored_crop_packs, '{}'), coalesce(c.purchased_crop_packs, '{}')
+    INTO v_company_id, v_tier, v_unlock_all, v_is_subsidized, v_sponsored, v_purchased
+    FROM public.profiles p
+    LEFT JOIN public.companies c ON c.id = p.company_id
+    WHERE p.id = v_caller_id;
+
+    -- Check if company has custom private library
+    SELECT EXISTS (SELECT 1 FROM public.videos WHERE company_id = v_company_id)
+    INTO v_has_custom_library;
+
+    -- Evaluate entitlement
+    IF v_video.company_id IS NOT NULL AND v_video.company_id IS DISTINCT FROM v_company_id THEN
+        -- Private estate library rule: another tenant's proprietary footage is never streamable
+        v_is_locked := true;
+    ELSIF lower(coalesce(v_video.sub_tag, '')) IN ('general safety', 'machinery & workshop') THEN
+        v_is_locked := false;
+    ELSIF lower(coalesce(v_tier, 'basic')) = 'basic' THEN
+        v_is_locked := true;
+    ELSIF v_has_custom_library AND v_video.company_id = v_company_id THEN
+        v_is_locked := false;
+    ELSIF lower(coalesce(v_tier, '')) = 'enterprise' THEN
+        -- Enterprise tier: full entitlement to standard crop packs (Citrus, Macadamia, Banana)
+        v_is_locked := false;
+    ELSIF coalesce(v_unlock_all, false) OR coalesce(v_is_subsidized, false) THEN
+        v_is_locked := false;
+    ELSIF v_video.curriculum_slug IS NOT NULL AND (
+        v_video.curriculum_slug = ANY(v_sponsored) OR v_video.curriculum_slug = ANY(v_purchased)
+    ) THEN
+        v_is_locked := false;
+    ELSIF EXISTS (
+        SELECT 1 FROM unnest(v_sponsored || v_purchased) AS crop(name)
+        WHERE btrim(coalesce(crop.name, '')) <> ''
+          AND strpos(lower(coalesce(v_video.sub_tag, '')), lower(btrim(crop.name))) > 0
+    ) THEN
+        v_is_locked := false;
+    ELSE
+        v_is_locked := true;
+    END IF;
+
+    IF v_is_locked THEN
+        RAISE EXCEPTION 'Unauthorized access to gated crop pack: %', p_video_id USING ERRCODE = 'P0001';
+    END IF;
+
+    RETURN jsonb_build_object(
+        'id', v_video.id,
+        'title', v_video.title,
+        'category', v_video.category,
+        'sub_tag', v_video.sub_tag,
+        'description', v_video.description,
+        'total_seconds', v_video.total_seconds,
+        'curriculum_slug', v_video.curriculum_slug,
+        'language', v_video.language,
+        'objectives', coalesce(v_video.objectives, '[]'::jsonb),
+        'questions', coalesce(v_video.questions, '[]'::jsonb),
+        'streams', CASE
+            WHEN v_video.streams IS NOT NULL AND jsonb_typeof(v_video.streams) = 'object' AND v_video.streams <> '{}'::jsonb
+            THEN v_video.streams
+            ELSE jsonb_build_object('en', jsonb_build_object('vimeo_id', v_video.id, 'label', coalesce(v_video.language, 'English')))
+        END
+    );
+END;
+$$;
 
 
 --
@@ -329,6 +458,194 @@ begin
     'growers', v_growers
   );
 end;
+$$;
+
+
+--
+-- Name: get_vault_catalog(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.get_vault_catalog() RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+    v_company_id uuid;
+    v_tier text;
+    v_unlock_all boolean;
+    v_is_subsidized boolean;
+    v_sponsored text[];
+    v_purchased text[];
+    v_has_custom_library boolean;
+    v_result jsonb;
+BEGIN
+    -- Resolve calling user tenant context
+    SELECT p.company_id, c.tier, c.unlock_all_crops, c.is_subsidized,
+           coalesce(c.sponsored_crop_packs, '{}'), coalesce(c.purchased_crop_packs, '{}')
+    INTO v_company_id, v_tier, v_unlock_all, v_is_subsidized, v_sponsored, v_purchased
+    FROM public.profiles p
+    LEFT JOIN public.companies c ON c.id = p.company_id
+    WHERE p.id = auth.uid();
+
+    -- Check if tenant has a private estate library (e.g. Elliott, Doveton, Outlook)
+    SELECT EXISTS (SELECT 1 FROM public.videos WHERE company_id = v_company_id)
+    INTO v_has_custom_library;
+
+    SELECT jsonb_agg(
+        jsonb_build_object(
+            'title', v.title,
+            'category', v.category,
+            'sub_tag', v.sub_tag,
+            'curriculum_slug', v.curriculum_slug,
+            'description', v.description,
+            'total_seconds', v.total_seconds,
+            'language', v.language,
+            'is_locked', is_locked,
+            -- REDACTED SENSITIVE ASSETS IF LOCKED
+            'id', CASE WHEN is_locked THEN 'locked' ELSE v.id END,
+            'thumbnail_url', CASE
+                WHEN is_locked THEN 'https://ujhfkvoaaebdntuheyqo.supabase.co/storage/v1/object/public/thumbnails/Simple/Locked_Module_Teaser.svg'
+                ELSE v.thumbnail_url
+            END,
+            'partner_thumbnails', CASE WHEN is_locked THEN '{}'::jsonb ELSE coalesce(v.partner_thumbnails, '{}'::jsonb) END,
+            'streams', CASE WHEN is_locked THEN '{}'::jsonb ELSE coalesce(v.streams, '{}'::jsonb) END
+        )
+    ) INTO v_result
+    FROM (
+        SELECT v.*,
+            CASE
+                -- Core modules unlocked on all tiers
+                WHEN lower(coalesce(v.sub_tag, '')) IN ('general safety', 'machinery & workshop') THEN false
+                -- Locked on basic tier for other sub-tags
+                WHEN lower(coalesce(v_tier, 'basic')) = 'basic' THEN true
+                -- Custom private library override (tenant-owned estate footage)
+                WHEN v_has_custom_library AND v.company_id = v_company_id THEN false
+                -- Enterprise tier: full entitlement to standard crop packs
+                -- (Citrus, Macadamia, Banana) and all remaining master modules
+                WHEN lower(coalesce(v_tier, '')) = 'enterprise' THEN false
+                -- Master unlock
+                WHEN coalesce(v_unlock_all, false) OR coalesce(v_is_subsidized, false) THEN false
+                -- Crop pack entitlement check (legacy slug match)
+                WHEN v.curriculum_slug IS NOT NULL AND (
+                    v.curriculum_slug = ANY(v_sponsored) OR v.curriculum_slug = ANY(v_purchased)
+                ) THEN false
+                -- Crop pack entitlement check (crop name, e.g. 'macadamia' ~ 'Macadamia Processing')
+                WHEN EXISTS (
+                    SELECT 1 FROM unnest(v_sponsored || v_purchased) AS crop(name)
+                    WHERE btrim(coalesce(crop.name, '')) <> ''
+                      AND strpos(lower(coalesce(v.sub_tag, '')), lower(btrim(crop.name))) > 0
+                ) THEN false
+                -- Default locked if unpurchased / unsponsored specialized module
+                ELSE true
+            END AS is_locked
+        FROM public.videos v
+        WHERE (v.company_id IS NULL AND NOT coalesce(v_has_custom_library, false))
+           OR (v.company_id = v_company_id)
+        ORDER BY v.title ASC
+    ) v;
+
+    RETURN coalesce(v_result, '[]'::jsonb);
+END;
+$$;
+
+
+--
+-- Name: log_induction_session(text, text, text, jsonb); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.log_induction_session(p_module_title text, p_supervisor_name text, p_supervisor_signature text, p_trainees jsonb) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+    v_company_id uuid;
+    v_trainee_count int;
+    v_batch_session_id uuid;
+    v_training_type text;
+    v_trainee jsonb;
+    v_inserted_ids uuid[] := '{}';
+    v_new_id uuid;
+BEGIN
+    -- 1. Authenticate caller and resolve company_id
+    v_company_id := get_my_company_id();
+    IF v_company_id IS NULL THEN
+        RAISE EXCEPTION 'Unauthorized: Caller has no active company profile.';
+    END IF;
+
+    -- 2. Validate inputs
+    v_trainee_count := jsonb_array_length(p_trainees);
+    IF v_trainee_count = 0 THEN
+        RAISE EXCEPTION 'Validation Failed: At least one trainee must be selected.';
+    END IF;
+
+    IF v_trainee_count > 80 THEN
+        RAISE EXCEPTION 'Statutory Limit Exceeded: Induction batches cannot exceed 80 workers per session.';
+    END IF;
+
+    IF TRIM(COALESCE(p_supervisor_name, '')) = '' THEN
+        RAISE EXCEPTION 'Validation Failed: Supervising Officer name is mandatory.';
+    END IF;
+
+    IF TRIM(COALESCE(p_supervisor_signature, '')) = '' THEN
+        RAISE EXCEPTION 'Validation Failed: Supervisor digital signature is mandatory.';
+    END IF;
+
+    -- 3. Determine training format & session ID
+    IF v_trainee_count = 1 THEN
+        v_training_type := 'Individual';
+        v_batch_session_id := NULL;
+    ELSE
+        v_training_type := 'Batch';
+        v_batch_session_id := gen_random_uuid();
+    END IF;
+
+    -- 4. Insert each trainee record atomically
+    FOR v_trainee IN SELECT * FROM jsonb_array_elements(p_trainees)
+    LOOP
+        INSERT INTO public.training_records (
+            company_id,
+            employee_id,
+            employee_name,
+            employee_number,
+            gender,
+            module_title,
+            training_type,
+            supervisor_name,
+            supervisor_signature_data,
+            employee_signature_data,
+            batch_session_id,
+            status,
+            completed_at,
+            created_at
+        ) VALUES (
+            v_company_id,
+            NULLIF(v_trainee->>'employee_id', '')::uuid,
+            TRIM(COALESCE(v_trainee->>'employee_name', 'Unnamed Worker')),
+            NULLIF(TRIM(v_trainee->>'employee_number'), ''),
+            COALESCE(NULLIF(TRIM(v_trainee->>'gender'), ''), 'Male'),
+            TRIM(p_module_title),
+            v_training_type,
+            TRIM(p_supervisor_name),
+            p_supervisor_signature,
+            NULL, -- Individual canvas signature bypassed in favor of ECTA §13 Supervisor Gate
+            v_batch_session_id,
+            'Verified',
+            CURRENT_DATE,
+            now()
+        )
+        RETURNING id INTO v_new_id;
+
+        v_inserted_ids := array_append(v_inserted_ids, v_new_id);
+    END LOOP;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'training_type', v_training_type,
+        'batch_session_id', v_batch_session_id,
+        'trainee_count', v_trainee_count,
+        'record_ids', v_inserted_ids
+    );
+END;
 $$;
 
 
@@ -668,6 +985,100 @@ $$;
 
 
 --
+-- Name: sync_company_roster(jsonb, boolean); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sync_company_roster(p_employees jsonb, p_deactivate_missing boolean DEFAULT false) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+    v_company_id uuid;
+    v_emp jsonb;
+    v_inserted int := 0;
+    v_deactivated int := 0;
+    v_uploaded_numbers text[] := '{}';
+    v_caller_role text;
+BEGIN
+    -- 1. Resolve tenant company ID
+    v_company_id := get_my_company_id();
+    IF v_company_id IS NULL THEN
+        RAISE EXCEPTION 'Unauthorized: Caller has no active company profile.';
+    END IF;
+
+    -- 2. Verify caller permissions (Admin, Manager, Safety Officer)
+    SELECT lower(role) INTO v_caller_role FROM public.profiles WHERE id = auth.uid();
+    IF v_caller_role NOT IN ('master admin', 'admin', 'manager', 'safety officer') THEN
+        RAISE EXCEPTION 'Forbidden: Insufficient privileges to update employee roster.';
+    END IF;
+
+    -- 3. Loop through employees array and UPSERT
+    FOR v_emp IN SELECT * FROM jsonb_array_elements(p_employees)
+    LOOP
+        IF NULLIF(TRIM(v_emp->>'employee_number'), '') IS NOT NULL THEN
+            v_uploaded_numbers := array_append(v_uploaded_numbers, TRIM(v_emp->>'employee_number'));
+
+            INSERT INTO public.company_employees (
+                company_id,
+                employee_number,
+                first_name,
+                last_name,
+                id_passport_number,
+                gender,
+                team_or_orchard,
+                is_active,
+                updated_at
+            ) VALUES (
+                v_company_id,
+                TRIM(v_emp->>'employee_number'),
+                TRIM(COALESCE(v_emp->>'first_name', 'Employee')),
+                TRIM(COALESCE(v_emp->>'last_name', '')),
+                NULLIF(TRIM(v_emp->>'id_passport_number'), ''),
+                CASE 
+                    WHEN lower(COALESCE(v_emp->>'gender', '')) IN ('m', 'male', 'man', 'seun') THEN 'Male'
+                    WHEN lower(COALESCE(v_emp->>'gender', '')) IN ('f', 'female', 'vrou', 'meisie') THEN 'Female'
+                    ELSE 'Other'
+                END,
+                NULLIF(TRIM(v_emp->>'team_or_orchard'), ''),
+                true,
+                now()
+            )
+            ON CONFLICT (company_id, employee_number) 
+            DO UPDATE SET
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                id_passport_number = COALESCE(EXCLUDED.id_passport_number, company_employees.id_passport_number),
+                gender = EXCLUDED.gender,
+                team_or_orchard = COALESCE(EXCLUDED.team_or_orchard, company_employees.team_or_orchard),
+                is_active = true,
+                updated_at = now();
+
+            v_inserted := v_inserted + 1;
+        END IF;
+    END LOOP;
+
+    -- 4. Deactivate employees not in upload if seasonal replace requested
+    IF p_deactivate_missing THEN
+        UPDATE public.company_employees
+        SET is_active = false, updated_at = now()
+        WHERE company_id = v_company_id
+          AND is_active = true
+          AND NOT (employee_number = ANY(v_uploaded_numbers));
+        
+        GET DIAGNOSTICS v_deactivated = ROW_COUNT;
+    END IF;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'upserted_count', v_inserted,
+        'deactivated_count', v_deactivated,
+        'total_processed', jsonb_array_length(p_employees)
+    );
+END;
+$$;
+
+
+--
 -- Name: sync_profile_to_auth_meta(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -837,8 +1248,16 @@ CREATE TABLE public.companies (
     sponsored_crop_packs text[] DEFAULT '{}'::text[],
     purchased_crop_packs text[] DEFAULT '{}'::text[],
     is_subsidized boolean DEFAULT false NOT NULL,
-    unlock_all_crops boolean DEFAULT false NOT NULL
+    unlock_all_crops boolean DEFAULT false NOT NULL,
+    company_stamp_url text
 );
+
+
+--
+-- Name: COLUMN companies.company_stamp_url; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.companies.company_stamp_url IS 'Public storage URL to official transparent PNG company seal or round stamp.';
 
 
 --
@@ -858,6 +1277,26 @@ CREATE TABLE public.company_baseline_assessments (
     hazards_register jsonb DEFAULT '[]'::jsonb NOT NULL,
     status text DEFAULT 'Active'::text,
     created_at timestamp with time zone DEFAULT now()
+);
+
+
+--
+-- Name: company_employees; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.company_employees (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid NOT NULL,
+    employee_number text NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    id_passport_number text,
+    gender text,
+    team_or_orchard text,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT company_employees_gender_check CHECK (((gender IS NULL) OR (gender = ANY (ARRAY['Male'::text, 'Female'::text, 'Other'::text]))))
 );
 
 
@@ -932,6 +1371,47 @@ CREATE TABLE public.crop_pack_addon_subscriptions (
 
 
 --
+-- Name: incident_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.incident_reports (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    company_id uuid NOT NULL,
+    incident_number text NOT NULL,
+    incident_date date NOT NULL,
+    incident_time time without time zone NOT NULL,
+    reported_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    location_or_orchard text NOT NULL,
+    employee_id uuid,
+    injured_person_name text NOT NULL,
+    injured_person_id_number text,
+    injured_person_role text NOT NULL,
+    gender text,
+    incident_severity text NOT NULL,
+    nature_of_injury text,
+    body_part text,
+    equipment_chemical_involved text,
+    incident_description text NOT NULL,
+    root_cause_analysis text NOT NULL,
+    corrective_preventative_actions text NOT NULL,
+    action_assigned_to text NOT NULL,
+    action_target_date date NOT NULL,
+    action_completed_date date,
+    is_section_24_statutory boolean DEFAULT false NOT NULL,
+    section_24_reported_at timestamp with time zone,
+    investigated_by_name text NOT NULL,
+    investigated_by_role text NOT NULL,
+    investigator_signature text NOT NULL,
+    status text DEFAULT 'Open'::text NOT NULL,
+    attachments jsonb DEFAULT '[]'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT incident_severity_check CHECK ((incident_severity = ANY (ARRAY['Near Miss'::text, 'First Aid Only'::text, 'Medical Treatment (Doctor)'::text, 'Disabling Injury (> 3 Days Lost Time)'::text, 'Fatal / Section 24 Major'::text]))),
+    CONSTRAINT incident_status_check CHECK ((status = ANY (ARRAY['Open'::text, 'Under Investigation'::text, 'Action Pending'::text, 'Resolved / Closed'::text])))
+);
+
+
+--
 -- Name: partner_grower_registry; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -981,7 +1461,8 @@ CREATE TABLE public.training_records (
     gender text,
     batch_session_id uuid,
     supervisor_signature_data text,
-    employee_signature_data text
+    employee_signature_data text,
+    employee_id uuid
 );
 
 
@@ -1062,19 +1543,6 @@ CREATE TABLE public.risk_assessment_templates (
     emergency_procedures jsonb DEFAULT '[]'::jsonb,
     curriculum_slug text,
     CONSTRAINT check_rat_slug_format CHECK (((curriculum_slug IS NULL) OR (curriculum_slug ~ '^[a-z0-9_]+$'::text)))
-);
-
-
---
--- Name: sandbox_jsonb_backup; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.sandbox_jsonb_backup (
-    table_name text NOT NULL,
-    row_id text NOT NULL,
-    column_name text NOT NULL,
-    original_value jsonb,
-    backed_up_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1163,6 +1631,7 @@ CREATE TABLE public.videos (
     questions jsonb DEFAULT '[]'::jsonb,
     curriculum_slug text,
     partner_thumbnails jsonb DEFAULT '{}'::jsonb,
+    streams jsonb DEFAULT '{}'::jsonb,
     CONSTRAINT check_videos_slug_format CHECK (((curriculum_slug IS NULL) OR (curriculum_slug ~ '^[a-z0-9_]+$'::text)))
 );
 
@@ -1197,6 +1666,22 @@ ALTER TABLE ONLY public.company_baseline_assessments
 
 ALTER TABLE ONLY public.company_baseline_assessments
     ADD CONSTRAINT company_baseline_template_unique UNIQUE (company_id, template_id);
+
+
+--
+-- Name: company_employees company_employees_company_id_employee_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_employees
+    ADD CONSTRAINT company_employees_company_id_employee_number_key UNIQUE (company_id, employee_number);
+
+
+--
+-- Name: company_employees company_employees_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_employees
+    ADD CONSTRAINT company_employees_pkey PRIMARY KEY (id);
 
 
 --
@@ -1264,6 +1749,14 @@ ALTER TABLE ONLY public.companies
 
 
 --
+-- Name: incident_reports incident_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.incident_reports
+    ADD CONSTRAINT incident_reports_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: partner_grower_registry partner_grower_registry_grower_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1325,14 +1818,6 @@ ALTER TABLE ONLY public.risk_assessment_templates
 
 ALTER TABLE ONLY public.risk_assessment_templates
     ADD CONSTRAINT risk_assessment_templates_pkey PRIMARY KEY (id);
-
-
---
--- Name: sandbox_jsonb_backup sandbox_jsonb_backup_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.sandbox_jsonb_backup
-    ADD CONSTRAINT sandbox_jsonb_backup_pkey PRIMARY KEY (table_name, row_id, column_name);
 
 
 --
@@ -1405,6 +1890,27 @@ CREATE INDEX idx_company_baseline_assessments_cid ON public.company_baseline_ass
 
 
 --
+-- Name: idx_company_employees_company_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_company_employees_company_active ON public.company_employees USING btree (company_id, is_active);
+
+
+--
+-- Name: idx_company_employees_company_team; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_company_employees_company_team ON public.company_employees USING btree (company_id, team_or_orchard);
+
+
+--
+-- Name: idx_company_employees_search; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_company_employees_search ON public.company_employees USING btree (company_id, employee_number, first_name, last_name);
+
+
+--
 -- Name: idx_crop_pack_addon_subscriptions_active_unique; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1412,10 +1918,45 @@ CREATE UNIQUE INDEX idx_crop_pack_addon_subscriptions_active_unique ON public.cr
 
 
 --
+-- Name: idx_incidents_company; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_incidents_company ON public.incident_reports USING btree (company_id, incident_date DESC);
+
+
+--
+-- Name: idx_incidents_employee; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_incidents_employee ON public.incident_reports USING btree (employee_id);
+
+
+--
+-- Name: idx_incidents_statutory; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_incidents_statutory ON public.incident_reports USING btree (company_id, is_section_24_statutory);
+
+
+--
 -- Name: idx_partner_grower_registry_claimed_by; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_partner_grower_registry_claimed_by ON public.partner_grower_registry USING btree (claimed_by_company_id);
+
+
+--
+-- Name: idx_training_records_batch_session; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_training_records_batch_session ON public.training_records USING btree (batch_session_id);
+
+
+--
+-- Name: idx_training_records_employee_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_training_records_employee_id ON public.training_records USING btree (employee_id);
 
 
 --
@@ -1463,6 +2004,14 @@ ALTER TABLE ONLY public.company_baseline_assessments
 
 
 --
+-- Name: company_employees company_employees_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.company_employees
+    ADD CONSTRAINT company_employees_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
 -- Name: company_risk_assessments company_risk_assessments_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1500,6 +2049,22 @@ ALTER TABLE ONLY public.crop_pack_addon_purchases
 
 ALTER TABLE ONLY public.crop_pack_addon_subscriptions
     ADD CONSTRAINT crop_pack_addon_subscriptions_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: incident_reports incident_reports_company_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.incident_reports
+    ADD CONSTRAINT incident_reports_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: incident_reports incident_reports_employee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.incident_reports
+    ADD CONSTRAINT incident_reports_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.company_employees(id) ON DELETE SET NULL;
 
 
 --
@@ -1591,6 +2156,14 @@ ALTER TABLE ONLY public.training_records
 
 
 --
+-- Name: training_records training_records_employee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.training_records
+    ADD CONSTRAINT training_records_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.company_employees(id) ON DELETE SET NULL;
+
+
+--
 -- Name: user_video_progress user_video_progress_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1604,6 +2177,17 @@ ALTER TABLE ONLY public.user_video_progress
 
 ALTER TABLE ONLY public.videos
     ADD CONSTRAINT videos_company_id_fkey FOREIGN KEY (company_id) REFERENCES public.companies(id) ON DELETE CASCADE;
+
+
+--
+-- Name: company_employees Admins and Managers can mutate company employees; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Admins and Managers can mutate company employees" ON public.company_employees TO authenticated USING (((company_id = public.get_my_company_id()) AND (EXISTS ( SELECT 1
+   FROM public.profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.company_id = company_employees.company_id) AND (lower(profiles.role) = ANY (ARRAY['master admin'::text, 'admin'::text, 'manager'::text, 'safety officer'::text]))))))) WITH CHECK (((company_id = public.get_my_company_id()) AND (EXISTS ( SELECT 1
+   FROM public.profiles
+  WHERE ((profiles.id = auth.uid()) AND (profiles.company_id = company_employees.company_id) AND (lower(profiles.role) = ANY (ARRAY['master admin'::text, 'admin'::text, 'manager'::text, 'safety officer'::text])))))));
 
 
 --
@@ -1711,12 +2295,26 @@ CREATE POLICY "Public can view master catalog videos" ON public.videos FOR SELEC
 
 
 --
+-- Name: incident_reports Tenants can manage their own incident reports; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Tenants can manage their own incident reports" ON public.incident_reports TO authenticated USING ((company_id = public.get_my_company_id())) WITH CHECK ((company_id = public.get_my_company_id()));
+
+
+--
 -- Name: company_risk_assessments Tenants can view and insert own risk assessments; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Tenants can view and insert own risk assessments" ON public.company_risk_assessments USING ((company_id = ( SELECT profiles.company_id
    FROM public.profiles
   WHERE (profiles.id = auth.uid()))));
+
+
+--
+-- Name: crop_pack_addon_purchases Tenants can view own crop pack addon purchases; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Tenants can view own crop pack addon purchases" ON public.crop_pack_addon_purchases FOR SELECT TO authenticated USING ((company_id = public.get_my_company_id()));
 
 
 --
@@ -1816,6 +2414,13 @@ CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE
 
 
 --
+-- Name: company_employees Users can view company employees; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can view company employees" ON public.company_employees FOR SELECT TO authenticated USING ((company_id = public.get_my_company_id()));
+
+
+--
 -- Name: company_risk_assessments Users can view company risk assessments; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1907,6 +2512,12 @@ ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_baseline_assessments ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: company_employees; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.company_employees ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: company_risk_assessments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -1929,6 +2540,12 @@ ALTER TABLE public.crop_pack_addon_purchases ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.crop_pack_addon_subscriptions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: incident_reports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.incident_reports ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: partner_grower_registry; Type: ROW SECURITY; Schema: public; Owner: -
@@ -1959,12 +2576,6 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.risk_assessment_templates ENABLE ROW LEVEL SECURITY;
-
---
--- Name: sandbox_jsonb_backup; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.sandbox_jsonb_backup ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: sops; Type: ROW SECURITY; Schema: public; Owner: -
@@ -2000,6 +2611,6 @@ ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict xksefeBOjc5hZVxvO8kPM3rsjAHpNHbG2R4Ev9PUafQEhLMIKlhfGv5KE2uj7Am
+\unrestrict SEMnfTsgXgcBD8hWXlhiWLd6chfcw3NgZwf5dLzu7g0h3YWgiPCdOUWfCGKTaoE
 
 ```

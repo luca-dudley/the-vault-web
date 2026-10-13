@@ -87,6 +87,7 @@
     }
 
     #sidebar,
+    #app-sidebar,
     #mainContent {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -107,267 +108,240 @@
     }
 
     /* Collapsed Sidebar Rules */
-    #sidebar.collapsed {
+    #sidebar.collapsed,
+    #app-sidebar.collapsed {
       width: 5rem !important;
       padding-left: 0.5rem;
       padding-right: 0.5rem;
     }
     #sidebar.collapsed .sidebar-text,
+    #app-sidebar.collapsed .sidebar-text,
     #sidebar.collapsed .sidebar-category-header,
-    #sidebar.collapsed #sidebarToggle span {
+    #app-sidebar.collapsed .sidebar-category-header,
+    #sidebar.collapsed #sidebarToggle span,
+    #app-sidebar.collapsed #sidebarToggle span {
       display: none !important;
     }
-    #sidebar.collapsed .sidebar-nav-btn {
+    #sidebar.collapsed .sidebar-nav-btn,
+    #app-sidebar.collapsed .sidebar-nav-btn {
       justify-content: center;
       padding-left: 0;
       padding-right: 0;
       padding-top: 0.75rem;
       padding-bottom: 0.75rem;
     }
-    #sidebar.collapsed .sidebar-nav-btn svg {
+    #sidebar.collapsed .sidebar-nav-btn svg,
+    #app-sidebar.collapsed .sidebar-nav-btn svg {
       margin: 0;
       width: 1.5rem;
       height: 1.5rem;
     }
-    #sidebar.collapsed #sidebarToggle svg {
+    #sidebar.collapsed #sidebarToggle svg,
+    #app-sidebar.collapsed #sidebarToggle svg {
       transform: rotate(180deg);
     }
   </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-800 font-sans min-h-screen overflow-x-hidden">
 
-  <!-- Mobile Header -->
-  <header class="lg:hidden sticky top-0 z-40 h-16 px-4 flex items-center justify-between border-b border-slate-200 bg-[#f8fafc]">
-    <button id="mobile-menu-btn" type="button" aria-label="Open sidebar" aria-expanded="false" class="min-h-11 min-w-11 p-2 rounded-lg hover:bg-slate-200 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-    <a href="vault.html" class="font-serif text-lg font-bold text-foreground">The Vault</a>
-    <button onclick="openProfileModal()" aria-label="Open profile" class="min-h-11 min-w-11 flex items-center justify-center"><div class="relative w-9 h-9 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs overflow-hidden border border-slate-300"><span data-dynamic-initials>?</span><img data-dynamic-profile-img class="absolute inset-0 w-full h-full object-cover hidden" alt="Profile"></div></button>
-  </header>
-
-  <!-- 1. FULL WIDTH TOP BAR -->
-  <header class="hidden lg:flex sticky top-0 z-40 w-full border-b border-slate-200/90 bg-[#f8fafc] backdrop-blur px-8 py-3.5 h-[72px] items-center justify-between">
-    <a href="vault.html" class="flex items-center gap-3.5 group shrink-0 ml-2">
-      <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/>
-        </svg>
-      </div>
-      <span class="font-serif text-[1.75rem] font-bold text-foreground tracking-tight">The Vault</span>
-    </a>
-
-    <!-- Right-Hand Controls -->
-    <div class="flex items-center gap-5 shrink-0">
-      <div class="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-700 shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="topbar-company-name" class="font-medium truncate max-w-[140px]">Simple Solutions</span>
-        <span class="text-slate-300">|</span>
-        <span id="topbar-tier-tag" class="font-bold text-primary uppercase text-[10px] tracking-wide">Enterprise</span>
-      </div>
-
-      <!-- Live Partner Subsidy Dropdown Pill -->
-      <div id="topbar-sponsor-pill-container" class="relative hidden">
-        <button id="topbar-sponsor-btn" onclick="toggleSponsorDropdown(event)" type="button" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-all">
-          <span class="w-2 h-2 rounded-full bg-primary/70"></span>
-          <span id="topbar-sponsor-label">Sponsors</span>
-          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
-        </button>
-
-        <!-- Dropdown Menu -->
-        <div id="topbar-sponsor-dropdown" class="hidden absolute right-0 sm:left-0 sm:right-auto mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden py-1.5">
-          <div class="px-4 py-2 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Active Subsidies</span>
-            <span id="topbar-sponsor-count" class="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">0 Active</span>
-          </div>
-          <div id="topbar-sponsor-items" class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-            <!-- Injected via profile-engine.js -->
-          </div>
-        </div>
-      </div>
-
-      <div class="relative">
-        <button id="notification-bell-btn" onclick="toggleNotificationDropdown(event)" class="relative p-2.5 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition-colors shadow-sm" title="Notifications">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-          <span id="bell-unread-dot" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-        </button>
-
-        <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden">
-          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <span class="text-xs font-bold text-foreground uppercase tracking-wider">Notifications</span>
-            <button onclick="markAllNotificationsRead()" class="text-[11px] font-medium text-primary hover:underline">Mark all read</button>
-          </div>
-          <div class="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-            <div class="p-3.5 hover:bg-slate-50 transition-colors flex gap-3 items-start">
-              <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0 text-sm">🚀</span>
-              <div>
-                <p class="text-xs font-semibold text-slate-800">Workspace Active</p>
-                <p class="text-[11px] text-slate-500 leading-snug mt-0.5">Your organization's Vault streaming modules are unlocked and ready.</p>
-              </div>
-            </div>
-            <div class="p-3.5 hover:bg-slate-50 transition-colors flex gap-3 items-start">
-              <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 text-sm">🛡️</span>
-              <div>
-                <p class="text-xs font-semibold text-slate-800">Compliance Tracking Live</p>
-                <p class="text-[11px] text-slate-500 leading-snug mt-0.5">Digital sign-off logging and employee directories are actively syncing.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="h-6 w-px bg-slate-300/80"></div>
-
-      <button onclick="openProfileModal()" class="flex items-center gap-3 p-1.5 rounded-xl hover:bg-white border border-transparent hover:border-slate-200 transition-all text-left group">
-        <div class="relative w-10 h-10 rounded-full bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center overflow-hidden border border-slate-300 shadow-sm">
-          <span data-dynamic-initials>?</span>
-          <img data-dynamic-profile-img class="absolute inset-0 w-full h-full object-cover hidden" alt="Avatar">
-        </div>
-        <div class="hidden sm:block leading-tight">
-          <p id="topbar-user-name" class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Loading...</p>
-          <p id="topbar-user-role" class="text-xs text-muted">Primary Admin</p>
-        </div>
-        <svg class="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- 2. SIDEBAR -->
+  <!-- Baseline Structural Layout Containers (Zero-FOUC Shell) -->
+  <header id="app-header" class="fixed top-0 left-0 right-0 z-40 h-[72px] bg-white border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6"></header>
   <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/40 lg:hidden" aria-hidden="true"></div>
-  <aside id="sidebar" class="fixed left-0 top-0 bottom-0 z-50 w-64 -translate-x-full lg:translate-x-0 transition-transform duration-300 lg:top-[72px] lg:z-30 border-r border-slate-200/80 bg-[#f8fafc] flex flex-col justify-between p-4">
-    <div class="space-y-6">
-      <div>
-        <p class="sidebar-category-header px-3 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Workspace</p>
-        <nav class="space-y-1.5">
-          <!-- Video Library -->
-          <a href="vault.html" title="Video Library" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <span class="sidebar-text truncate">Video Library</span>
-          </a>
-
-          <!-- Training Records (Active) -->
-          <a href="records.html" title="Training Records" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            <span class="sidebar-text truncate">Training Records</span>
-          </a>
-
-          <!-- Standard Operating Procedures (Enterprise Locked) -->
-          <a href="sop.html" title="Standard Operating Procedures" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <span class="sidebar-text truncate">SOPs</span>
-          </a>
-
-          <!-- Digital Risk Assessment (Enterprise Locked) -->
-          <a href="risk-assessments.html" title="Risk Assessments" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-            </svg>
-            <span class="sidebar-text truncate">Risk Assessments</span>
-          </a>
-
-          <!-- Help & Support -->
-          <a href="support.html" title="Help & Support" class="sidebar-nav-btn flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-[15px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-all">
-            <svg class="w-6 h-6 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            <span class="sidebar-text truncate">Help & Support</span>
-          </a>
-        </nav>
-      </div>
-    </div>
-
-    <!-- Collapse Trigger Button -->
-    <div class="pt-3 border-t border-slate-200/80">
-      <button id="sidebarToggle" type="button" class="w-full flex items-center justify-center gap-2 p-2.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 rounded-xl transition-all shadow-sm" title="Toggle Sidebar">
-        <svg class="w-4 h-4 shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-        </svg>
-        <span class="truncate">Collapse View</span>
-      </button>
-    </div>
-  </aside>
+  <aside id="app-sidebar" class="fixed left-0 top-0 bottom-0 z-50 w-64 -translate-x-full lg:translate-x-0 transition-transform duration-300 lg:top-[72px] lg:z-30 border-r border-slate-200/80 bg-[#f8fafc] flex flex-col justify-between p-4"></aside>
 
   <!-- 3. MAIN CONTENT CONTAINER -->
-  <main id="mainContent" class="ml-0 lg:ml-64 min-h-[calc(100vh-72px)] flex flex-col justify-between relative">
+  <main id="mainContent" class="ml-0 lg:ml-64 pt-[72px] min-h-screen flex flex-col justify-between relative">
     
     <!-- FULL-PAGE BLURRED CONTENT WRAPPER -->
     <div id="pageContentWrapper" class="p-4 sm:p-8 flex-1 flex flex-col justify-between transition-all duration-300">
-      <div class="max-w-5xl mx-auto w-full p-4 sm:p-8 bg-white rounded-2xl border border-slate-200 shadow-sm">
+      <div class="max-w-6xl mx-auto w-full">
+        <!-- Permanent Static Title & Dynamic Action Buttons -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
           <div>
-            <h2 class="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-1">Employee Directory</h2>
-            <p class="text-muted text-sm">Find all recorded employees down below with verified completion logs and downloadable certificates.</p>
+            <h1 class="font-serif font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">Training Records</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Manage employee compliance, verified induction registers, and workforce rosters.</p>
           </div>
 
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 shrink-0">
-            <!-- Statutory Compliance / DPA Audit Pack Download -->
-            <a href="docs/legal/POPIA SECTION 21 OPERATOR AGREEMENT.pdf" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all" title="Download formal POPIA Section 21 Operator Agreement / DPA for SIZA and GlobalG.A.P. audits">
-              <svg class="w-3.5 h-3.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span>Audit Pack (DPA)</span>
-            </a>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <!-- Register tab actions -->
+            <div id="recordsTabActions" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+              <!-- Statutory Compliance / DPA Audit Pack Download -->
+              <a href="docs/legal/POPIA SECTION 21 OPERATOR AGREEMENT.pdf" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all" title="Download formal POPIA Section 21 Operator Agreement / DPA for SIZA and GlobalG.A.P. audits">
+                <svg class="w-3.5 h-3.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Export Audit Pack (DPA)</span>
+              </a>
 
-            <!-- Dynamic Tier PDF Quota & Countdown Pill -->
-            <div id="pdf-quota-pill" class="hidden items-center gap-2.5 px-3.5 py-1.5 rounded-xl border text-xs font-medium shadow-sm transition-all">
-              <!-- Injected via updatePdfQuotaUI() -->
+              <!-- Dynamic Tier PDF Quota & Countdown Pill -->
+              <div id="pdf-quota-pill" class="hidden items-center gap-2.5 px-3.5 py-1.5 rounded-xl border text-xs font-medium shadow-sm transition-all">
+                <!-- Injected via updatePdfQuotaUI() -->
+              </div>
+
+              <div class="flex items-center gap-2 bg-green-50 border border-green-100 px-3.5 py-2 rounded-xl shadow-sm">
+                <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-xs font-medium text-green-700">Live HR Sync</span>
+              </div>
             </div>
 
-            <div class="flex items-center gap-2 bg-green-50 border border-green-100 px-3.5 py-1.5 rounded-xl shadow-sm">
-              <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span class="text-xs font-medium text-green-700">Live HR Sync</span>
+            <!-- Roster tab actions -->
+            <div id="rosterTabActions" class="hidden flex items-center gap-2 shrink-0">
+              <button id="btnOpenCsvImport" type="button" onclick="openCsvImportModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <span>Import Roster (CSV)</span>
+              </button>
+              <button id="btnOpenAddEmployee" type="button" onclick="openAddEmployeeModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all cursor-pointer">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Worker</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
-          <div class="relative w-full sm:w-72">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input id="searchInput" type="text" placeholder="Search employee name or number..." class="w-full pl-9 pr-4 py-2.5 min-h-[44px] text-sm border border-slate-200 rounded-lg focus:ring-primary focus:border-primary outline-none transition-colors">
+        <!-- Sub-View Segmented Tab Switcher Row -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-6">
+          <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <button id="viewTabRecords" type="button" onclick="switchViewTab('records')" class="flex-1 sm:flex-initial whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-lg bg-white text-primary shadow-sm transition-all min-h-[38px] flex items-center justify-center gap-2 cursor-pointer">
+              <span>📋</span>
+              <span>Training Records Register</span>
+            </button>
+            <button id="viewTabRoster" type="button" onclick="switchViewTab('roster')" class="flex-1 sm:flex-initial whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all min-h-[38px] flex items-center justify-center gap-2 cursor-pointer">
+              <span>👥</span>
+              <span>Employee Roster</span>
+            </button>
           </div>
-          <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <select id="sortSelect" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-sm border border-slate-200 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none cursor-pointer">
-              <option value="all">All Employees</option>
-              <option value="recent">Recently Completed</option>
-              <option value="modules">Longest Module List</option>
-            </select>
-            <div class="relative">
-              <button id="filterToggleBtn" type="button" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-sm font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2" aria-expanded="false" aria-haspopup="true">
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                Filter
-              </button>
-              <div id="filterMenu" class="absolute right-0 top-full z-20 mt-2 hidden w-full sm:w-auto min-w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                <button type="button" class="filter-option block w-full px-4 py-2 text-left text-sm text-foreground hover:bg-slate-50" data-training-type="all">All Types</button>
-                <button type="button" class="filter-option block w-full px-4 py-2 text-left text-sm text-foreground hover:bg-slate-50" data-training-type="Individual">Individual Only</button>
-                <button type="button" class="filter-option block w-full px-4 py-2 text-left text-sm text-foreground hover:bg-slate-50" data-training-type="Group">Group Only</button>
+          <div class="hidden sm:flex items-center gap-2">
+            <span id="activeViewDescription" class="text-xs text-muted font-medium">Verified Induction Registers &amp; Certifications</span>
+          </div>
+        </div>
+
+        <!-- TAB 1: TRAINING RECORDS REGISTER -->
+        <div id="recordsViewContainer" class="space-y-4">
+          <!-- Compliance Metric Strip -->
+          <div class="flex items-center gap-2 text-xs">
+            <span id="registerPillCompliance" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-medium border border-emerald-100 shadow-xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span id="registerCountCompliance">0 Active <span class="text-emerald-600 font-semibold">(0 Valid • 0 Expiring • 0 Overdue/Untrained)</span></span>
+            </span>
+          </div>
+
+          <!-- Full-Width Search & Filter Bar -->
+          <div class="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center">
+            <div class="relative w-full sm:w-80">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input id="searchInput" type="text" placeholder="Search employee name or number..." class="w-full pl-9 pr-4 py-2.5 min-h-[44px] text-sm border border-slate-200 rounded-xl focus:ring-primary focus:border-primary outline-none bg-white transition-colors shadow-sm">
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <select id="sortSelect" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-primary cursor-pointer shadow-sm">
+                <option value="all">All Employees</option>
+                <option value="recent">Recently Completed</option>
+                <option value="modules">Most Modules Completed</option>
+              </select>
+              <div class="relative">
+                <button id="filterToggleBtn" type="button" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-700 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 shadow-sm" aria-expanded="false" aria-haspopup="true">
+                  <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  <span>Filter</span>
+                </button>
+                <div id="filterMenu" class="absolute right-0 top-full z-20 mt-2 hidden w-full sm:w-auto min-w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                  <button type="button" class="filter-option block w-full px-4 py-2 text-left text-xs font-medium text-foreground hover:bg-slate-50 cursor-pointer" data-training-type="all">All Types</button>
+                  <button type="button" class="filter-option block w-full px-4 py-2 text-left text-xs font-medium text-foreground hover:bg-slate-50 cursor-pointer" data-training-type="Individual">Individual Only</button>
+                  <button type="button" class="filter-option block w-full px-4 py-2 text-left text-xs font-medium text-foreground hover:bg-slate-50 cursor-pointer" data-training-type="Group">Group Only</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div id="recordsLoadingState" class="flex min-h-[16rem] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12">
-          <div class="flex flex-col items-center gap-3 text-center">
-            <div class="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-primary"></div>
-            <div>
-              <p class="text-sm font-medium text-foreground">Loading employee directory</p>
-              <p class="text-xs text-muted">Fetching completed training records from Supabase.</p>
+          <div id="recordsLoadingState" class="flex min-h-[16rem] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12">
+            <div class="flex flex-col items-center gap-3 text-center">
+              <div class="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-primary"></div>
+              <div>
+                <p class="text-sm font-medium text-foreground">Loading employee directory</p>
+                <p class="text-xs text-muted">Fetching completed training records from Supabase.</p>
+              </div>
             </div>
+          </div>
+
+          <div id="recordsDirectory" class="hidden space-y-4"></div>
+
+          <div id="recordsEmptyState" class="hidden rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+            <p class="text-sm font-medium text-foreground">No verified training records logged yet.</p>
+            <p class="mt-1 text-xs text-muted">Once employees complete modules, they will appear here by name.</p>
           </div>
         </div>
 
-        <div id="recordsDirectory" class="hidden space-y-4"></div>
+        <!-- TAB 2: EMPLOYEE ROSTER -->
+        <div id="rosterViewContainer" class="hidden space-y-6">
+          <!-- Stats Pills & Filter Bar -->
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs">
+              <span id="rosterPillActive" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-medium border border-emerald-100">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span id="rosterCountActive">0 Active Crew</span>
+              </span>
+              <span class="text-slate-300">|</span>
+              <span id="rosterPillInactive" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-medium border border-slate-200">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span id="rosterCountInactive">0 Inactive</span>
+              </span>
+              <span class="text-slate-300">|</span>
+              <span id="rosterCountTotal" class="text-slate-500 font-medium text-xs">0 Total on File</span>
+            </div>
 
-        <div id="recordsEmptyState" class="hidden rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
-          <p class="text-sm font-medium text-foreground">No verified training records logged yet.</p>
-          <p class="mt-1 text-xs text-muted">Once employees complete modules, they will appear here by name.</p>
+            <!-- Search & Filters -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+              <div class="relative w-full sm:w-64">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input id="rosterSearchInput" type="text" placeholder="Search employee name or number..." class="w-full pl-9 pr-4 py-2.5 min-h-[44px] text-sm border border-slate-200 rounded-xl focus:ring-primary focus:border-primary outline-none bg-white transition-colors shadow-sm">
+              </div>
+              <select id="rosterStatusFilter" class="px-3.5 py-2.5 min-h-[44px] text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-primary cursor-pointer shadow-sm">
+                <option value="active">Active Workers</option>
+                <option value="compliant">Compliant (365d Valid)</option>
+                <option value="expiring">Expiring Soon (&le;30d)</option>
+                <option value="overdue">Overdue / Untrained</option>
+                <option value="all">All Personnel</option>
+                <option value="inactive">Inactive / Seasonal Off</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Roster Table Container -->
+          <div id="rosterLoadingState" class="hidden flex min-h-[14rem] items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10">
+            <div class="flex flex-col items-center gap-3 text-center">
+              <div class="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-primary"></div>
+              <p class="text-xs font-medium text-foreground">Loading employee roster...</p>
+            </div>
+          </div>
+
+          <div id="rosterTableWrapper" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-3 font-semibold">Clock #</th>
+                    <th class="px-4 py-3 font-semibold">Worker Name</th>
+                    <th class="px-4 py-3 font-semibold">ID / Passport</th>
+                    <th class="px-4 py-3 font-semibold">Gender</th>
+                    <th class="px-4 py-3 font-semibold">Team / Orchard</th>
+                    <th class="px-4 py-3 font-semibold">Status</th>
+                    <th class="px-4 py-3 font-semibold">Last Induction</th>
+                    <th class="px-4 py-3 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="rosterTableBody" class="divide-y divide-slate-100">
+                  <!-- Rows inserted via renderRosterTable -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="rosterEmptyState" class="hidden rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-12 text-center">
+            <p class="text-sm font-medium text-foreground">No employees found in roster.</p>
+            <p class="mt-1 text-xs text-muted">Import a crew CSV or click "Add Worker" to populate your active personnel.</p>
+          </div>
         </div>
       </div>
 
@@ -439,13 +413,185 @@
         </div>
       </div>
     </div>
+
+    <!-- CSV IMPORT MODAL -->
+    <div id="csvImportModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
+        <!-- Modal Header -->
+        <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">Roster Ingestion Engine</span>
+            <h3 class="text-lg font-serif font-bold text-foreground mt-1">Import Employee Roster</h3>
+          </div>
+          <button type="button" onclick="closeCsvImportModal()" class="p-1.5 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+          <!-- File Picker / Drop Zone -->
+          <div id="csvDropZone" onclick="document.getElementById('csvFileInput').click()" class="border-2 border-dashed border-slate-300 hover:border-primary rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-blue-50/20 transition-all cursor-pointer">
+            <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden">
+            <div class="flex flex-col items-center justify-center gap-2">
+              <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">Choose CSV file or drag and drop</p>
+                <p class="text-xs text-slate-500 mt-0.5">Compatible with Excel, Sage VIP, Pastel, AgriCol, PaySoft (.csv)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- File Details & Mapping Preview (Hidden until file selected) -->
+          <div id="csvPreviewSection" class="hidden space-y-4">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+              <div>
+                <span class="font-bold text-slate-800" id="csvFileName">crew.csv</span>
+                <span class="text-slate-500 ml-2" id="csvRowCount">0 rows detected</span>
+              </div>
+              <button type="button" onclick="resetCsvPicker()" class="text-primary hover:underline text-xs font-semibold">Change File</button>
+            </div>
+
+            <!-- Column Mapping Badges -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Detected Column Mapping</label>
+              <div id="csvMappingPills" class="flex flex-wrap gap-1.5 text-xs">
+                <!-- Render mapping pills -->
+              </div>
+            </div>
+
+            <!-- Table Preview -->
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Preview (First 5 Rows)</label>
+              <div class="overflow-x-auto rounded-lg border border-slate-200">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="bg-slate-100 text-slate-600 font-semibold">
+                    <tr>
+                      <th class="px-2.5 py-1.5">Clock #</th>
+                      <th class="px-2.5 py-1.5">First Name</th>
+                      <th class="px-2.5 py-1.5">Last Name</th>
+                      <th class="px-2.5 py-1.5">ID / Passport</th>
+                      <th class="px-2.5 py-1.5">Gender</th>
+                      <th class="px-2.5 py-1.5">Team / Orchard</th>
+                    </tr>
+                  </thead>
+                  <tbody id="csvPreviewTableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Sync Strategy Radios -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2.5">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">Sync Strategy</label>
+              <div class="space-y-2">
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                  <input type="radio" name="csvSyncStrategy" value="upsert_keep" class="mt-0.5 text-primary focus:ring-primary">
+                  <div>
+                    <span class="text-xs font-semibold text-slate-800 block">Upsert &amp; Keep</span>
+                    <span class="text-[11px] text-slate-500 block">Add new workers and update matching employee numbers. Leave all existing workers active.</span>
+                  </div>
+                </label>
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                  <input type="radio" name="csvSyncStrategy" value="seasonal_replace" checked class="mt-0.5 text-primary focus:ring-primary">
+                  <div>
+                    <span class="text-xs font-semibold text-slate-800 block">Seasonal Replace &amp; Sync <span class="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-bold">Recommended for Seasonal Crews</span></span>
+                    <span class="text-[11px] text-slate-500 block">Set workers not in this file to Inactive. Historical certificates and SIZA compliance records remain 100% intact.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div id="csvErrorBanner" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl"></div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeCsvImportModal()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-medium hover:bg-slate-100 transition-colors">Cancel</button>
+          <button type="button" id="btnCommitCsvImport" onclick="commitCsvImport()" disabled class="px-5 py-2 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider cursor-not-allowed transition-all">
+            <span>Confirm &amp; Sync Roster</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK ADD EMPLOYEE MODAL -->
+    <div id="addEmployeeModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <h3 class="text-base font-serif font-bold text-foreground">Add Employee to Roster</h3>
+          <button type="button" onclick="closeAddEmployeeModal()" class="p-1 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <form id="addEmployeeForm" onsubmit="handleQuickAddEmployee(event)" class="p-6 space-y-3.5 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Employee Number *</label>
+            <input type="text" id="quickAddEmpNum" required placeholder="e.g. P1042" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary font-mono uppercase">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">First Name *</label>
+              <input type="text" id="quickAddFirstName" required placeholder="e.g. Sipho" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Last Name</label>
+              <input type="text" id="quickAddLastName" placeholder="e.g. Sithole" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary">
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">ID / Passport Number</label>
+            <input type="text" id="quickAddIdNumber" placeholder="e.g. 9205125800084" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary font-mono">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Gender</label>
+              <select id="quickAddGender" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white cursor-pointer">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Team / Orchard</label>
+              <input type="text" id="quickAddTeam" placeholder="e.g. Orchard Team B" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary">
+            </div>
+          </div>
+          <div class="pt-2 flex justify-end gap-2">
+            <button type="button" onclick="closeAddEmployeeModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
+            <button type="submit" id="btnSubmitAddEmployee" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Save Employee</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </main>
 
+  <script type="module">
+    import { LayoutEngine } from './js/modules/layout.js';
+    LayoutEngine.mount();
+  </script>
   <script src="js/main.js"></script>
   <script src="js/profile-engine.js"></script>
   <script>
     let allEmployeesData = [];
+    let rawTrainingRecords = [];
     let activeTrainingTypeFilter = 'all';
+    let currentViewTab = 'records';
+    let allRosterEmployees = [];
+    const employeeInductionMap = new Map();
+    let parsedCsvEmployees = [];
+    let rosterSearchDebounceId = null;
+
+    const HEADER_ALIASES = {
+      employee_number: ['employee_number', 'employee no', 'emp no', 'emp_no', 'clock no', 'clock #', 'worker id', 'id', 'persal', 'code', 'staff no', 'badge', 'worker_number', 'personeelno'],
+      first_name: ['first_name', 'first name', 'firstname', 'given name', 'name', 'voornaam', 'worker name', 'werknemer'],
+      last_name: ['last_name', 'last name', 'lastname', 'surname', 'van', 'family name', 'achternaam'],
+      id_passport_number: ['id_passport_number', 'id number', 'id no', 'identity number', 'passport', 'id / passport', 'rsa id', 'id_no', 'id/passport'],
+      gender: ['gender', 'sex', 'geslag'],
+      team_or_orchard: ['team_or_orchard', 'team', 'orchard', 'department', 'section', 'block', 'crew', 'division', 'gang', 'cost center', 'afdeling', 'span']
+    };
 
     const recordsLoadingState = document.getElementById('recordsLoadingState');
     const recordsDirectory = document.getElementById('recordsDirectory');
@@ -461,6 +607,174 @@
       const escapes = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
       return escapes[character] || character;
     });
+
+    /**
+     * Section 5.2: 365-Day Statutory Renewal & Overdue Logic
+     * Under OHSA GSR 2(1) and SIZA / GlobalG.A.P., farm safety inductions expire every 365 days.
+     */
+    function calculateComplianceStatus(lastCompletedAt) {
+      if (!lastCompletedAt) {
+        return { status: 'Untrained', badgeClass: 'bg-red-50 text-red-700 border-red-200', daysRemaining: 0, label: 'No verified inductions on file' };
+      }
+
+      const completionDate = new Date(lastCompletedAt);
+      const now = new Date();
+      const daysSince = Math.floor((now - completionDate) / (1000 * 60 * 60 * 24));
+      const daysRemaining = 365 - daysSince;
+
+      if (daysRemaining < 0) {
+        return { 
+          status: 'Overdue', 
+          badgeClass: 'bg-red-50 text-red-700 border-red-200', 
+          daysRemaining,
+          label: `Expired ${Math.abs(daysRemaining)} days ago` 
+        };
+      } else if (daysRemaining <= 30) {
+        return { 
+          status: 'Expiring Soon', 
+          badgeClass: 'bg-amber-50 text-amber-700 border-amber-200', 
+          daysRemaining,
+          label: `Expires in ${daysRemaining} days` 
+        };
+      } else {
+        return { 
+          status: 'Compliant', 
+          badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200', 
+          daysRemaining,
+          label: `Valid (${daysRemaining} days remaining)` 
+        };
+      }
+    }
+    window.calculateComplianceStatus = calculateComplianceStatus;
+
+    /**
+     * Section 5.3: Overall Worker Compliance Rollup
+     * Aggregates active modules according to OHSA GSR 2(1):
+     * - If ANY module is overdue (< 0 days) -> Overdue (red)
+     * - Else if ANY module is expiring soon (<= 30 days) -> Expiring Soon (amber)
+     * - Else -> Compliant (emerald)
+     */
+    function calculateWorkerCompliance(modules) {
+      if (!modules || modules.length === 0) {
+        return {
+          status: 'Untrained',
+          badgeClass: 'bg-red-50 text-red-700 border-red-200',
+          daysRemaining: 0,
+          label: 'No verified inductions on file'
+        };
+      }
+      const now = new Date();
+      let hasOverdue = false;
+      let hasExpiring = false;
+      let minDaysRemaining = Infinity;
+
+      for (const mod of modules) {
+        const compDate = new Date(mod.created_at);
+        if (Number.isNaN(compDate.getTime())) continue;
+        const renDate = new Date(compDate.getTime() + (365 * 24 * 60 * 60 * 1000));
+        const days = Math.ceil((renDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        if (days < minDaysRemaining) minDaysRemaining = days;
+        if (days < 0) {
+          hasOverdue = true;
+        } else if (days <= 30) {
+          hasExpiring = true;
+        }
+      }
+
+      if (hasOverdue) {
+        return {
+          status: 'Overdue',
+          badgeClass: 'bg-red-50 text-red-700 border-red-200',
+          daysRemaining: minDaysRemaining,
+          label: `Module renewal overdue (${Math.abs(minDaysRemaining)} days ago)`
+        };
+      }
+      if (hasExpiring) {
+        return {
+          status: 'Expiring Soon',
+          badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+          daysRemaining: minDaysRemaining,
+          label: `Module renewal due in ${minDaysRemaining} days`
+        };
+      }
+      return {
+        status: 'Compliant',
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        daysRemaining: minDaysRemaining,
+        label: `All modules valid (${minDaysRemaining} days remaining)`
+      };
+    }
+    window.calculateWorkerCompliance = calculateWorkerCompliance;
+
+    /**
+     * Section 7.3: Dynamic Certificate Stamp Engine (Aspect-Ratio Preservation Algorithm)
+     * Fits corporate seal within a 30mm x 25mm bounding box without stretching, or falls back to vector seal.
+     */
+    async function renderCertificateStamp(doc, company, x, y) {
+      const BOUNDING_BOX = { width: 30, height: 25 }; // Max dimensions in mm
+
+      if (company?.company_stamp_url) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          const loaded = await new Promise((resolve, reject) => {
+            img.onload = () => resolve(true);
+            img.onerror = reject;
+            img.src = company.company_stamp_url;
+          });
+
+          if (loaded && img.naturalWidth > 0 && img.naturalHeight > 0) {
+            const naturalRatio = img.naturalWidth / img.naturalHeight;
+            const boxRatio = BOUNDING_BOX.width / BOUNDING_BOX.height;
+
+            let renderWidth, renderHeight;
+
+            if (naturalRatio > boxRatio) {
+              renderWidth = BOUNDING_BOX.width;
+              renderHeight = BOUNDING_BOX.width / naturalRatio;
+            } else {
+              renderHeight = BOUNDING_BOX.height;
+              renderWidth = BOUNDING_BOX.height * naturalRatio;
+            }
+
+            const offsetX = x + (BOUNDING_BOX.width - renderWidth) / 2;
+            const offsetY = y + (BOUNDING_BOX.height - renderHeight) / 2;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const stampBase64 = canvas.toDataURL('image/png');
+
+            doc.addImage(stampBase64, 'PNG', offsetX, offsetY, renderWidth, renderHeight);
+            return;
+          }
+        } catch (err) {
+          console.warn('[PDFEngine] Failed to render uploaded company stamp, falling back to vector seal:', err);
+        }
+      }
+
+      // Fallback Strategy: Programmatic Vector Seal
+      const centerX = x + BOUNDING_BOX.width / 2;
+      const centerY = y + BOUNDING_BOX.height / 2;
+
+      doc.setDrawColor(30, 58, 95);
+      doc.setLineWidth(0.8);
+      doc.circle(centerX, centerY, 11);
+      doc.setLineWidth(0.3);
+      doc.circle(centerX, centerY, 9.8);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5.5);
+      doc.setTextColor(30, 58, 95);
+      doc.text('THE VAULT COMPLIANCE', centerX, centerY - 3, { align: 'center' });
+      doc.setFontSize(4.5);
+      doc.text('OFFICIALLY VERIFIED', centerX, centerY + 0.5, { align: 'center' });
+      doc.text('OHSA ACT 85 OF 1993', centerX, centerY + 4, { align: 'center' });
+    }
+    window.renderCertificateStamp = renderCertificateStamp;
 
     const formatDate = (value) => {
       if (!value) return 'Date unavailable';
@@ -482,13 +796,16 @@
     const groupTrainingRecords = (records) => {
       const groupedRecords = new Map();
       records.forEach((record) => {
+        if (record.status === 'Archived') return;
+
         const key = buildEmployeeKey(record);
-        const recordDate = record.created_at || record.completed_at || null;
+        const recordDate = record.completed_at || record.created_at || null;
 
         if (!groupedRecords.has(key)) {
           groupedRecords.set(key, {
             employee_name: record.employee_name || 'Unnamed employee',
             employee_number: record.employee_number || '',
+            employee_id: record.employee_id || '',
             company_id: record.company_id || '',
             modules: [],
             latestCompletedAt: recordDate,
@@ -498,6 +815,7 @@
         const employee = groupedRecords.get(key);
         employee.employee_name = employee.employee_name || record.employee_name || 'Unnamed employee';
         employee.employee_number = employee.employee_number || record.employee_number || '';
+        if (record.employee_id) employee.employee_id = record.employee_id;
         employee.company_id = employee.company_id || record.company_id || '';
         employee.latestCompletedAt = formatDateTimeValue(recordDate) > formatDateTimeValue(employee.latestCompletedAt)
           ? recordDate
@@ -515,10 +833,39 @@
       });
 
       return Array.from(groupedRecords.values())
-        .map((employee) => ({
-          ...employee,
-          modules: employee.modules.sort((a, b) => formatDateTimeValue(b.created_at) - formatDateTimeValue(a.created_at)),
-        }))
+        .map((employee) => {
+          // Retraining replacement: Deduplicate modules by module_title, keeping ONLY the latest completed record per module
+          const latestModuleMap = new Map();
+          employee.modules.forEach((mod) => {
+            const modKey = (mod.module_title || '').trim().toLowerCase();
+            const existing = latestModuleMap.get(modKey);
+            if (!existing || formatDateTimeValue(mod.created_at) > formatDateTimeValue(existing.created_at)) {
+              latestModuleMap.set(modKey, mod);
+            }
+          });
+
+          const dedupedModules = Array.from(latestModuleMap.values())
+            .sort((a, b) => formatDateTimeValue(b.created_at) - formatDateTimeValue(a.created_at));
+
+          // Cross-reference with allRosterEmployees for active status
+          let isActive = true;
+          if (allRosterEmployees.length > 0) {
+            const rMatch = allRosterEmployees.find(r => 
+              (employee.employee_number && String(r.employee_number).trim().toLowerCase() === String(employee.employee_number).trim().toLowerCase()) ||
+              (employee.employee_id && r.id === employee.employee_id)
+            );
+            if (rMatch) {
+              isActive = rMatch.is_active;
+              if (rMatch.id && !employee.employee_id) employee.employee_id = rMatch.id;
+            }
+          }
+
+          return {
+            ...employee,
+            is_active: isActive,
+            modules: dedupedModules,
+          };
+        })
         .sort((a, b) => {
           const rightDate = formatDateTimeValue(b.latestCompletedAt);
           const leftDate = formatDateTimeValue(a.latestCompletedAt);
@@ -611,48 +958,48 @@
 
         const modulesHtml = employee.modules.map((module) => {
           const supervisorName = module.supervisor_name || 'Authorized Safety Officer';
-          const trainingType = module.training_type || 'Individual';
           const dateFormatted = formatDate(module.created_at);
+
+          // Renewal due calculation: exactly 365 days after completion
+          const compDate = new Date(module.created_at);
+          const renewalDate = new Date(compDate.getTime() + (365 * 24 * 60 * 60 * 1000));
+          const renewalFormatted = formatDate(renewalDate);
+          const now = new Date();
+          const diffMs = renewalDate.getTime() - now.getTime();
+          const daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+          let statusBadge = '';
+          if (daysRemaining < 0) {
+            statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">Overdue (${Math.abs(daysRemaining)}d ago)</span>`;
+          } else if (daysRemaining <= 30) {
+            statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Expiring Soon (${daysRemaining}d)</span>`;
+          } else {
+            statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Compliant</span>`;
+          }
 
           return `
             <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/60 transition-colors">
               <td class="px-4 py-4 align-middle text-foreground sm:px-6">
                 <div class="font-semibold text-slate-800 text-sm">${escapeHtml(module.module_title)}</div>
               </td>
-              <td class="px-4 py-4 align-middle sm:px-6">
-                <span class="inline-flex items-center rounded-full ${trainingType === 'Group' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'} px-2.5 py-0.5 text-xs font-semibold">
-                  ${escapeHtml(trainingType)}
-                </span>
-              </td>
               <td class="px-4 py-4 align-middle text-foreground sm:px-6">
                 <div class="font-medium text-slate-700 text-sm">${escapeHtml(supervisorName)}</div>
               </td>
-              <td class="px-4 py-4 align-middle text-slate-500 sm:px-6 text-xs">
+              <td class="px-4 py-4 align-middle text-slate-600 sm:px-6 text-xs">
                 ${escapeHtml(dateFormatted)}
+              </td>
+              <td class="px-4 py-4 align-middle text-slate-600 sm:px-6 text-xs">
+                ${escapeHtml(renewalFormatted)}
+              </td>
+              <td class="px-4 py-4 align-middle sm:px-6">
+                ${statusBadge}
               </td>
               <td class="px-4 py-4 align-middle text-right sm:px-6">
                 <div class="flex items-center justify-end gap-2">
-                  <!-- Individual Cert Button -->
-                  <button 
-                    type="button"
-                    class="btn-cert-pdf inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-primary hover:text-white hover:border-primary text-slate-700 text-xs font-medium transition-all shadow-sm group cursor-pointer"
-                    data-emp="${escapeHtml(employee.employee_name)}"
-                    data-id="${escapeHtml(employee.employee_number || '')}"
-                    data-mod="${escapeHtml(module.module_title)}"
-                    data-date="${escapeHtml(dateFormatted)}"
-                    data-sup="${escapeHtml(supervisorName)}"
-                    title="Download Individual Worker Certificate">
-                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <span>Cert</span>
-                  </button>
-
-                  <!-- 2-Page Group Register Button -->
-                  ${trainingType === 'Group' && module.batch_session_id ? `
+                  ${module.training_type === 'Group' && module.batch_session_id ? `
                     <button 
                       type="button"
-                      class="btn-group-pdf inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-600 hover:text-white hover:border-amber-600 text-amber-800 text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                      class="btn-group-pdf inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-600 hover:text-white hover:border-amber-600 text-amber-800 text-xs font-semibold transition-all shadow-sm cursor-pointer"
                       data-batch="${escapeHtml(module.batch_session_id)}"
                       data-mod="${escapeHtml(module.module_title)}"
                       data-sup="${escapeHtml(supervisorName)}"
@@ -661,17 +1008,34 @@
                       <span>📋 Register</span>
                     </button>
                   ` : ''}
+                  <button 
+                    type="button"
+                    class="btn-delete-record inline-flex items-center justify-center p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-400 text-xs transition-all shadow-sm cursor-pointer"
+                    data-rec-id="${escapeHtml(module.id)}"
+                    data-emp-name="${escapeHtml(employee.employee_name)}"
+                    data-mod-title="${escapeHtml(module.module_title)}"
+                    title="Delete / Remove Module Record">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               </td>
             </tr>
           `;
         }).join('');
 
+        const compliance = calculateWorkerCompliance(employee.modules);
+        const isInactive = employee.is_active === false;
+        const complianceBadge = isInactive
+          ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Inactive</span>`
+          : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${compliance.badgeClass}" title="${escapeHtml(compliance.label)}">${escapeHtml(compliance.status)}</span>`;
+
         return `
           <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-slate-300 hover:shadow-md">
             <button
               type="button"
-              class="employee-toggle flex w-full items-center justify-between gap-3 p-3.5 sm:px-6 sm:py-5 text-left"
+              class="employee-toggle flex w-full items-center justify-between gap-3 p-3.5 sm:px-6 sm:py-5 text-left cursor-pointer"
               aria-expanded="false"
               aria-controls="${panelId}"
               data-panel-id="${panelId}"
@@ -686,6 +1050,7 @@
                 </div>
               </div>
               <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+                ${complianceBadge}
                 <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] sm:text-xs font-semibold text-slate-700 whitespace-nowrap">
                   ${moduleCount} <span class="hidden sm:inline">&nbsp;${moduleCount === 1 ? 'Module Completed' : 'Modules Completed'}</span><span class="sm:hidden">&nbsp;${moduleCount === 1 ? 'Mod' : 'Mods'}</span>
                 </span>
@@ -697,16 +1062,33 @@
 
             <div id="${panelId}" class="employee-panel" style="max-height: 0px;">
               <div class="border-t border-slate-200 bg-slate-50 p-3 sm:px-6 sm:py-5">
+                <!-- Action bar inside expanded card -->
+                <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+                  <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Verified Induction Modules (${moduleCount})</span>
+                  <button
+                    type="button"
+                    class="btn-deactivate-worker inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-medium transition-all shadow-sm cursor-pointer"
+                    data-emp-id="${escapeHtml(employee.employee_id || '')}"
+                    data-emp-num="${escapeHtml(employee.employee_number || '')}"
+                    data-emp-name="${escapeHtml(employee.employee_name)}"
+                    title="Deactivate worker from active roster"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/></svg>
+                    <span>Remove / Deactivate Worker</span>
+                  </button>
+                </div>
+
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                   <div class="w-full overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-                    <table class="w-full min-w-[550px] sm:min-w-[600px] text-left text-sm">
-                      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-foreground">
+                    <table class="w-full min-w-[650px] text-left text-sm">
+                      <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                         <tr>
                           <th scope="col" class="px-4 py-3 font-semibold sm:px-6">Module Title</th>
-                          <th scope="col" class="px-4 py-3 font-semibold sm:px-6">Training Type</th>
                           <th scope="col" class="px-4 py-3 font-semibold sm:px-6">Supervisor</th>
                           <th scope="col" class="px-4 py-3 font-semibold sm:px-6">Completion Date</th>
-                          <th scope="col" class="px-4 py-3 font-semibold sm:px-6 text-right">Certificate</th>
+                          <th scope="col" class="px-4 py-3 font-semibold sm:px-6">Renewal Due</th>
+                          <th scope="col" class="px-4 py-3 font-semibold sm:px-6">Status</th>
+                          <th scope="col" class="px-4 py-3 font-semibold sm:px-6 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -727,20 +1109,126 @@
       recordsLoadingState?.classList.add('hidden');
       
       // Bind event listeners safely via data-attributes
-      recordsDirectory.querySelectorAll('.btn-cert-pdf').forEach(btn => {
-        btn.addEventListener('click', () => {
-          generateIndividualCertificatePDF(btn.dataset.emp, btn.dataset.id, btn.dataset.mod, btn.dataset.date, btn.dataset.sup);
+      recordsDirectory.querySelectorAll('.btn-group-pdf').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          generateGroupLogSheetPDF(btn.dataset.batch, btn.dataset.mod, btn.dataset.sup, btn.dataset.date);
         });
       });
 
-      recordsDirectory.querySelectorAll('.btn-group-pdf').forEach(btn => {
-        btn.addEventListener('click', () => {
-          generateGroupLogSheetPDF(btn.dataset.batch, btn.dataset.mod, btn.dataset.sup, btn.dataset.date);
+      recordsDirectory.querySelectorAll('.btn-delete-record').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleDeleteTrainingRecord(btn.dataset.recId, btn.dataset.empName, btn.dataset.modTitle);
+        });
+      });
+
+      recordsDirectory.querySelectorAll('.btn-deactivate-worker').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleDeactivateWorker(btn.dataset.empId, btn.dataset.empNum, btn.dataset.empName);
         });
       });
 
       bindEmployeeAccordionEvents();
     };
+
+    async function handleDeleteTrainingRecord(recordId, employeeName, moduleTitle) {
+      if (!recordId) return;
+      const confirmed = confirm(`Are you sure you want to remove the "${moduleTitle}" record for ${employeeName}?`);
+      if (!confirmed) return;
+
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready');
+
+        let archived = false;
+        try {
+          const { error: rpcErr } = await window.dbClient.rpc('archive_training_record', { p_record_id: recordId });
+          if (!rpcErr) archived = true;
+        } catch (e) {
+          console.warn('RPC archive failed, falling back:', e);
+        }
+
+        if (!archived) {
+          const { error: updateErr } = await window.dbClient
+            .from('training_records')
+            .update({ status: 'Archived' })
+            .eq('id', recordId);
+          if (updateErr) {
+            const { error: delErr } = await window.dbClient
+              .from('training_records')
+              .delete()
+              .eq('id', recordId);
+            if (delErr) throw delErr;
+          }
+        }
+
+        // Update local state immediately
+        rawTrainingRecords = rawTrainingRecords.filter(r => r.id !== recordId);
+        allEmployeesData = groupTrainingRecords(rawTrainingRecords);
+        applyFiltersAndRender();
+        if (allRosterEmployees.length > 0) {
+          updateRosterStatsAndFilters();
+        }
+      } catch (err) {
+        console.error('Failed to remove training record:', err);
+        alert('Failed to remove record: ' + (err.message || 'Unknown error'));
+      }
+    }
+    window.handleDeleteTrainingRecord = handleDeleteTrainingRecord;
+
+    async function handleDeactivateWorker(employeeId, employeeNumber, employeeName) {
+      const confirmed = confirm(`Are you sure you want to deactivate ${employeeName}? This will remove them from active compliance roster.`);
+      if (!confirmed) return;
+
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready');
+
+        let targetId = employeeId;
+        if (!targetId && employeeNumber) {
+          const match = allRosterEmployees.find(e => String(e.employee_number).trim().toLowerCase() === String(employeeNumber).trim().toLowerCase());
+          if (match) targetId = match.id;
+        }
+
+        if (!targetId && employeeNumber) {
+          const { data: found } = await window.dbClient
+            .from('company_employees')
+            .select('id')
+            .ilike('employee_number', employeeNumber.trim())
+            .maybeSingle();
+          if (found) targetId = found.id;
+        }
+
+        if (targetId) {
+          const { error } = await window.dbClient
+            .from('company_employees')
+            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .eq('id', targetId);
+          if (error) throw error;
+
+          const rEmp = allRosterEmployees.find(e => e.id === targetId);
+          if (rEmp) rEmp.is_active = false;
+        }
+
+        // Update in allEmployeesData
+        const empKey = employeeNumber ? String(employeeNumber).trim().toLowerCase() : String(employeeName).trim().toLowerCase();
+        allEmployeesData.forEach(e => {
+          if (buildEmployeeKey(e) === empKey) {
+            e.is_active = false;
+          }
+        });
+
+        updateRosterStatsAndFilters();
+        applyRosterFiltersAndRender();
+        applyFiltersAndRender();
+      } catch (err) {
+        console.error('Failed to deactivate worker:', err);
+        alert('Failed to deactivate worker: ' + (err.message || 'Unknown error'));
+      }
+    }
+    window.handleDeactivateWorker = handleDeactivateWorker;
 
     const bindEmployeeAccordionEvents = () => {
       const toggleButtons = document.querySelectorAll('.employee-toggle');
@@ -838,18 +1326,45 @@
 
         const { data: records, error } = await window.dbClient
           .from('training_records')
-          .select('id, employee_name, employee_number, company_id, module_title, supervisor_name, supervisor_signature_data, employee_signature_data, training_type, created_at, completed_at, batch_session_id')
+          .select('id, employee_id, employee_name, employee_number, company_id, module_title, supervisor_name, supervisor_signature_data, employee_signature_data, training_type, created_at, completed_at, batch_session_id, status')
           .eq('company_id', companyId)
+          .neq('status', 'Archived')
           .order('completed_at', { ascending: false });
 
         if (error) throw error;
 
+        // Build induction history map for cross-referencing roster
+        employeeInductionMap.clear();
+        if (records && records.length > 0) {
+          records.forEach((rec) => {
+            const d = rec.completed_at || rec.created_at;
+            if (rec.employee_id) {
+              const prev = employeeInductionMap.get(rec.employee_id);
+              if (!prev || new Date(d) > new Date(prev)) {
+                employeeInductionMap.set(rec.employee_id, d);
+              }
+            }
+            if (rec.employee_number) {
+              const k = String(rec.employee_number).trim().toLowerCase();
+              const prev = employeeInductionMap.get(k);
+              if (!prev || new Date(d) > new Date(prev)) {
+                employeeInductionMap.set(k, d);
+              }
+            }
+          });
+        }
+
+        updateRosterStatsAndFilters();
+
         if (!records || records.length === 0) {
+          rawTrainingRecords = [];
+          allEmployeesData = [];
           setEmptyState('No verified training records logged yet.', 'Once employees complete modules, they will appear here by name.');
           return;
         }
 
-        allEmployeesData = groupTrainingRecords(records);
+        rawTrainingRecords = records || [];
+        allEmployeesData = groupTrainingRecords(rawTrainingRecords);
         applyFiltersAndRender();
       } catch (err) {
         console.error('Error fetching training records:', err);
@@ -1176,12 +1691,12 @@
       doc.setTextColor(15, 23, 42);
       doc.text((employeeName || 'VERIFIED OPERATOR').toUpperCase(), pageWidth / 2, 74, { align: 'center' });
 
-      // Employee / Clock Code
+      // Employee Number
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       doc.setTextColor(100, 116, 139);
       const idText = (employeeNumber && employeeNumber.trim() !== '' && employeeNumber !== 'N/A') 
-        ? `Employee / Clock No: ${employeeNumber.trim().toUpperCase()}` 
+        ? `Employee No: ${employeeNumber.trim().toUpperCase()}` 
         : `Verified Company Employee`;
       doc.text(idText, pageWidth / 2, 82, { align: 'center' });
 
@@ -1222,37 +1737,37 @@
       doc.setFillColor(248, 250, 252);
       doc.roundedRect(stampX, stampY, stampBoxW, stampBoxH, 2, 2, 'FD');
 
+      // Left column: Company identification metadata
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
+      doc.setFontSize(8);
       doc.setTextColor(30, 58, 95);
-      doc.text(companyName.toUpperCase(), pageWidth / 2, stampY + 6.5, { align: 'center' });
+      doc.text(companyName.toUpperCase(), stampX + 26, stampY + 6.5, { align: 'center', maxWidth: 48 });
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(51, 65, 85);
       
       let lineY = stampY + 11.5;
       if (comp.postal_address) {
-        doc.text(comp.postal_address, pageWidth / 2, lineY, { align: 'center' });
-        lineY += 4.5;
+        doc.text(comp.postal_address, stampX + 26, lineY, { align: 'center', maxWidth: 48 });
+        lineY += 4;
       }
       if (comp.vat_number) {
-        doc.text(`VAT / Reg Nr: ${comp.vat_number}`, pageWidth / 2, lineY, { align: 'center' });
-        lineY += 4.5;
+        doc.text(`VAT / Reg Nr: ${comp.vat_number}`, stampX + 26, lineY, { align: 'center', maxWidth: 48 });
+        lineY += 4;
       }
       if (comp.phone) {
-        doc.text(`Tel: ${comp.phone}`, pageWidth / 2, lineY, { align: 'center' });
-        lineY += 4.5;
-      }
-      if (comp.contact_email) {
-        doc.text(`Email: ${comp.contact_email}`, pageWidth / 2, lineY, { align: 'center' });
-        lineY += 4.5;
+        doc.text(`Tel: ${comp.phone}`, stampX + 26, lineY, { align: 'center', maxWidth: 48 });
+        lineY += 4;
       }
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5.5);
+      doc.setFontSize(5);
       doc.setTextColor(100, 116, 139);
-      doc.text('OFFICIAL VERIFIED STAMP', pageWidth / 2, stampY + stampBoxH - 2.5, { align: 'center' });
+      doc.text('OFFICIAL VERIFIED STAMP', stampX + 26, stampY + stampBoxH - 2, { align: 'center' });
+
+      // Right column: Proportional Aspect-Ratio Preserved Official Seal (30mm x 25mm)
+      await renderCertificateStamp(doc, comp, stampX + 53, stampY + 5);
 
       // Right: Supervising Officer
       doc.setDrawColor(148, 163, 184);
@@ -1644,36 +2159,35 @@
       doc.roundedRect(stampX, bottomY, stampBoxW, stampBoxH, 2, 2, 'FD');
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setTextColor(30, 58, 95);
-      doc.text(companyName.toUpperCase(), stampX + (stampBoxW / 2), bottomY + 12, { align: 'center' });
+      doc.text(companyName.toUpperCase(), stampX + (stampBoxW / 2), bottomY + 8, { align: 'center', maxWidth: stampBoxW - 10 });
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(6.5);
       doc.setTextColor(51, 65, 85);
       
-      let stampLineY = bottomY + 20;
+      let stampLineY = bottomY + 13.5;
       if (comp.postal_address) {
-        doc.text(comp.postal_address, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
-        stampLineY += 6;
+        doc.text(comp.postal_address, stampX + (stampBoxW / 2), stampLineY, { align: 'center', maxWidth: stampBoxW - 10 });
+        stampLineY += 4.5;
       }
       if (comp.vat_number) {
         doc.text(`VAT / Reg Nr: ${comp.vat_number}`, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
-        stampLineY += 6;
+        stampLineY += 4.5;
       }
       if (comp.phone) {
         doc.text(`Tel: ${comp.phone}`, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
-        stampLineY += 6;
-      }
-      if (comp.contact_email) {
-        doc.text(`Email: ${comp.contact_email}`, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
-        stampLineY += 6;
+        stampLineY += 4.5;
       }
 
+      // Proportional Aspect-Ratio Preserved Stamp (30mm x 25mm)
+      await renderCertificateStamp(doc, comp, stampX + (stampBoxW - 30) / 2, bottomY + 28);
+
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
+      doc.setFontSize(6);
       doc.setTextColor(100, 116, 139);
-      doc.text('OFFICIAL VERIFIED STAMP', stampX + (stampBoxW / 2), bottomY + stampBoxH - 4, { align: 'center' });
+      doc.text('OFFICIAL VERIFIED STAMP', stampX + (stampBoxW / 2), bottomY + stampBoxH - 3, { align: 'center' });
 
       // Page 1 Footer
       doc.setFont('helvetica', 'normal');
@@ -1775,6 +2289,12 @@
             const sigHeight = 9;
             const sigX = xSig + (colSig - sigWidth) / 2;
             doc.addImage(trainee.employee_signature_data, 'PNG', sigX, y + 0.5, sigWidth, sigHeight);
+          } else {
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(6.5);
+            doc.setTextColor(148, 163, 184);
+            doc.text('Attested (ECTA §13)', xSig + (colSig / 2), y + 6, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
           }
         }
       }
@@ -1808,7 +2328,586 @@
       }
     }
 
+    // =========================================================================
+    // EMPLOYEE ROSTER & CSV INGESTION ENGINE
+    // =========================================================================
+    function switchViewTab(tab) {
+      currentViewTab = tab;
+      const tabRecords = document.getElementById('viewTabRecords');
+      const tabRoster = document.getElementById('viewTabRoster');
+      const recordsView = document.getElementById('recordsViewContainer');
+      const rosterView = document.getElementById('rosterViewContainer');
+      const recordsTabActions = document.getElementById('recordsTabActions');
+      const rosterTabActions = document.getElementById('rosterTabActions');
+      const descEl = document.getElementById('activeViewDescription');
+
+      if (tab === 'records') {
+        if (tabRecords) tabRecords.className = 'flex-1 sm:flex-initial whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-lg bg-white text-primary shadow-sm transition-all min-h-[38px] flex items-center justify-center gap-2 cursor-pointer';
+        if (tabRoster) tabRoster.className = 'flex-1 sm:flex-initial whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all min-h-[38px] flex items-center justify-center gap-2 cursor-pointer';
+        recordsView?.classList.remove('hidden');
+        rosterView?.classList.add('hidden');
+        recordsTabActions?.classList.remove('hidden');
+        rosterTabActions?.classList.add('hidden');
+        if (descEl) descEl.textContent = 'Verified Induction Registers & Certifications';
+      } else {
+        if (tabRoster) tabRoster.className = 'flex-1 sm:flex-initial whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-lg bg-white text-primary shadow-sm transition-all min-h-[38px] flex items-center justify-center gap-2 cursor-pointer';
+        if (tabRecords) tabRecords.className = 'flex-1 sm:flex-initial whitespace-nowrap px-4 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all min-h-[38px] flex items-center justify-center gap-2 cursor-pointer';
+        recordsView?.classList.add('hidden');
+        rosterView?.classList.remove('hidden');
+        recordsTabActions?.classList.add('hidden');
+        rosterTabActions?.classList.remove('hidden');
+        if (descEl) descEl.textContent = 'Active Personnel & Workforce Manifest';
+        loadCompanyRoster();
+      }
+    }
+    window.switchViewTab = switchViewTab;
+
+    async function loadCompanyRoster(forceRefresh = false) {
+      if (allRosterEmployees.length > 0 && !forceRefresh) {
+        applyRosterFiltersAndRender();
+        return;
+      }
+
+      const loadingEl = document.getElementById('rosterLoadingState');
+      const tableWrapper = document.getElementById('rosterTableWrapper');
+      const emptyEl = document.getElementById('rosterEmptyState');
+      loadingEl?.classList.remove('hidden');
+      tableWrapper?.classList.add('hidden');
+      emptyEl?.classList.add('hidden');
+
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready');
+
+        const { data: roster, error } = await window.dbClient
+          .from('company_employees')
+          .select('id, employee_number, first_name, last_name, id_passport_number, gender, team_or_orchard, is_active, created_at, updated_at')
+          .order('is_active', { ascending: false })
+          .order('employee_number', { ascending: true });
+
+        if (error) throw error;
+
+        allRosterEmployees = roster || [];
+        updateRosterStatsAndFilters();
+        applyRosterFiltersAndRender();
+      } catch (err) {
+        console.error('Failed to load company roster:', err);
+        loadingEl?.classList.add('hidden');
+        if (emptyEl) {
+          emptyEl.innerHTML = `
+            <p class="text-sm font-medium text-red-600">Failed to load employee roster.</p>
+            <p class="mt-1 text-xs text-muted">${escapeHtml(err.message || 'Please refresh the page.')}</p>
+          `;
+          emptyEl.classList.remove('hidden');
+        }
+      }
+    }
+
+    function updateRosterStatsAndFilters() {
+      const activeEmployees = allRosterEmployees.filter(e => e.is_active);
+      const activeCount = activeEmployees.length;
+      const inactiveCount = allRosterEmployees.filter(e => !e.is_active).length;
+      const totalCount = allRosterEmployees.length;
+
+      let compliantCount = 0;
+      let expiringSoonCount = 0;
+      let overdueCount = 0;
+
+      activeEmployees.forEach(emp => {
+        const lastInductionRaw = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+        const comp = calculateComplianceStatus(lastInductionRaw);
+        if (comp.status === 'Compliant') compliantCount++;
+        else if (comp.status === 'Expiring Soon') expiringSoonCount++;
+        else overdueCount++;
+      });
+
+      const countActiveEl = document.getElementById('rosterCountActive');
+      const countInactiveEl = document.getElementById('rosterCountInactive');
+      const countTotalEl = document.getElementById('rosterCountTotal');
+      const registerComplianceEl = document.getElementById('registerCountCompliance');
+
+      if (registerComplianceEl) {
+        registerComplianceEl.innerHTML = `${activeCount} Active <span class="text-emerald-600 font-semibold">(${compliantCount} Valid • ${expiringSoonCount} Expiring • ${overdueCount} Overdue/Untrained)</span>`;
+      }
+      if (countActiveEl) {
+        countActiveEl.textContent = `${activeCount} Active Crew`;
+      }
+      if (countInactiveEl) countInactiveEl.textContent = `${inactiveCount} Inactive`;
+      if (countTotalEl) countTotalEl.textContent = `${totalCount} Total on File`;
+    }
+
+    function applyRosterFiltersAndRender() {
+      const query = (document.getElementById('rosterSearchInput')?.value || '').trim().toLowerCase();
+      const teamVal = document.getElementById('rosterTeamFilter')?.value || 'all';
+      const statusVal = document.getElementById('rosterStatusFilter')?.value || 'active';
+
+      const filtered = allRosterEmployees.filter(emp => {
+        if (statusVal === 'active' && !emp.is_active) return false;
+        if (statusVal === 'inactive' && emp.is_active) return false;
+
+        if (statusVal === 'compliant') {
+          if (!emp.is_active) return false;
+          const lastInd = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+          if (calculateComplianceStatus(lastInd).status !== 'Compliant') return false;
+        }
+        if (statusVal === 'expiring') {
+          if (!emp.is_active) return false;
+          const lastInd = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+          if (calculateComplianceStatus(lastInd).status !== 'Expiring Soon') return false;
+        }
+        if (statusVal === 'overdue') {
+          if (!emp.is_active) return false;
+          const lastInd = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+          const st = calculateComplianceStatus(lastInd).status;
+          if (st !== 'Overdue' && st !== 'Untrained') return false;
+        }
+
+        if (teamVal !== 'all' && (emp.team_or_orchard || '') !== teamVal) return false;
+
+        if (query) {
+          const num = (emp.employee_number || '').toLowerCase();
+          const fn = (emp.first_name || '').toLowerCase();
+          const ln = (emp.last_name || '').toLowerCase();
+          const idNo = (emp.id_passport_number || '').toLowerCase();
+          const team = (emp.team_or_orchard || '').toLowerCase();
+          const fullName = `${fn} ${ln}`;
+          if (!num.includes(query) && !fn.includes(query) && !ln.includes(query) && !fullName.includes(query) && !idNo.includes(query) && !team.includes(query)) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      renderRosterTable(filtered);
+    }
+
+    function renderRosterTable(employees) {
+      const loadingEl = document.getElementById('rosterLoadingState');
+      const tableWrapper = document.getElementById('rosterTableWrapper');
+      const tableBody = document.getElementById('rosterTableBody');
+      const emptyEl = document.getElementById('rosterEmptyState');
+
+      loadingEl?.classList.add('hidden');
+
+      if (!employees || employees.length === 0) {
+        tableWrapper?.classList.add('hidden');
+        emptyEl?.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl?.classList.add('hidden');
+      tableWrapper?.classList.remove('hidden');
+
+      if (!tableBody) return;
+
+      tableBody.innerHTML = employees.map(emp => {
+        const fullName = `${emp.first_name} ${emp.last_name || ''}`.trim();
+        const lastInductionRaw = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+        const lastInductionFormatted = lastInductionRaw ? formatDate(lastInductionRaw) : '<span class="text-slate-400 italic">None</span>';
+        const compliance = calculateComplianceStatus(lastInductionRaw);
+        const complianceBadge = emp.is_active
+          ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${compliance.badgeClass}" title="${escapeHtml(compliance.label)}">${escapeHtml(compliance.status)}</span>`
+          : `<span class="text-slate-400 text-[10px] italic">Archived</span>`;
+
+        const statusBadge = emp.is_active
+          ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active</span>`
+          : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Inactive</span>`;
+
+        const actionButton = emp.is_active
+          ? `<button type="button" class="btn-toggle-status px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors cursor-pointer" data-id="${emp.id}" data-current="true" title="Deactivate seasonal worker">Deactivate</button>`
+          : `<button type="button" class="btn-toggle-status px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors cursor-pointer" data-id="${emp.id}" data-current="false" title="Reactivate worker">Activate</button>`;
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-4 py-3 align-middle font-mono font-bold text-slate-800 text-xs">${escapeHtml(emp.employee_number)}</td>
+            <td class="px-4 py-3 align-middle font-semibold text-slate-800 text-xs">${escapeHtml(fullName)}</td>
+            <td class="px-4 py-3 align-middle font-mono text-slate-500 text-xs">${escapeHtml(emp.id_passport_number || '—')}</td>
+            <td class="px-4 py-3 align-middle text-slate-600 text-xs">${escapeHtml(emp.gender || '—')}</td>
+            <td class="px-4 py-3 align-middle text-slate-600 text-xs">${escapeHtml(emp.team_or_orchard || '—')}</td>
+            <td class="px-4 py-3 align-middle">${statusBadge}</td>
+            <td class="px-4 py-3 align-middle text-slate-600 text-xs">
+              <div>${lastInductionFormatted}</div>
+              <div class="mt-1">${complianceBadge}</div>
+            </td>
+            <td class="px-4 py-3 align-middle text-right">${actionButton}</td>
+          </tr>
+        `;
+      }).join('');
+
+      tableBody.querySelectorAll('.btn-toggle-status').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const empId = btn.dataset.id;
+          const currentStatus = btn.dataset.current === 'true';
+          toggleEmployeeActiveStatus(empId, currentStatus);
+        });
+      });
+    }
+
+    async function toggleEmployeeActiveStatus(empId, currentStatus) {
+      try {
+        const { error } = await window.dbClient
+          .from('company_employees')
+          .update({ is_active: !currentStatus, updated_at: new Date().toISOString() })
+          .eq('id', empId);
+
+        if (error) throw error;
+
+        const emp = allRosterEmployees.find(e => e.id === empId);
+        if (emp) emp.is_active = !currentStatus;
+        updateRosterStatsAndFilters();
+        applyRosterFiltersAndRender();
+      } catch (err) {
+        console.error('Failed to update employee status:', err);
+        alert('Failed to update employee status: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    // =========================================================================
+    // RFC 4180 CSV PARSER & IMPORT CONTROLLER
+    // =========================================================================
+    function parseCSV(text) {
+      const lines = [];
+      let row = [];
+      let cur = '';
+      let inQuotes = false;
+
+      const firstLine = text.split(/\r\n|\n|\r/)[0] || '';
+      let delimiter = ',';
+      if ((firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length) {
+        delimiter = ';';
+      } else if ((firstLine.match(/\t/g) || []).length > (firstLine.match(/,/g) || []).length) {
+        delimiter = '\t';
+      }
+
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const next = text[i + 1];
+
+        if (inQuotes) {
+          if (c === '"') {
+            if (next === '"') {
+              cur += '"';
+              i++;
+            } else {
+              inQuotes = false;
+            }
+          } else {
+            cur += c;
+          }
+        } else {
+          if (c === '"') {
+            inQuotes = true;
+          } else if (c === delimiter) {
+            row.push(cur.trim());
+            cur = '';
+          } else if (c === '\r' || c === '\n') {
+            if (c === '\r' && next === '\n') {
+              i++;
+            }
+            row.push(cur.trim());
+            cur = '';
+            if (row.some(cell => cell.length > 0)) {
+              lines.push(row);
+            }
+            row = [];
+          } else {
+            cur += c;
+          }
+        }
+      }
+      if (cur.length > 0 || row.length > 0) {
+        row.push(cur.trim());
+        if (row.some(cell => cell.length > 0)) {
+          lines.push(row);
+        }
+      }
+      return lines;
+    }
+
+    function detectColumnMapping(headers) {
+      const mapping = {};
+      const usedIndices = new Set();
+
+      for (const [fieldKey, aliases] of Object.entries(HEADER_ALIASES)) {
+        for (let i = 0; i < headers.length; i++) {
+          if (usedIndices.has(i)) continue;
+          const cleanHeader = headers[i].toLowerCase().trim().replace(/['"_]/g, ' ');
+          const matches = aliases.some(alias => {
+            const cleanAlias = alias.toLowerCase().replace(/['"_]/g, ' ');
+            return cleanHeader === cleanAlias || cleanHeader.includes(cleanAlias);
+          });
+          if (matches) {
+            mapping[fieldKey] = i;
+            usedIndices.add(i);
+            break;
+          }
+        }
+      }
+      return mapping;
+    }
+
+    function openCsvImportModal() {
+      document.getElementById('csvImportModal')?.classList.remove('hidden');
+      resetCsvPicker();
+    }
+    window.openCsvImportModal = openCsvImportModal;
+
+    function closeCsvImportModal() {
+      document.getElementById('csvImportModal')?.classList.add('hidden');
+    }
+    window.closeCsvImportModal = closeCsvImportModal;
+
+    function resetCsvPicker() {
+      parsedCsvEmployees = [];
+      const fileInput = document.getElementById('csvFileInput');
+      if (fileInput) fileInput.value = '';
+      document.getElementById('csvDropZone')?.classList.remove('hidden');
+      document.getElementById('csvPreviewSection')?.classList.add('hidden');
+      document.getElementById('csvErrorBanner')?.classList.add('hidden');
+      const commitBtn = document.getElementById('btnCommitCsvImport');
+      if (commitBtn) {
+        commitBtn.disabled = true;
+        commitBtn.className = 'px-5 py-2 rounded-xl bg-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider cursor-not-allowed transition-all';
+      }
+    }
+    window.resetCsvPicker = resetCsvPicker;
+
+    function handleCsvFileSelect(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          processCsvText(e.target.result, file.name);
+        } catch (err) {
+          showCsvError('Failed to read CSV file: ' + err.message);
+        }
+      };
+      reader.onerror = () => {
+        showCsvError('Error reading file from disk.');
+      };
+      reader.readAsText(file);
+    }
+
+    function showCsvError(msg) {
+      const banner = document.getElementById('csvErrorBanner');
+      if (banner) {
+        banner.textContent = msg;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    function processCsvText(text, fileName) {
+      const rows = parseCSV(text);
+      if (!rows || rows.length < 2) {
+        showCsvError('CSV file is empty or does not contain header and data rows.');
+        return;
+      }
+
+      const headers = rows[0];
+      const mapping = detectColumnMapping(headers);
+
+      if (mapping.first_name === undefined && mapping.employee_number === undefined) {
+        showCsvError('Could not detect worker name or employee number columns. Please ensure your CSV has headers like "Employee Number" and "First Name".');
+        return;
+      }
+
+      const validRows = [];
+      const invalidRows = [];
+
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r || r.length === 0 || (r.length === 1 && !r[0])) continue;
+
+        let empNum = mapping.employee_number !== undefined ? (r[mapping.employee_number] || '').trim() : '';
+        let fn = mapping.first_name !== undefined ? (r[mapping.first_name] || '').trim() : '';
+        let ln = mapping.last_name !== undefined ? (r[mapping.last_name] || '').trim() : '';
+        const idNo = mapping.id_passport_number !== undefined ? (r[mapping.id_passport_number] || '').trim() : '';
+        const genderRaw = mapping.gender !== undefined ? (r[mapping.gender] || '').trim() : '';
+        const team = mapping.team_or_orchard !== undefined ? (r[mapping.team_or_orchard] || '').trim() : '';
+
+        if (fn && !ln && fn.includes(' ')) {
+          const parts = fn.split(/\s+/);
+          fn = parts[0];
+          ln = parts.slice(1).join(' ');
+        }
+
+        let gender = 'Other';
+        const gLower = genderRaw.toLowerCase();
+        if (['m', 'male', 'man', 'seun'].includes(gLower)) gender = 'Male';
+        else if (['f', 'female', 'vrou', 'meisie'].includes(gLower)) gender = 'Female';
+
+        if (!empNum || !fn) {
+          invalidRows.push({ row: i + 1, data: r });
+          continue;
+        }
+
+        validRows.push({
+          employee_number: empNum.toUpperCase(),
+          first_name: fn,
+          last_name: ln || '',
+          id_passport_number: idNo || null,
+          gender: gender,
+          team_or_orchard: team || null
+        });
+      }
+
+      if (validRows.length === 0) {
+        showCsvError('No valid employee rows detected. Make sure each row has an Employee Number and First Name.');
+        return;
+      }
+
+      parsedCsvEmployees = validRows;
+
+      document.getElementById('csvDropZone')?.classList.add('hidden');
+      document.getElementById('csvPreviewSection')?.classList.remove('hidden');
+      document.getElementById('csvErrorBanner')?.classList.add('hidden');
+
+      const fileNameEl = document.getElementById('csvFileName');
+      const rowCountEl = document.getElementById('csvRowCount');
+      if (fileNameEl) fileNameEl.textContent = fileName;
+      if (rowCountEl) {
+        rowCountEl.textContent = `${validRows.length} valid rows detected${invalidRows.length > 0 ? ` (${invalidRows.length} invalid rows skipped)` : ''}`;
+      }
+
+      const pillsEl = document.getElementById('csvMappingPills');
+      if (pillsEl) {
+        pillsEl.innerHTML = Object.entries(mapping).map(([k, idx]) => {
+          const headerTitle = headers[idx];
+          const friendlyName = k.replace(/_/g, ' ').toUpperCase();
+          return `
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium text-[11px]">
+              <span>✓</span>
+              <span>${friendlyName}: "${escapeHtml(headerTitle)}"</span>
+            </span>
+          `;
+        }).join('');
+      }
+
+      const previewBody = document.getElementById('csvPreviewTableBody');
+      if (previewBody) {
+        previewBody.innerHTML = validRows.slice(0, 5).map(r => `
+          <tr class="hover:bg-slate-50">
+            <td class="px-2.5 py-1.5 font-mono font-bold">${escapeHtml(r.employee_number)}</td>
+            <td class="px-2.5 py-1.5 font-medium">${escapeHtml(r.first_name)}</td>
+            <td class="px-2.5 py-1.5">${escapeHtml(r.last_name || '—')}</td>
+            <td class="px-2.5 py-1.5 font-mono text-slate-500">${escapeHtml(r.id_passport_number || '—')}</td>
+            <td class="px-2.5 py-1.5">${escapeHtml(r.gender)}</td>
+            <td class="px-2.5 py-1.5">${escapeHtml(r.team_or_orchard || '—')}</td>
+          </tr>
+        `).join('');
+      }
+
+      const commitBtn = document.getElementById('btnCommitCsvImport');
+      if (commitBtn) {
+        commitBtn.disabled = false;
+        commitBtn.className = 'px-5 py-2 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-wider hover:bg-primary/90 shadow-md cursor-pointer transition-all';
+        commitBtn.innerHTML = `<span>Confirm &amp; Sync ${validRows.length} Employees</span>`;
+      }
+    }
+
+    async function commitCsvImport() {
+      if (!parsedCsvEmployees || parsedCsvEmployees.length === 0) return;
+
+      const commitBtn = document.getElementById('btnCommitCsvImport');
+      const selectedStrategy = document.querySelector('input[name="csvSyncStrategy"]:checked')?.value || 'seasonal_replace';
+      const deactivateMissing = selectedStrategy === 'seasonal_replace';
+
+      if (commitBtn) {
+        commitBtn.disabled = true;
+        commitBtn.innerHTML = `<span class="inline-flex items-center gap-2"><span class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent"></span>Syncing ${parsedCsvEmployees.length} Workers...</span>`;
+      }
+
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client not ready.');
+
+        const { data, error } = await window.dbClient.rpc('sync_company_roster', {
+          p_employees: parsedCsvEmployees,
+          p_deactivate_missing: deactivateMissing
+        });
+
+        if (error) throw error;
+
+        alert(`✓ Roster synchronization complete!\n• Upserted/Updated: ${data.upserted_count}\n• Deactivated: ${data.deactivated_count}\n• Total processed: ${data.total_processed}`);
+        closeCsvImportModal();
+        await loadCompanyRoster(true);
+
+      } catch (err) {
+        console.error('Failed to sync company roster:', err);
+        showCsvError('Sync failed: ' + (err.message || 'Unknown error occurred.'));
+        if (commitBtn) {
+          commitBtn.disabled = false;
+          commitBtn.innerHTML = `<span>Confirm &amp; Sync ${parsedCsvEmployees.length} Employees</span>`;
+        }
+      }
+    }
+    window.commitCsvImport = commitCsvImport;
+
+    // Quick Add Employee Handlers
+    function openAddEmployeeModal() {
+      document.getElementById('addEmployeeModal')?.classList.remove('hidden');
+      document.getElementById('addEmployeeForm')?.reset();
+    }
+    window.openAddEmployeeModal = openAddEmployeeModal;
+
+    function closeAddEmployeeModal() {
+      document.getElementById('addEmployeeModal')?.classList.add('hidden');
+    }
+    window.closeAddEmployeeModal = closeAddEmployeeModal;
+
+    async function handleQuickAddEmployee(e) {
+      e.preventDefault();
+      const empNum = document.getElementById('quickAddEmpNum')?.value?.trim();
+      const firstName = document.getElementById('quickAddFirstName')?.value?.trim();
+      const lastName = document.getElementById('quickAddLastName')?.value?.trim() || '';
+      const idNo = document.getElementById('quickAddIdNumber')?.value?.trim() || null;
+      const gender = document.getElementById('quickAddGender')?.value || 'Male';
+      const team = document.getElementById('quickAddTeam')?.value?.trim() || null;
+
+      if (!empNum || !firstName) {
+        alert('Employee Number and First Name are required.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitAddEmployee');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const { error } = await window.dbClient
+          .from('company_employees')
+          .upsert({
+            company_id: window.userCompanyId,
+            employee_number: empNum.toUpperCase(),
+            first_name: firstName,
+            last_name: lastName,
+            id_passport_number: idNo,
+            gender: gender,
+            team_or_orchard: team,
+            is_active: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'company_id,employee_number' });
+
+        if (error) throw error;
+
+        closeAddEmployeeModal();
+        await loadCompanyRoster(true);
+      } catch (err) {
+        console.error('Failed to add employee:', err);
+        alert('Failed to add employee: ' + (err.message || 'Unknown error'));
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save Employee';
+        }
+      }
+    }
+    window.handleQuickAddEmployee = handleQuickAddEmployee;
+
     document.addEventListener('DOMContentLoaded', () => {
+      loadCompanyRoster();
       fetchAndRenderTrainingRecords();
       setTimeout(() => {
         updatePdfQuotaUI();
@@ -1837,6 +2936,48 @@
         applyFiltersAndRender();
         closeFilterMenu();
       });
+
+      // Roster event listeners
+      const rosterSearch = document.getElementById('rosterSearchInput');
+      rosterSearch?.addEventListener('input', () => {
+        window.clearTimeout(rosterSearchDebounceId);
+        rosterSearchDebounceId = window.setTimeout(() => {
+          applyRosterFiltersAndRender();
+        }, 150);
+      });
+
+      document.getElementById('rosterStatusFilter')?.addEventListener('change', applyRosterFiltersAndRender);
+
+      const csvFileInput = document.getElementById('csvFileInput');
+      csvFileInput?.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleCsvFileSelect(e.target.files[0]);
+        }
+      });
+
+      const csvDropZone = document.getElementById('csvDropZone');
+      if (csvDropZone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+          csvDropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            csvDropZone.classList.add('border-primary', 'bg-blue-50/40');
+          });
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+          csvDropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            csvDropZone.classList.remove('border-primary', 'bg-blue-50/40');
+          });
+        });
+        csvDropZone.addEventListener('drop', (e) => {
+          const dt = e.dataTransfer;
+          if (dt && dt.files && dt.files[0]) {
+            handleCsvFileSelect(dt.files[0]);
+          }
+        });
+      }
 
       document.addEventListener('click', (event) => {
         if (!filterMenu || !filterToggleBtn) return;
