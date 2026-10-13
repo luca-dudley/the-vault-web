@@ -2607,15 +2607,26 @@
           emp.is_active = false;
           alert(`${workerName} has existing training records on file and was set to inactive instead to preserve audit logs.`);
         } else {
-          // Zero training records: hard delete from company_employees
+          // Zero training records: attempt hard delete from company_employees
           const { error: deleteError } = await window.dbClient
             .from('company_employees')
             .delete()
             .eq('id', empId);
 
-          if (deleteError) throw deleteError;
+          if (deleteError) {
+            // If table has REVOKE DELETE policy, fall back safely to soft-deactivation
+            console.warn('Hard delete restricted by database policy, falling back to soft-deactivation:', deleteError);
+            const { error: fallbackError } = await window.dbClient
+              .from('company_employees')
+              .update({ is_active: false, updated_at: new Date().toISOString() })
+              .eq('id', empId);
 
-          allRosterEmployees = allRosterEmployees.filter(e => e.id !== empId);
+            if (fallbackError) throw fallbackError;
+            emp.is_active = false;
+            alert(`${workerName} has been deactivated.`);
+          } else {
+            allRosterEmployees = allRosterEmployees.filter(e => e.id !== empId);
+          }
         }
 
         // Refresh table and update headcount without page reload

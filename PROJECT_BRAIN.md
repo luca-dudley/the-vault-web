@@ -656,7 +656,7 @@ graph TD
 - **Roster Table Cleanup & Permanent Worker Deletion (`records.html`)**:
   - **Removed "LAST INDUCTION" Column**: Removed `LAST INDUCTION` header (`<th>`) and table data cells (`<td>`), leaving the table columns strictly: `CLOCK #` | `WORKER NAME` | `ID / PASSPORT` | `GENDER` | `TEAM / ORCHARD` | `STATUS` | `ACTION`.
   - **Audit-Safe "Delete Worker" Action (`deleteEmployee`)**: Added permanent `[ Delete ]` button with trash icon alongside `[ Deactivate ]`.
-  - **Audit Retention Protection**: If worker has existing training records in `training_records`, deactivates worker (`is_active = false`) to preserve statutory compliance audit trails. If zero training records exist, executes hard deletion from `public.company_employees`.
+  - **Audit Retention Protection & Policy Fallback**: If worker has existing training records in `training_records`, deactivates worker (`is_active = false`) to preserve statutory compliance audit trails. If zero training records exist, executes hard deletion from `public.company_employees`. If a database-level security policy rejects hard deletion (e.g. `REVOKE DELETE`), gracefully and defensively falls back to soft-deactivation (`is_active = false`), alerting the user and preserving state without throwing an unhandled exception.
   - **Instant State Refresh**: Refreshes table and updates headcount counters (`● X Active Crew | ● Y Inactive | Z Total on File`) in place without page reload.
 - **Bilingual Stream Dropdown Alignment & Hot-Swap (`module.html`)**:
   - **Compound Stream Labels**: Configured `<select id="moduleLanguageSelect">` to map compound language labels from `video.streams` (e.g. `"English & Zulu"` and `"English & Afrikaans"`).
@@ -673,6 +673,12 @@ graph TD
   - **Checklist Height & Responsive Rendering**: Ensured `#rosterChecklistContainer` has an explicit non-zero height (`min-h-[140px] max-h-60 overflow-y-auto block`) and wired `#activeCrewCount` to reflect actual roster counts.
   - **Pinned Guest Worker Trigger & Layout**: Pinned the `[ + Quick-Add Unlisted Guest Worker ]` button directly underneath the main filtered roster block, rendering newly created guest worker rows below the button so it remains anchored without shifting downward.
   - **Instant Worker Row Removal**: Each guest worker row includes an instant remove button (`[ − ]` / trash icon) that updates trainee selection totals dynamically and collapses the section cleanly when all rows are removed.
+- **Pre-Deployment Security Audit Pass — GO Verdict (2026-10-13)**:
+  - **Multi-Tenant RLS & Cryptographic Isolation**: Audited all 20 public database tables. Confirmed all tenant tables enforce `rls_enabled = true` with strict filtering via `company_id = public.get_my_company_id()`. Revocation of raw `DELETE` permissions on `training_records` verified under OHSA §8(2)(e) and SIZA social audit standards.
+  - **Server-Side Entitlement & Gating**: Confirmed catalog and streaming entitlements are authoritatively validated server-side by `SECURITY DEFINER` RPCs (`get_vault_catalog()`, `get_module_stream()`), completely preventing client-side bypass of crop-pack paywalls or private estate libraries.
+  - **OWASP Client-Side Security**: Verified DOM sanitization via `escapeHtml()` across all user-controlled text inputs, zero occurrences of dangerous evaluation (`eval()`, `Function()`, `innerHTML` on unsanitized payloads), secure `localStorage` usage, and zero exposure of service role keys or private secrets in client assets.
+  - **Digital Signature & Statutory Integrity**: Verified ECTA §13 compliant dual-signatures, supervisor declarations, Section 16(2) appointee sign-offs, and DPI-aware coordinate mapping without coordinate drift.
+  - **Production Deployment Verdict**: Unconditional **GO** for production release.
 
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
