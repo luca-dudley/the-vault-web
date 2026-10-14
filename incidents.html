@@ -603,23 +603,53 @@
         }
       }
 
-      // Fallback Strategy: Programmatic Vector Seal
+      // Fallback Strategy: Clean Authentic Corporate / Farm Rubber Verification Seal
       const centerX = x + BOUNDING_BOX.width / 2;
       const centerY = y + BOUNDING_BOX.height / 2;
 
+      // Outer double circle ring
       doc.setDrawColor(30, 58, 95);
-      doc.setLineWidth(0.8);
-      doc.circle(centerX, centerY, 11);
+      doc.setLineWidth(0.7);
+      doc.circle(centerX, centerY, 10.8);
       doc.setLineWidth(0.3);
-      doc.circle(centerX, centerY, 9.8);
+      doc.circle(centerX, centerY, 9.5);
+
+      // Top Header: Organization Name (Fitted / Uppercase)
+      const rawName = (company?.name || company?.company_name || 'ESTATE RECORD').trim().toUpperCase();
+      const orgName = rawName.length > 22 ? rawName.slice(0, 21) + '…' : rawName;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(orgName.length > 15 ? 4.2 : 5);
+      doc.setTextColor(30, 58, 95);
+      doc.text(orgName, centerX, centerY - 4.2, { align: 'center' });
+
+      // Center Divider Lines & VERIFIED Attestation
+      doc.setDrawColor(30, 58, 95);
+      doc.setLineWidth(0.25);
+      doc.line(centerX - 6.5, centerY - 1.8, centerX + 6.5, centerY - 1.8);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.5);
-      doc.setTextColor(30, 58, 95);
-      doc.text('THE VAULT COMPLIANCE', centerX, centerY - 3, { align: 'center' });
-      doc.setFontSize(4.5);
-      doc.text('OFFICIALLY VERIFIED', centerX, centerY + 0.5, { align: 'center' });
-      doc.text('OHSA ACT 85 OF 1993', centerX, centerY + 4, { align: 'center' });
+      doc.text('VERIFIED', centerX, centerY + 0.6, { align: 'center' });
+
+      doc.line(centerX - 6.5, centerY + 2.2, centerX + 6.5, centerY + 2.2);
+
+      // Bottom Reference: Registration Number, Estate Location, or Clean Date Reference
+      let bottomRef = 'ESTATE RECORD';
+      if (company?.vat_number) {
+        bottomRef = `REG: ${String(company.vat_number).trim()}`;
+      } else if (company?.postal_address) {
+        const parts = company.postal_address.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+        if (parts.length > 0) {
+          bottomRef = parts[parts.length - 1].toUpperCase();
+        }
+      }
+      if (bottomRef.length > 20) {
+        bottomRef = bottomRef.slice(0, 19) + '…';
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(bottomRef.length > 14 ? 3.8 : 4.4);
+      doc.text(bottomRef, centerX, centerY + 5.5, { align: 'center' });
     }
 
     // Helper: Date & Time Formatter

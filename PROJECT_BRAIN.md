@@ -214,9 +214,9 @@ Every authenticated route implements or relies upon standard client-side utility
 14. **`archive_training_record(p_record_id uuid)` $\to$ `jsonb`**:
     - `SECURITY DEFINER`. Enables Master Admins to softly archive training records (`status = 'Archived'`) for retraining supersedence without physical deletion of audit records.
 15. **`log_induction_session(p_module_title text, p_supervisor_name text, p_supervisor_signature text, p_trainees jsonb)` $\to$ `jsonb`**:
-    - `SECURITY DEFINER`. Records group induction batch sessions, linking trainees with `company_employees` and recording digital dual signatures for audit compliance.
+    - `SECURITY DEFINER`. Records group or individual induction sessions, atomically linking trainees with `company_employees` and recording digital dual signatures. Generates a statutory `batch_session_id` UUID for all sessions (including single-trainee inductions) for register retrieval and audit traceability, and normalizes trainee gender using regex and title fallbacks.
 16. **`sync_company_roster(p_employees jsonb, p_deactivate_missing boolean)` $\to$ `jsonb`**:
-    - `SECURITY DEFINER`. Upserts employee rosters from CSV or form input into `company_employees`, matching by employee number and maintaining active compliance status.
+    - `SECURITY DEFINER`. Upserts employee rosters from CSV or form input into `company_employees`, matching by employee number and maintaining active compliance status. Features multi-lingual South African agricultural payroll gender normalization (`M`, `F`, `Man`, `Vrou`, `Meisie`, honorific prefixes) and supports optional deactivation of unlisted seasonal employees.
 
 ### Row Level Security (RLS) & Auth Policies
 
@@ -679,6 +679,45 @@ graph TD
   - **OWASP Client-Side Security**: Verified DOM sanitization via `escapeHtml()` across all user-controlled text inputs, zero occurrences of dangerous evaluation (`eval()`, `Function()`, `innerHTML` on unsanitized payloads), secure `localStorage` usage, and zero exposure of service role keys or private secrets in client assets.
   - **Digital Signature & Statutory Integrity**: Verified ECTA §13 compliant dual-signatures, supervisor declarations, Section 16(2) appointee sign-offs, and DPI-aware coordinate mapping without coordinate drift.
   - **Production Deployment Verdict**: Unconditional **GO** for production release.
+
+### Post-Launch Enhancements & Fixes (2026-10-14)
+- **Downloadable CSV Roster Template (`records.html`)**:
+  - Added dedicated **"Download Sample Template (CSV)"** button inside the `#csvImportModal` drop zone.
+  - Generates RFC 4180 compliant CSV (`the_vault_employee_roster_template.csv`) with standard column headers (`Employee Number`, `First Name`, `Last Name`, `ID / Passport`, `Gender`, `Team / Orchard`) and South African agricultural worker sample data.
+- **Agricultural Payroll Gender Normalization (`records.html` & Migration `20261014090000_post_launch_fixes.sql`)**:
+  - Implemented dual-layer client/server gender normalization via `normalizeGender()` and updated PostgreSQL RPCs `sync_company_roster` and `log_induction_session`.
+  - Normalizes common real-world payroll notations including `M`, `Male`, `m`, `Man`, `seun`, `manlik`, `mr`, `mnr`, `boy`, `F`, `Female`, `f`, `Woman`, `WOMAN`, `Vrou`, `vrou`, `vroulik`, `vroue`, `meisie`, `w`, `W`, `girl`, `lady`, `dame`, `ms`, `mrs`, `miss`, `mej`, and whitespace-padded variants.
+  - Added title-based heuristic fallback (`Mr`, `Mnr`, `Ms`, `Mrs`, `Miss`, `Mej`) when payroll systems omit the gender column or export honorifics in the first name.
+  - Data backfill: Healed all 210 historical rows in `company_employees` and 2 rows in `training_records` where gender previously defaulted to `'Other'`.
+- **Video Topic & Module Filter (`records.html`)**:
+  - Added `#moduleFilterSelect` dropdown directly to the Training Records Register search bar with categories (`General Safety`, `Machinery & Workshop`, `Citrus Processing`, `Vehicles & Fleet`, `Estate Modules`) and broad category filter shortcuts.
+  - Seamlessly filters the directory of training records to show all employees who have completed the selected video module or category, without intrusive popup banners or clutter.
+- **Statutory PDF Training Register Restoration & Pagination (`records.html`)**:
+  - Restored the `Register (PDF)` export button unconditionally for all recorded training modules across both individual and batch sessions.
+  - Enhanced `generateAttendanceRegisterPDF` to look up records by `batch_session_id` and defensively fallback to primary key `id` for single sessions.
+  - Added multi-page table pagination (15 trainees per page) so batches of up to 80 trainees generate complete, formatted landscape A4 sign-off registers without row truncation.
+  - Backfilled all 10 historical training records with generated `batch_session_id` UUIDs.
+
+- **Training Records Compliance Metrics Pill Refinement (`records.html`)**:
+  - Completely removed "Untrained" from the overdue calculation. Active roster workers with zero logged training modules are classified as `'No Records'` with a neutral slate badge (`bg-slate-100 text-slate-600`) and no longer inflate the overdue counter.
+  - Refactored `calculateComplianceStatus`, `calculateWorkerCompliance`, and `updateRosterStatsAndFilters` to strictly evaluate actual completed modules against their statutory 365-day renewal cycle:
+    - **Valid**: Completed modules with >30 days remaining before renewal.
+    - **Expiring**: Completed modules due for annual renewal within 30 days.
+    - **Overdue**: Completed modules that have genuinely exceeded their 365-day statutory renewal date (<0 days).
+  - Updated summary pill display copy to: `● X Active Workers (A Valid • B Expiring • C Overdue)`.
+  - Updated `#rosterStatusFilter` dropdown to decouple `Overdue (>365d)` from `No Records on File`, giving managers targeted visibility into genuine expirations versus unassigned workers.
+- **Company Verification Stamp Seal Redesign (`records.html` & `incidents.html`)**:
+  - Redesigned the programmatic fallback vector seal in `renderCertificateStamp()` across `records.html` and `incidents.html` into a clean, authentic round estate/corporate rubber verification mark.
+  - Stripped all statutory references and legal liability text ("OHSA ACT 85 OF 1993", "THE VAULT COMPLIANCE", "OFFICIALLY VERIFIED").
+  - Formatted the vector seal with concentric double outer rings (10.8mm and 9.5mm radii), fitted uppercase organization name along the top arc, clean horizontal divider bars with centered `VERIFIED` text, and dynamic bottom reference (VAT/Registration number, estate location, or `ESTATE RECORD`).
+  - Implemented dynamic vertical clearance calculation in the attendance register PDF generator (`generateAttendanceRegisterPDF`), splitting multiline address blocks and centering the seal between the company details and bottom label to eliminate overlapping.
+- **Terminology Alignment & UI Consistency (`module.html`)**:
+  - Replaced legacy references to "clock number" with standardized "employee number" across trainee search placeholders and guest trainee repeater inputs to align with roster headers and agricultural HR standards.
+- **Statutory Attendance Register PDF Uniform Row Typography (`records.html`)**:
+  - Resolved typography state leakage in `generateAttendanceRegisterPDF` table drawing loop where secondary attestation styling (`doc.setFont('helvetica', 'italic')`, `doc.setFontSize(6.5)`, `doc.setTextColor(148, 163, 184)`) in the final column of Row 1 persisted into all subsequent rows.
+  - Enforced baseline row styling (`doc.setFont('helvetica', 'normal')`, `doc.setFontSize(8.5)`, `doc.setTextColor(15, 23, 42)`) at the start of every row iteration.
+  - Explicitly formatted Employee Number as bold dark slate (`helvetica bold`, 8.5pt, `#0f172a`), Worker Name as regular weight dark slate, and Gender as regular weight dark slate across all rows.
+  - Isolated secondary italic styling strictly to the unsigned attestation cell (`Attested (ECTA §13)`) and immediately restored the standard 8.5pt dark slate typography before proceeding to subsequent cells or rows.
 
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.

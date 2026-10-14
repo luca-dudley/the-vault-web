@@ -219,19 +219,25 @@
           <div class="flex items-center gap-2 text-xs">
             <span id="registerPillCompliance" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-medium border border-emerald-100 shadow-xs">
               <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span id="registerCountCompliance">0 Active <span class="text-emerald-600 font-semibold">(0 Valid • 0 Expiring • 0 Overdue/Untrained)</span></span>
+              <span id="registerCountCompliance">0 Active Workers <span class="text-emerald-600 font-semibold">(0 Valid • 0 Expiring • 0 Overdue)</span></span>
             </span>
           </div>
 
           <!-- Full-Width Search & Filter Bar -->
           <div class="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center">
-            <div class="relative w-full sm:w-80">
+            <div class="relative w-full sm:w-72">
               <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input id="searchInput" type="text" placeholder="Search employee name or number..." class="w-full pl-9 pr-4 py-2.5 min-h-[44px] text-sm border border-slate-200 rounded-xl focus:ring-primary focus:border-primary outline-none bg-white transition-colors shadow-sm">
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <!-- Video Module / Category Filter Dropdown -->
+              <div class="relative w-full sm:w-64">
+                <select id="moduleFilterSelect" class="w-full px-3.5 py-2.5 min-h-[44px] text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-primary cursor-pointer shadow-sm truncate">
+                  <option value="all">All Video Modules</option>
+                </select>
+              </div>
               <select id="sortSelect" class="w-full sm:w-auto px-4 py-2.5 min-h-[44px] text-xs font-semibold border border-slate-200 rounded-xl bg-white text-slate-700 outline-none focus:border-primary cursor-pointer shadow-sm">
                 <option value="all">All Employees</option>
                 <option value="recent">Recently Completed</option>
@@ -301,7 +307,8 @@
                 <option value="active">Active Workers</option>
                 <option value="compliant">Compliant (365d Valid)</option>
                 <option value="expiring">Expiring Soon (&le;30d)</option>
-                <option value="overdue">Overdue / Untrained</option>
+                <option value="overdue">Overdue (&gt;365d)</option>
+                <option value="untrained">No Records on File</option>
                 <option value="all">All Personnel</option>
                 <option value="inactive">Inactive / Seasonal Off</option>
               </select>
@@ -321,7 +328,7 @@
               <table id="rosterTable" class="w-full text-left text-xs">
                 <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                   <tr>
-                    <th class="px-4 py-3 font-semibold">Clock #</th>
+                    <th class="px-4 py-3 font-semibold">Emp #</th>
                     <th class="px-4 py-3 font-semibold">Worker Name</th>
                     <th class="px-4 py-3 font-semibold">ID / Passport</th>
                     <th class="px-4 py-3 font-semibold">Gender</th>
@@ -443,6 +450,18 @@
             </div>
           </div>
 
+          <!-- Download Sample CSV Template Pill -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Need the required format and supported column names?</span>
+            </div>
+            <button type="button" onclick="downloadSampleRosterCsv()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs transition-colors cursor-pointer shrink-0" title="Download official CSV roster template">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Download Sample Template (CSV)</span>
+            </button>
+          </div>
+
           <!-- File Details & Mapping Preview (Hidden until file selected) -->
           <div id="csvPreviewSection" class="hidden space-y-4">
             <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
@@ -468,7 +487,7 @@
                 <table class="w-full text-left text-[11px]">
                   <thead class="bg-slate-100 text-slate-600 font-semibold">
                     <tr>
-                      <th class="px-2.5 py-1.5">Clock #</th>
+                      <th class="px-2.5 py-1.5">Emp #</th>
                       <th class="px-2.5 py-1.5">First Name</th>
                       <th class="px-2.5 py-1.5">Last Name</th>
                       <th class="px-2.5 py-1.5">ID / Passport</th>
@@ -577,6 +596,7 @@
     let allEmployeesData = [];
     let rawTrainingRecords = [];
     let activeTrainingTypeFilter = 'all';
+    let activeModuleFilter = 'all';
     let currentViewTab = 'records';
     let allRosterEmployees = [];
     const employeeInductionMap = new Map();
@@ -584,13 +604,57 @@
     let rosterSearchDebounceId = null;
 
     const HEADER_ALIASES = {
-      employee_number: ['employee_number', 'employee no', 'emp no', 'emp_no', 'clock no', 'clock #', 'worker id', 'id', 'persal', 'code', 'staff no', 'badge', 'worker_number', 'personeelno'],
+      employee_number: ['employee_number', 'employee no', 'emp no', 'emp_no', 'clock no', 'clock #', 'worker id', 'id', 'persal', 'code', 'staff no', 'badge', 'worker_number', 'personeelno', 'emp #', 'worker #'],
       first_name: ['first_name', 'first name', 'firstname', 'given name', 'name', 'voornaam', 'worker name', 'werknemer'],
       last_name: ['last_name', 'last name', 'lastname', 'surname', 'van', 'family name', 'achternaam'],
       id_passport_number: ['id_passport_number', 'id number', 'id no', 'identity number', 'passport', 'id / passport', 'rsa id', 'id_no', 'id/passport'],
-      gender: ['gender', 'sex', 'geslag'],
+      gender: ['gender', 'sex', 'geslag', 'm/f', 'title/gender', 'gender/geslag'],
       team_or_orchard: ['team_or_orchard', 'team', 'orchard', 'department', 'section', 'block', 'crew', 'division', 'gang', 'cost center', 'afdeling', 'span']
     };
+
+    /**
+     * Comprehensive Gender Normalization Engine
+     * Reliably normalizes real-world agricultural payroll exports
+     * (M, Male, m, Man, F, Female, f, Woman, Vrou, whitespace-padded inputs, or title-derived fallbacks)
+     */
+    function normalizeGender(raw, firstName = '') {
+      if (raw !== null && raw !== undefined) {
+        const val = String(raw).trim().toLowerCase();
+        if (val) {
+          // Check Female indicators first (prevents 'woman' matching 'man')
+          if (
+            /^(f|female|fem|w|woman|women|vrou|vroulik|vroue|meisie|girl|lady|dame|mrs|ms|miss|mej)(\b|\s|$)/i.test(val) ||
+            /\b(female|woman|women|vrou|vroulik|vroue|meisie|girl|lady|dame)\b/i.test(val) ||
+            val.startsWith('f') ||
+            val.startsWith('w') ||
+            val.startsWith('v')
+          ) {
+            return 'Female';
+          }
+          // Check Male indicators
+          if (
+            /^(m|male|man|men|seun|boy|manlik|mr|mnr)(\b|\s|$)/i.test(val) ||
+            /\b(male|man|men|seun|boy|manlik)\b/i.test(val) ||
+            (val.startsWith('m') && !val.startsWith('mej') && !val.startsWith('meis'))
+          ) {
+            return 'Male';
+          }
+          if (val === 'other' || val === 'non-binary' || val === 'x') {
+            return 'Other';
+          }
+        }
+      }
+
+      // Title-based fallback from worker name if gender column is omitted, unmapped, or empty
+      if (firstName) {
+        const fn = String(firstName).trim().toLowerCase();
+        if (/^(ms|mrs|miss|mej)[\. ]/i.test(fn)) return 'Female';
+        if (/^(mr|mnr)[\. ]/i.test(fn)) return 'Male';
+      }
+
+      return 'Other';
+    }
+    window.normalizeGender = normalizeGender;
 
     const recordsLoadingState = document.getElementById('recordsLoadingState');
     const recordsDirectory = document.getElementById('recordsDirectory');
@@ -610,10 +674,16 @@
     /**
      * Section 5.2: 365-Day Statutory Renewal & Overdue Logic
      * Under OHSA GSR 2(1) and SIZA / GlobalG.A.P., farm safety inductions expire every 365 days.
+     * Workers without logged inductions return 'No Records' (neutral badge) and do not inflate Overdue metrics.
      */
     function calculateComplianceStatus(lastCompletedAt) {
       if (!lastCompletedAt) {
-        return { status: 'Untrained', badgeClass: 'bg-red-50 text-red-700 border-red-200', daysRemaining: 0, label: 'No verified inductions on file' };
+        return { 
+          status: 'No Records', 
+          badgeClass: 'bg-slate-100 text-slate-600 border-slate-200', 
+          daysRemaining: null, 
+          label: 'No verified inductions on file' 
+        };
       }
 
       const completionDate = new Date(lastCompletedAt);
@@ -651,14 +721,15 @@
      * Aggregates active modules according to OHSA GSR 2(1):
      * - If ANY module is overdue (< 0 days) -> Overdue (red)
      * - Else if ANY module is expiring soon (<= 30 days) -> Expiring Soon (amber)
-     * - Else -> Compliant (emerald)
+     * - Else if all completed modules are valid (> 30 days) -> Compliant (emerald)
+     * - If no modules logged -> No Records (neutral slate)
      */
     function calculateWorkerCompliance(modules) {
       if (!modules || modules.length === 0) {
         return {
-          status: 'Untrained',
-          badgeClass: 'bg-red-50 text-red-700 border-red-200',
-          daysRemaining: 0,
+          status: 'No Records',
+          badgeClass: 'bg-slate-100 text-slate-600 border-slate-200',
+          daysRemaining: null,
           label: 'No verified inductions on file'
         };
       }
@@ -668,7 +739,7 @@
       let minDaysRemaining = Infinity;
 
       for (const mod of modules) {
-        const compDate = new Date(mod.created_at);
+        const compDate = new Date(mod.completed_at || mod.created_at);
         if (Number.isNaN(compDate.getTime())) continue;
         const renDate = new Date(compDate.getTime() + (365 * 24 * 60 * 60 * 1000));
         const days = Math.ceil((renDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -755,23 +826,53 @@
         }
       }
 
-      // Fallback Strategy: Programmatic Vector Seal
+      // Fallback Strategy: Clean Authentic Corporate / Farm Rubber Verification Seal
       const centerX = x + BOUNDING_BOX.width / 2;
       const centerY = y + BOUNDING_BOX.height / 2;
 
+      // Outer double circle ring
       doc.setDrawColor(30, 58, 95);
-      doc.setLineWidth(0.8);
-      doc.circle(centerX, centerY, 11);
+      doc.setLineWidth(0.7);
+      doc.circle(centerX, centerY, 10.8);
       doc.setLineWidth(0.3);
-      doc.circle(centerX, centerY, 9.8);
+      doc.circle(centerX, centerY, 9.5);
+
+      // Top Header: Organization Name (Fitted / Uppercase)
+      const rawName = (company?.name || company?.company_name || 'ESTATE RECORD').trim().toUpperCase();
+      const orgName = rawName.length > 22 ? rawName.slice(0, 21) + '…' : rawName;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(orgName.length > 15 ? 4.2 : 5);
+      doc.setTextColor(30, 58, 95);
+      doc.text(orgName, centerX, centerY - 4.2, { align: 'center' });
+
+      // Center Divider Lines & VERIFIED Attestation
+      doc.setDrawColor(30, 58, 95);
+      doc.setLineWidth(0.25);
+      doc.line(centerX - 6.5, centerY - 1.8, centerX + 6.5, centerY - 1.8);
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(5.5);
-      doc.setTextColor(30, 58, 95);
-      doc.text('THE VAULT COMPLIANCE', centerX, centerY - 3, { align: 'center' });
-      doc.setFontSize(4.5);
-      doc.text('OFFICIALLY VERIFIED', centerX, centerY + 0.5, { align: 'center' });
-      doc.text('OHSA ACT 85 OF 1993', centerX, centerY + 4, { align: 'center' });
+      doc.text('VERIFIED', centerX, centerY + 0.6, { align: 'center' });
+
+      doc.line(centerX - 6.5, centerY + 2.2, centerX + 6.5, centerY + 2.2);
+
+      // Bottom Reference: Registration Number, Estate Location, or Clean Date Reference
+      let bottomRef = 'ESTATE RECORD';
+      if (company?.vat_number) {
+        bottomRef = `REG: ${String(company.vat_number).trim()}`;
+      } else if (company?.postal_address) {
+        const parts = company.postal_address.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+        if (parts.length > 0) {
+          bottomRef = parts[parts.length - 1].toUpperCase();
+        }
+      }
+      if (bottomRef.length > 20) {
+        bottomRef = bottomRef.slice(0, 19) + '…';
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(bottomRef.length > 14 ? 3.8 : 4.4);
+      doc.text(bottomRef, centerX, centerY + 5.5, { align: 'center' });
     }
     window.renderCertificateStamp = renderCertificateStamp;
 
@@ -914,20 +1015,109 @@
       const query = getActiveSearchQuery();
       const sortValue = sortSelect?.value || 'all';
 
+      // Base employee dataset (filter by video module/category if selected)
+      let employees = allEmployeesData;
+
+      if (activeModuleFilter && activeModuleFilter !== 'all') {
+        const isCategoryFilter = activeModuleFilter.startsWith('cat:');
+        const filterCategory = isCategoryFilter ? activeModuleFilter.replace('cat:', '').trim().toLowerCase() : null;
+        const filterModuleTitle = !isCategoryFilter ? activeModuleFilter.trim().toLowerCase() : null;
+
+        employees = allEmployeesData.filter(emp => {
+          return emp.modules.some(mod => {
+            if (filterModuleTitle) {
+              return (mod.module_title || '').trim().toLowerCase() === filterModuleTitle;
+            }
+            if (filterCategory) {
+              const vMatch = (window.allCatalogVideos || []).find(v => (v.title || '').trim().toLowerCase() === (mod.module_title || '').trim().toLowerCase());
+              return ((vMatch?.sub_tag || vMatch?.category || '').trim().toLowerCase()) === filterCategory;
+            }
+            return false;
+          });
+        });
+      }
+
       const filteredEmployees = sortEmployees(
-        allEmployeesData.filter((employee) => {
+        employees.filter((employee) => {
           return matchesSearchQuery(employee, query) && matchesTrainingTypeFilter(employee, activeTrainingTypeFilter);
         }),
         sortValue,
       );
 
       if (!filteredEmployees.length) {
-        setEmptyState('No matching employees found.', 'Try adjusting your search query or clear active filters.');
+        setEmptyState(
+          activeModuleFilter && activeModuleFilter !== 'all'
+            ? `No completed training records found for "${activeModuleFilter.replace('cat:', '')}".`
+            : 'No matching employees found.',
+          'Try adjusting your search query or clear active filters.'
+        );
         return;
       }
 
       renderEmployeeDirectory(filteredEmployees);
     };
+
+    function clearModuleFilter() {
+      const select = document.getElementById('moduleFilterSelect');
+      if (select) select.value = 'all';
+      activeModuleFilter = 'all';
+      applyFiltersAndRender();
+    }
+    window.clearModuleFilter = clearModuleFilter;
+
+    function populateModuleFilterOptions() {
+      const select = document.getElementById('moduleFilterSelect');
+      if (!select) return;
+      const currentVal = select.value || 'all';
+
+      const categoryMap = new Map();
+
+      // First add from catalog videos
+      if (window.allCatalogVideos && Array.isArray(window.allCatalogVideos)) {
+        window.allCatalogVideos.forEach(v => {
+          if (!v.title) return;
+          const cat = v.sub_tag || v.category || 'General Safety';
+          if (!categoryMap.has(cat)) categoryMap.set(cat, new Set());
+          categoryMap.get(cat).add(v.title.trim());
+        });
+      }
+
+      // Also add any recorded module titles not in catalog
+      const catalogTitles = new Set((window.allCatalogVideos || []).map(v => (v.title || '').trim().toLowerCase()));
+      rawTrainingRecords.forEach(r => {
+        if (!r.module_title || r.status === 'Archived') return;
+        const title = r.module_title.trim();
+        if (!catalogTitles.has(title.toLowerCase())) {
+          const estateCat = 'Estate Modules';
+          if (!categoryMap.has(estateCat)) categoryMap.set(estateCat, new Set());
+          categoryMap.get(estateCat).add(title);
+        }
+      });
+
+      let optionsHtml = '<option value="all">All Video Modules</option>';
+
+      const sortedCategories = Array.from(categoryMap.keys()).sort((a, b) => a.localeCompare(b));
+      if (sortedCategories.length > 1) {
+        optionsHtml += `<optgroup label="Filter by Category">`;
+        sortedCategories.forEach(cat => {
+          optionsHtml += `<option value="cat:${escapeHtml(cat)}">Entire Category: ${escapeHtml(cat)}</option>`;
+        });
+        optionsHtml += `</optgroup>`;
+      }
+
+      sortedCategories.forEach(cat => {
+        const titles = Array.from(categoryMap.get(cat)).sort((a, b) => a.localeCompare(b));
+        optionsHtml += `<optgroup label="${escapeHtml(cat)}">`;
+        titles.forEach(t => {
+          optionsHtml += `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`;
+        });
+        optionsHtml += `</optgroup>`;
+      });
+
+      select.innerHTML = optionsHtml;
+      select.value = currentVal;
+    }
+    window.populateModuleFilterOptions = populateModuleFilterOptions;
 
     const setLoadingState = () => {
       recordsLoadingState?.classList.remove('hidden');
@@ -995,18 +1185,18 @@
               </td>
               <td class="px-4 py-4 align-middle text-right sm:px-6">
                 <div class="flex items-center justify-end gap-2">
-                  ${module.training_type === 'Group' && module.batch_session_id ? `
-                    <button 
-                      type="button"
-                      class="btn-group-pdf inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-600 hover:text-white hover:border-amber-600 text-amber-800 text-xs font-semibold transition-all shadow-sm cursor-pointer"
-                      data-batch="${escapeHtml(module.batch_session_id)}"
-                      data-mod="${escapeHtml(module.module_title)}"
-                      data-sup="${escapeHtml(supervisorName)}"
-                      data-date="${escapeHtml(dateFormatted)}"
-                      title="Download 2-Page Group Attendance Register">
-                      <span>📋 Register</span>
-                    </button>
-                  ` : ''}
+                  <button 
+                    type="button"
+                    class="btn-register-pdf inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary hover:text-white text-primary text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                    data-batch="${escapeHtml(module.batch_session_id || '')}"
+                    data-rec-id="${escapeHtml(module.id)}"
+                    data-mod="${escapeHtml(module.module_title)}"
+                    data-sup="${escapeHtml(supervisorName)}"
+                    data-date="${escapeHtml(dateFormatted)}"
+                    title="Download Official Statutory Training Attendance Register (PDF)">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Register (PDF)</span>
+                  </button>
                   <button 
                     type="button"
                     class="btn-delete-record inline-flex items-center justify-center p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-400 text-xs transition-all shadow-sm cursor-pointer"
@@ -1108,10 +1298,10 @@
       recordsLoadingState?.classList.add('hidden');
       
       // Bind event listeners safely via data-attributes
-      recordsDirectory.querySelectorAll('.btn-group-pdf').forEach(btn => {
+      recordsDirectory.querySelectorAll('.btn-register-pdf, .btn-group-pdf').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          generateGroupLogSheetPDF(btn.dataset.batch, btn.dataset.mod, btn.dataset.sup, btn.dataset.date);
+          generateAttendanceRegisterPDF(btn.dataset.batch, btn.dataset.mod, btn.dataset.sup, btn.dataset.date, btn.dataset.recId);
         });
       });
 
@@ -1353,18 +1543,32 @@
           });
         }
 
-        updateRosterStatsAndFilters();
-
-        if (!records || records.length === 0) {
-          rawTrainingRecords = [];
-          allEmployeesData = [];
-          setEmptyState('No verified training records logged yet.', 'Once employees complete modules, they will appear here by name.');
-          return;
+        // Fetch available catalog videos to populate module audit filters
+        try {
+          const { data: catVideos } = await window.dbClient
+            .from('videos')
+            .select('title, category, sub_tag')
+            .or(`company_id.is.null,company_id.eq.${companyId}`)
+            .order('title', { ascending: true });
+          window.allCatalogVideos = catVideos || [];
+        } catch (vErr) {
+          console.warn('Failed to fetch catalog videos for filter dropdown:', vErr);
+          window.allCatalogVideos = [];
         }
 
         rawTrainingRecords = records || [];
+        populateModuleFilterOptions();
+
+        if (!records || records.length === 0) {
+          allEmployeesData = [];
+          setEmptyState('No verified training records logged yet.', 'Once employees complete modules, they will appear here by name.');
+          updateRosterStatsAndFilters();
+          return;
+        }
+
         allEmployeesData = groupTrainingRecords(rawTrainingRecords);
         applyFiltersAndRender();
+        updateRosterStatsAndFilters();
       } catch (err) {
         console.error('Error fetching training records:', err);
         setEmptyState('Failed to load training records.', 'Please check the console or refresh the page.');
@@ -1803,9 +2007,19 @@
     }
 
     // =========================================================================
-    // 2. OFFICIAL 2-PAGE GROUP ATTENDANCE REGISTER (MINIMALIST LANDSCAPE A4)
+    // 2. STATUTORY ATTENDANCE REGISTER & CURRICULUM LOG (LANDSCAPE A4)
     // =========================================================================
-    async function generateGroupLogSheetPDF(batchSessionId, moduleTitle, supervisorName, sessionDate) {
+    async function generateAttendanceRegisterPDF(batchSessionId, moduleTitle, supervisorName, sessionDate, recordId) {
+      // Support object parameter or positional arguments
+      if (typeof batchSessionId === 'object' && batchSessionId !== null) {
+        const opts = batchSessionId;
+        batchSessionId = opts.batchSessionId;
+        moduleTitle = opts.moduleTitle;
+        supervisorName = opts.supervisorName;
+        sessionDate = opts.sessionDate;
+        recordId = opts.recordId;
+      }
+
       const currentTier = (window.currentCompanyTier || 'basic').toLowerCase();
       const companyId = window.userCompanyId || 'default';
       const currentMonthKey = `group_quota_${companyId}_${new Date().getFullYear()}_${new Date().getMonth() + 1}`;
@@ -1815,7 +2029,7 @@
       if (currentTier === 'basic') {
         openProfileModal();
         switchProfileTab('plans');
-        alert('Group Attendance Registers are available on Essential (5/mo) and Enterprise (Unlimited). Please upgrade your plan.');
+        alert('Statutory Training Attendance Registers are available on Essential (5/mo) and Enterprise (Unlimited). Please upgrade your plan.');
         return;
       }
 
@@ -1827,7 +2041,7 @@
         if (usedCount >= monthlyLimit) {
           openProfileModal();
           switchProfileTab('plans');
-          alert(`You have reached your monthly limit of ${monthlyLimit} Group Registers on the Essential plan (resets in ${days} days on ${resetLabel}). Upgrade to Enterprise for unlimited group registers.`);
+          alert(`You have reached your monthly limit of ${monthlyLimit} Training Registers on the Essential plan (resets in ${days} days on ${resetLabel}). Upgrade to Enterprise for unlimited statutory registers.`);
           return;
         }
 
@@ -1840,14 +2054,32 @@
         return;
       }
 
-      // 1. Fetch batch trainee records
-      const { data: batchRecords, error } = await window.dbClient
-        .from('training_records')
-        .select('*')
-        .eq('batch_session_id', batchSessionId);
+      // 1. Fetch trainee records (by batch_session_id or fallback to recordId for single sessions)
+      let batchRecords = [];
+      if (batchSessionId && batchSessionId !== 'null' && batchSessionId !== 'undefined' && String(batchSessionId).trim() !== '') {
+        const { data, error } = await window.dbClient
+          .from('training_records')
+          .select('*')
+          .eq('batch_session_id', batchSessionId)
+          .order('created_at', { ascending: true });
+        if (!error && data && data.length > 0) {
+          batchRecords = data;
+        }
+      }
 
-      if (error || !batchRecords || batchRecords.length === 0) {
-        alert('Unable to load batch session records.');
+      // Fallback: fetch individual record by primary key if no batch match found
+      if ((!batchRecords || batchRecords.length === 0) && recordId) {
+        const { data, error } = await window.dbClient
+          .from('training_records')
+          .select('*')
+          .eq('id', recordId);
+        if (!error && data && data.length > 0) {
+          batchRecords = data;
+        }
+      }
+
+      if (!batchRecords || batchRecords.length === 0) {
+        alert('Unable to load session training records for PDF register export.');
         return;
       }
 
@@ -1856,15 +2088,16 @@
       let questions = [];
       let durationMins = 25;
 
-      // Clean module title: strip "(VIDEO INDUCTION)" or trailing descriptors, normalize whitespace
-      const rawTitle = (moduleTitle || '').trim();
+      const rawTitle = (moduleTitle || batchRecords[0]?.module_title || '').trim();
       const cleanTitle = rawTitle.replace(/\s*\(video induction\)\s*/i, '').replace(/\s+/g, ' ').trim();
+      const batchRef = String(batchSessionId || recordId || batchRecords[0]?.id || 'SESSION').substring(0, 8).toUpperCase();
+      const trainerName = supervisorName || batchRecords[0]?.supervisor_name || 'Authorized Supervisor';
+      const trainingDate = sessionDate || formatDate(batchRecords[0]?.completed_at || batchRecords[0]?.created_at) || 'Recorded Date';
 
-      // NEW: Resolve crop sponsorship for this module (Case A vs Case B)
+      // Resolve crop sponsorship for this module
       const sponsorEntry = await getSponsorForModuleTitle(cleanTitle);
       const sponsorLogoBase64 = sponsorEntry ? await loadImageAsBase64(sponsorEntry.partner_logo_url) : null;
 
-      // Safely unpack arrays stored as JSON, arrays, or objects (jsonb can come back parsed or as a string)
       const parseCurriculumArray = (val) => {
         if (!val) return [];
         if (Array.isArray(val)) return val;
@@ -1880,9 +2113,6 @@
         return [];
       };
 
-      // Fetch a curriculum row scoped to one tenant tier (companyScope === null -> global master
-      // library). Tries an exact case-insensitive title match first, then a wildcard fallback for
-      // titles saved with extra descriptors/whitespace.
       async function fetchVideoRow(titleFilter, companyScope) {
         const baseQuery = () => {
           let q = window.dbClient
@@ -1898,13 +2128,6 @@
         return (wildcard && wildcard.length > 0) ? wildcard[0] : null;
       }
 
-      // ROOT CAUSE FIX: the old query had no company_id filter, so `.limit(1)` on an ilike match
-      // could silently return a stale tenant-cloned row (company_id = <uuid>, frozen at clone time)
-      // instead of the just-updated master row (company_id IS NULL). We now fetch both explicitly:
-      // the master library row is the source of truth for curriculum content, since that's what the
-      // "update all base videos" SQL script writes to. A company-scoped clone is only trusted when
-      // it demonstrably has its own fully-populated curriculum (non-empty `questions`) — otherwise
-      // it's treated as a stale/partial clone and we fall back to the current master data.
       const [masterRow, companyRow] = await Promise.all([
         fetchVideoRow(cleanTitle, null),
         window.userCompanyId ? fetchVideoRow(cleanTitle, window.userCompanyId) : Promise.resolve(null)
@@ -1930,7 +2153,6 @@
         durationMins = Math.ceil(vData.total_seconds / 60);
       }
 
-      // Hardcoded fallback only if the database record has no objectives
       if (!objectives || objectives.length === 0) {
         objectives = [
           'Mandatory Personal Protective Equipment (PPE) requirements',
@@ -1945,19 +2167,19 @@
       const supervisorSig = batchRecords[0]?.supervisor_signature_data || null;
 
       const { jsPDF } = window.jspdf;
-      // Landscape A4: 297mm x 210mm
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const pageWidth = 297;
       const pageHeight = 210;
 
+      const rowsPerPage = 15;
+      const totalTraineePages = Math.max(1, Math.ceil(batchRecords.length / rowsPerPage));
+      const totalPages = 1 + totalTraineePages;
+
       // =======================================================================
       // PAGE 1: CURRICULUM, STAMP & SUPERVISOR CONFIRMATION
       // =======================================================================
-      
-      // 1. Clean Minimal Header (Dual Co-Branding when sponsored)
       if (sponsorEntry && sponsorLogoBase64) {
         try {
-          // Fit inside a 26mm wide x 13mm high box while keeping natural proportions
           const maxW = 26;
           const maxH = 13;
           const aspect = sponsorLogoBase64.aspect || 1;
@@ -1969,8 +2191,8 @@
             renderW = maxH * aspect;
           }
 
-          const xPos = (pageWidth - 18) - renderW; // Right-aligned to margin
-          const yPos = 7 + (maxH - renderH) / 2;    // Centered vertically
+          const xPos = (pageWidth - 18) - renderW;
+          const yPos = 7 + (maxH - renderH) / 2;
 
           doc.addImage(sponsorLogoBase64.data, 'PNG', xPos, yPos, renderW, renderH, undefined, 'FAST');
         } catch (e) {
@@ -1989,7 +2211,7 @@
       doc.text(
         sponsorEntry
           ? `SPONSORED BY ${sponsorEntry.partner_name.toUpperCase()} • SIZA v6.0 / GLOBALG.A.P. IFA v6 SUPPLY CHAIN AUDIT RECORD`
-          : 'GROUP TRAINING RECORD & INDUCTION LOG',
+          : 'STATUTORY TRAINING REGISTER & INDUCTION ATTENDANCE LOG',
         16, 26
       );
 
@@ -1997,7 +2219,7 @@
       doc.setLineWidth(0.8);
       doc.line(16, 30, pageWidth - 16, 30);
 
-      // 2. Metadata Grid Strip
+      // Metadata Grid Strip
       const metaY = 35;
       doc.setDrawColor(203, 213, 225);
       doc.setLineWidth(0.4);
@@ -2014,16 +2236,16 @@
       doc.text('TRAINER / SUPERVISOR', 20, metaY + 5);
       doc.text('TRAINING DATE', 84, metaY + 5);
       doc.text('DURATION', 154, metaY + 5);
-      doc.text('BATCH REF', 224, metaY + 5);
+      doc.text('SESSION REF', 224, metaY + 5);
 
       doc.setFontSize(9.5);
       doc.setTextColor(15, 23, 42);
-      doc.text(supervisorName || 'Authorized Supervisor', 20, metaY + 10.5);
-      doc.text(sessionDate || 'Recorded Date', 84, metaY + 10.5);
-      doc.text('25 MIN (Video & Discussion)', 154, metaY + 10.5);
-      doc.text(batchSessionId.substring(0, 8).toUpperCase(), 224, metaY + 10.5);
+      doc.text(trainerName, 20, metaY + 10.5);
+      doc.text(trainingDate, 84, metaY + 10.5);
+      doc.text(`${durationMins} MIN (Video & Practical)`, 154, metaY + 10.5);
+      doc.text(batchRef, 224, metaY + 10.5);
 
-      // 3. Training Curriculum Section
+      // Training Curriculum Section
       const contentY = 54;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
@@ -2038,13 +2260,8 @@
       const objectivesToRender = objectives.slice(0, 4);
       const questionsToRender = (questions || []).slice(0, 5);
 
-      // The curriculum block must always fit between blockStartY and the attestation/stamp boxes
-      // below, regardless of how many objectives/questions there are or how long the text runs.
-      // Rather than letting the block grow unbounded (which risked overlapping the signature box
-      // and footer once questions were added), we measure it at progressively more compact type
-      // scales and use the first one that fits the fixed budget.
       const blockStartY = contentY + 10;
-      const blockBudget = 59; // mm available for objectives + questions before the bottom boxes
+      const blockBudget = 59;
 
       const scales = [
         { font: 7.5, lineH: 3.5, itemGap: 1.2, qGap: 1.0, sectionGap: 6.5 },
@@ -2077,10 +2294,9 @@
         const result = measure(scale);
         chosen = result;
         chosenScale = scale;
-        if (result.height <= blockBudget) break; // fits — stop at the least-compressed tier that works
+        if (result.height <= blockBudget) break;
       }
 
-      // Render objectives
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(chosenScale.font);
       doc.setTextColor(51, 65, 85);
@@ -2092,7 +2308,6 @@
         bulletY += (wrappedLines.length * chosenScale.lineH) + chosenScale.itemGap;
       });
 
-      // Render Administered Knowledge Checks
       if (questionsToRender.length > 0) {
         bulletY += (chosenScale.sectionGap - 4.5);
         doc.setFont('helvetica', 'bold');
@@ -2111,8 +2326,6 @@
         });
       }
 
-      // 4. Bottom Verification Row: Positioned dynamically below objectives, capped so the
-      // attestation/stamp boxes (65mm tall) never collide with the page-1 footer.
       const bottomY = Math.min(Math.max(bulletY + 8, 125), 131);
 
       // Left Box: Trainer Legal Attestation
@@ -2131,10 +2344,9 @@
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.2);
       doc.setTextColor(51, 65, 85);
-      const declarationText = `I, ${supervisorName}, formally declare that I conducted and supervised this induction on the estate. The listed employees attended, reviewed materials in an understood language, and were verbally assessed. Physical hazard controls and mandatory PPE have been independently verified on-site in terms of OHSA Section 8. Baseline educational guide only; Simple Solutions holds zero liability for on-site operations.`;
+      const declarationText = `I, ${trainerName}, formally declare that I conducted and supervised this induction on the estate. The listed employees attended, reviewed materials in an understood language, and were verbally assessed. Physical hazard controls and mandatory PPE have been independently verified on-site in terms of OHSA Section 8. Baseline educational guide only; Simple Solutions holds zero liability for on-site operations.`;
       doc.text(doc.splitTextToSize(declarationText, attestW - 12), 22, bottomY + 13);
 
-      // Digital Signature Area
       if (supervisorSig) {
         doc.addImage(supervisorSig, 'PNG', 22, bottomY + 28, 45, 18);
       }
@@ -2145,7 +2357,7 @@
       doc.text('Supervisor Signature', 22, bottomY + 55);
 
       doc.line(95, bottomY + 50, 155, bottomY + 50);
-      doc.text(`Date: ${sessionDate}`, 95, bottomY + 55);
+      doc.text(`Date: ${trainingDate}`, 95, bottomY + 55);
 
       // Right Box: Rectangular Official Company Stamp
       const stampBoxW = 95;
@@ -2168,61 +2380,49 @@
       
       let stampLineY = bottomY + 13.5;
       if (comp.postal_address) {
-        doc.text(comp.postal_address, stampX + (stampBoxW / 2), stampLineY, { align: 'center', maxWidth: stampBoxW - 10 });
-        stampLineY += 4.5;
+        const addrLines = doc.splitTextToSize(comp.postal_address, stampBoxW - 10);
+        doc.text(addrLines, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
+        stampLineY += (addrLines.length * 4);
       }
       if (comp.vat_number) {
         doc.text(`VAT / Reg Nr: ${comp.vat_number}`, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
-        stampLineY += 4.5;
+        stampLineY += 4;
       }
       if (comp.phone) {
         doc.text(`Tel: ${comp.phone}`, stampX + (stampBoxW / 2), stampLineY, { align: 'center' });
-        stampLineY += 4.5;
+        stampLineY += 4;
       }
 
-      // Proportional Aspect-Ratio Preserved Stamp (30mm x 25mm)
-      await renderCertificateStamp(doc, comp, stampX + (stampBoxW - 30) / 2, bottomY + 28);
+      // Vertical Clearance & Positioning: Center seal between metadata details and bottom label
+      const labelY = bottomY + stampBoxH - 3;
+      const stampH = 24;
+      const availableSpace = (labelY - 2) - stampLineY;
+      const stampPlacementY = availableSpace > stampH 
+        ? stampLineY + (availableSpace - stampH) / 2 
+        : stampLineY + 1.5;
+
+      await renderCertificateStamp(doc, comp, stampX + (stampBoxW - 30) / 2, stampPlacementY);
 
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6);
+      doc.setFontSize(5.5);
       doc.setTextColor(100, 116, 139);
-      doc.text('OFFICIAL VERIFIED STAMP', stampX + (stampBoxW / 2), bottomY + stampBoxH - 3, { align: 'center' });
+      doc.text('OFFICIAL VERIFIED STAMP', stampX + (stampBoxW / 2), labelY, { align: 'center' });
 
       // Page 1 Footer
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(148, 163, 184);
-      doc.text(`Page 1 of 2 — Curriculum & Trainer Attestation • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
+      doc.text(`Page 1 of ${totalPages} — Curriculum & Trainer Attestation • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
 
-
-// =======================================================================
-      // PAGE 2: CLEAN MINIMALIST ATTENDANCE REGISTER
       // =======================================================================
-      doc.addPage();
-
-      // Page 2 Header
-      doc.setFont('times', 'bold');
-      doc.setFontSize(18);
-      doc.setTextColor(30, 58, 95);
-      doc.text(`${cleanTitle.toUpperCase()} — ATTENDANCE REGISTER`, 16, 18);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`DATE: ${sessionDate}   |   BATCH REF: ${batchSessionId.substring(0, 8).toUpperCase()}   |   COMPANY: ${companyName.toUpperCase()}`, 16, 24);
-
-      doc.setDrawColor(30, 58, 95);
-      doc.setLineWidth(0.8);
-      doc.line(16, 27, pageWidth - 16, 27);
-
-      // Table Geometry (Total Width: 265mm across page)
+      // PAGE 2+: STATUTORY ATTENDANCE REGISTER (PAGINATED FOR ALL TRAINEES)
+      // =======================================================================
       const tableX = 16;
       const tableY = 32;
       const headerH = 8;
       const rowH = 10;
-      const tableW = pageWidth - 32; // 265mm
+      const tableW = pageWidth - 32;
 
-      // Columns without Verification: NO (14mm) | EMP NO (45mm) | FULL NAME (110mm) | GENDER (28mm) | SIGNATURE (68mm)
       const colNo = 14;
       const colEmp = 45;
       const colName = 110;
@@ -2235,84 +2435,126 @@
       const xGen = xName + colName;
       const xSig = xGen + colGen;
 
-      // Table Header Row
-      doc.setFillColor(241, 245, 249);
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.4);
-      doc.rect(tableX, tableY, tableW, headerH, 'FD');
+      for (let pageIdx = 0; pageIdx < totalTraineePages; pageIdx++) {
+        doc.addPage();
+        const startIdx = pageIdx * rowsPerPage;
+        const pageRecords = batchRecords.slice(startIdx, startIdx + rowsPerPage);
+        const currentPageNum = 2 + pageIdx;
 
-      doc.line(xEmp, tableY, xEmp, tableY + headerH);
-      doc.line(xName, tableY, xName, tableY + headerH);
-      doc.line(xGen, tableY, xGen, tableY + headerH);
-      doc.line(xSig, tableY, xSig, tableY + headerH);
+        // Header
+        doc.setFont('times', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(30, 58, 95);
+        doc.text(`${cleanTitle.toUpperCase()} — ATTENDANCE REGISTER`, 16, 18);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(30, 58, 95);
-      doc.text('NO.', xNo + (colNo / 2), tableY + 5.5, { align: 'center' });
-      doc.text('EMPLOYEE NO', xEmp + 5, tableY + 5.5);
-      doc.text('EMPLOYEE NAME & SURNAME', xName + 5, tableY + 5.5);
-      doc.text('GENDER', xGen + (colGen / 2), tableY + 5.5, { align: 'center' });
-      doc.text('EMPLOYEE SIGNATURE', xSig + (colSig / 2), tableY + 5.5, { align: 'center' });
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`DATE: ${trainingDate}   |   REF: ${batchRef}   |   COMPANY: ${companyName.toUpperCase()}`, 16, 24);
 
-      // Table Body Rows (Up to 15 rows)
-      const maxRows = 15;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(15, 23, 42);
+        doc.setDrawColor(30, 58, 95);
+        doc.setLineWidth(0.8);
+        doc.line(16, 27, pageWidth - 16, 27);
 
-      for (let i = 0; i < maxRows; i++) {
-        const y = tableY + headerH + (i * rowH);
-        const trainee = batchRecords[i] || null;
+        // Table Header Row
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.4);
+        doc.rect(tableX, tableY, tableW, headerH, 'FD');
 
-        doc.setDrawColor(226, 232, 240);
-        doc.rect(tableX, y, tableW, rowH, 'S');
+        doc.line(xEmp, tableY, xEmp, tableY + headerH);
+        doc.line(xName, tableY, xName, tableY + headerH);
+        doc.line(xGen, tableY, xGen, tableY + headerH);
+        doc.line(xSig, tableY, xSig, tableY + headerH);
 
-        doc.line(xEmp, y, xEmp, y + rowH);
-        doc.line(xName, y, xName, y + rowH);
-        doc.line(xGen, y, xGen, y + rowH);
-        doc.line(xSig, y, xSig, y + rowH);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(30, 58, 95);
+        doc.text('NO.', xNo + (colNo / 2), tableY + 5.5, { align: 'center' });
+        doc.text('EMPLOYEE NO', xEmp + 5, tableY + 5.5);
+        doc.text('EMPLOYEE NAME & SURNAME', xName + 5, tableY + 5.5);
+        doc.text('GENDER', xGen + (colGen / 2), tableY + 5.5, { align: 'center' });
+        doc.text('EMPLOYEE SIGNATURE / CONFIRMATION', xSig + (colSig / 2), tableY + 5.5, { align: 'center' });
 
-        doc.text(String(i + 1), xNo + (colNo / 2), y + 6.5, { align: 'center' });
+        // Table Rows
+        for (let i = 0; i < rowsPerPage; i++) {
+          const y = tableY + headerH + (i * rowH);
+          const trainee = pageRecords[i] || null;
+          const globalIdx = startIdx + i + 1;
 
-        if (trainee) {
-          doc.setFont('helvetica', 'bold');
-          doc.text(trainee.employee_number || '-', xEmp + 5, y + 6.5);
+          doc.setDrawColor(226, 232, 240);
+          doc.rect(tableX, y, tableW, rowH, 'S');
+
+          doc.line(xEmp, y, xEmp, y + rowH);
+          doc.line(xName, y, xName, y + rowH);
+          doc.line(xGen, y, xGen, y + rowH);
+          doc.line(xSig, y, xSig, y + rowH);
+
+          // Enforce uniform standard baseline typography at the start of every row iteration
           doc.setFont('helvetica', 'normal');
-          doc.text(trainee.employee_name || '', xName + 5, y + 6.5);
-          doc.text(trainee.gender || 'Male', xGen + (colGen / 2), y + 6.5, { align: 'center' });
+          doc.setFontSize(8.5);
+          doc.setTextColor(15, 23, 42);
 
-          // Render digital signature preserving natural 2.5:1 aspect ratio
-          if (trainee.employee_signature_data) {
-            const sigWidth = 22.5; // Natural proportion
-            const sigHeight = 9;
-            const sigX = xSig + (colSig - sigWidth) / 2;
-            doc.addImage(trainee.employee_signature_data, 'PNG', sigX, y + 0.5, sigWidth, sigHeight);
-          } else {
-            doc.setFont('helvetica', 'italic');
-            doc.setFontSize(6.5);
-            doc.setTextColor(148, 163, 184);
-            doc.text('Attested (ECTA §13)', xSig + (colSig / 2), y + 6, { align: 'center' });
+          doc.text(String(globalIdx), xNo + (colNo / 2), y + 6.5, { align: 'center' });
+
+          if (trainee) {
+            // Employee Number: Bold and prominent across all rows
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(15, 23, 42);
+            doc.text(trainee.employee_number || '—', xEmp + 5, y + 6.5);
+
+            // Worker Name: Regular weight, consistent dark charcoal across all rows
             doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(15, 23, 42);
+            doc.text(trainee.employee_name || '', xName + 5, y + 6.5);
+
+            // Gender: Consistent regular weight and dark charcoal across all rows
+            doc.text(trainee.gender || 'Male', xGen + (colGen / 2), y + 6.5, { align: 'center' });
+
+            // Employee Signature / Attestation Column
+            if (trainee.employee_signature_data) {
+              const sigWidth = 22.5;
+              const sigHeight = 9;
+              const sigX = xSig + (colSig - sigWidth) / 2;
+              doc.addImage(trainee.employee_signature_data, 'PNG', sigX, y + 0.5, sigWidth, sigHeight);
+            } else {
+              // Isolate secondary styling strictly to this specific attestation cell
+              doc.setFont('helvetica', 'italic');
+              doc.setFontSize(6.5);
+              doc.setTextColor(148, 163, 184);
+              doc.text('Attested (ECTA §13)', xSig + (colSig / 2), y + 6, { align: 'center' });
+
+              // Immediately restore standard row typography
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(8.5);
+              doc.setTextColor(15, 23, 42);
+            }
           }
         }
+
+        // Footer
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(148, 163, 184);
+        doc.text(`Page ${currentPageNum} of ${totalPages} — Trainee Sign-Off Register • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
       }
 
-      // Page 2 Footer
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`Page 2 of 2 — Trainee Sign-Off Register • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
-
       if (typeof gtag === 'function') {
-        gtag('event', 'generate_group_register', {
-          module: moduleTitle,
-          batch_ref: batchSessionId
+        gtag('event', 'generate_attendance_register', {
+          module: cleanTitle,
+          session_ref: batchRef,
+          trainee_count: batchRecords.length
         });
       }
 
-      doc.save(`Group_Register_${moduleTitle.replace(/\s+/g, '_')}_${sessionDate}.pdf`);
+      doc.save(`Training_Register_${cleanTitle.replace(/\s+/g, '_')}_${String(trainingDate).replace(/[\s,]+/g, '_')}.pdf`);
     }
+
+    // Preserve alias for backward compatibility
+    window.generateAttendanceRegisterPDF = generateAttendanceRegisterPDF;
+    window.generateGroupLogSheetPDF = generateAttendanceRegisterPDF;
 
     function checkPageTierGating(tier) {
       const overlay = document.getElementById('recordsPaywallOverlay');
@@ -2403,36 +2645,53 @@
     }
 
     function updateRosterStatsAndFilters() {
-      const activeEmployees = allRosterEmployees.filter(e => e.is_active);
-      const activeCount = activeEmployees.length;
-      const inactiveCount = allRosterEmployees.filter(e => !e.is_active).length;
-      const totalCount = allRosterEmployees.length;
-
+      let activeCount = 0;
+      let inactiveCount = 0;
+      let totalCount = 0;
       let compliantCount = 0;
       let expiringSoonCount = 0;
       let overdueCount = 0;
 
-      activeEmployees.forEach(emp => {
-        const lastInductionRaw = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
-        const comp = calculateComplianceStatus(lastInductionRaw);
-        if (comp.status === 'Compliant') compliantCount++;
-        else if (comp.status === 'Expiring Soon') expiringSoonCount++;
-        else overdueCount++;
-      });
+      if (allRosterEmployees.length > 0) {
+        const activeEmployees = allRosterEmployees.filter(e => e.is_active);
+        activeCount = activeEmployees.length;
+        inactiveCount = allRosterEmployees.filter(e => !e.is_active).length;
+        totalCount = allRosterEmployees.length;
 
-      const countActiveEl = document.getElementById('rosterCountActive');
-      const countInactiveEl = document.getElementById('rosterCountInactive');
-      const countTotalEl = document.getElementById('rosterCountTotal');
+        activeEmployees.forEach(emp => {
+          const lastInductionRaw = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+          if (!lastInductionRaw) {
+            // Worker has no logged training modules. They simply have no active records;
+            // they must NOT inflate the Overdue counter.
+            return;
+          }
+          const comp = calculateComplianceStatus(lastInductionRaw);
+          if (comp.status === 'Compliant') compliantCount++;
+          else if (comp.status === 'Expiring Soon') expiringSoonCount++;
+          else if (comp.status === 'Overdue') overdueCount++;
+        });
+
+        const countActiveEl = document.getElementById('rosterCountActive');
+        const countInactiveEl = document.getElementById('rosterCountInactive');
+        const countTotalEl = document.getElementById('rosterCountTotal');
+        if (countActiveEl) countActiveEl.textContent = `${activeCount} Active Crew`;
+        if (countInactiveEl) countInactiveEl.textContent = `${inactiveCount} Inactive`;
+        if (countTotalEl) countTotalEl.textContent = `${totalCount} Total on File`;
+      } else if (allEmployeesData.length > 0) {
+        // Fallback when roster has not been imported yet: report on logged trainees
+        activeCount = allEmployeesData.length;
+        allEmployeesData.forEach(emp => {
+          const comp = calculateWorkerCompliance(emp.modules);
+          if (comp.status === 'Compliant') compliantCount++;
+          else if (comp.status === 'Expiring Soon') expiringSoonCount++;
+          else if (comp.status === 'Overdue') overdueCount++;
+        });
+      }
+
       const registerComplianceEl = document.getElementById('registerCountCompliance');
-
       if (registerComplianceEl) {
-        registerComplianceEl.innerHTML = `${activeCount} Active <span class="text-emerald-600 font-semibold">(${compliantCount} Valid • ${expiringSoonCount} Expiring • ${overdueCount} Overdue/Untrained)</span>`;
+        registerComplianceEl.innerHTML = `${activeCount} Active Workers <span class="text-emerald-600 font-semibold">(${compliantCount} Valid • ${expiringSoonCount} Expiring • ${overdueCount} Overdue)</span>`;
       }
-      if (countActiveEl) {
-        countActiveEl.textContent = `${activeCount} Active Crew`;
-      }
-      if (countInactiveEl) countInactiveEl.textContent = `${inactiveCount} Inactive`;
-      if (countTotalEl) countTotalEl.textContent = `${totalCount} Total on File`;
     }
 
     function applyRosterFiltersAndRender() {
@@ -2457,8 +2716,13 @@
         if (statusVal === 'overdue') {
           if (!emp.is_active) return false;
           const lastInd = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
-          const st = calculateComplianceStatus(lastInd).status;
-          if (st !== 'Overdue' && st !== 'Untrained') return false;
+          if (!lastInd) return false;
+          if (calculateComplianceStatus(lastInd).status !== 'Overdue') return false;
+        }
+        if (statusVal === 'untrained') {
+          if (!emp.is_active) return false;
+          const lastInd = employeeInductionMap.get(emp.id) || employeeInductionMap.get(emp.employee_number?.trim().toLowerCase());
+          if (lastInd) return false;
         }
 
         if (teamVal !== 'all' && (emp.team_or_orchard || '') !== teamVal) return false;
@@ -2723,6 +2987,33 @@
       return mapping;
     }
 
+    function downloadSampleRosterCsv() {
+      const headers = ['Employee Number', 'First Name', 'Last Name', 'ID / Passport', 'Gender', 'Team / Orchard'];
+      const sampleRows = [
+        ['P1001', 'Sipho', 'Dlamini', '9201015800081', 'Male', 'Orchard Team A'],
+        ['P1002', 'Nomvula', 'Khumalo', '9503140800084', 'Female', 'Packing Shed'],
+        ['P1003', 'Jan', 'van der Merwe', '8811205001087', 'Male', 'Workshop & Fleet'],
+        ['P1004', 'Zanele', 'Mthembu', '9807220900085', 'Female', 'Orchard Team B'],
+        ['P1005', 'Thabo', 'Ndlovu', '', 'Male', 'Harvesting Crew']
+      ];
+
+      const csvContent = [
+        headers.join(','),
+        ...sampleRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\r\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'the_vault_employee_roster_template.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+    window.downloadSampleRosterCsv = downloadSampleRosterCsv;
+
     function openCsvImportModal() {
       document.getElementById('csvImportModal')?.classList.remove('hidden');
       resetCsvPicker();
@@ -2808,10 +3099,7 @@
           ln = parts.slice(1).join(' ');
         }
 
-        let gender = 'Other';
-        const gLower = genderRaw.toLowerCase();
-        if (['m', 'male', 'man', 'seun'].includes(gLower)) gender = 'Male';
-        else if (['f', 'female', 'vrou', 'meisie'].includes(gLower)) gender = 'Female';
+        let gender = normalizeGender(genderRaw, fn);
 
         if (!empNum || !fn) {
           invalidRows.push({ row: i + 1, data: r });
@@ -3000,6 +3288,12 @@
       });
 
       sortSelect?.addEventListener('change', applyFiltersAndRender);
+
+      const moduleFilter = document.getElementById('moduleFilterSelect');
+      moduleFilter?.addEventListener('change', () => {
+        activeModuleFilter = moduleFilter.value;
+        applyFiltersAndRender();
+      });
 
       filterToggleBtn?.addEventListener('click', (event) => {
         event.stopPropagation();

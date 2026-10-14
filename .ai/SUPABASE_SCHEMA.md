@@ -1,5 +1,5 @@
 # Live Supabase Schema Manifest
-> **Last Synchronized:** 2026-10-13 11:10:26 UTC
+> **Last Synchronized:** 2026-10-14 07:16:01 UTC
 > **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
 
 ---
@@ -11,7 +11,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict ul3sferCCvbAgze08vdL6gBkRToO1j45UbZhueh504lOKaV1iq0usSQ26chZSij
+\restrict 4YHH7wThug9a4fGJEnz53igH3iqWENgL1S45PSttMXvMRPUabFRe00eN87oS4IN
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.11 (Ubuntu 17.11-1.pgdg24.04+2)
@@ -565,6 +565,9 @@ DECLARE
     v_trainee jsonb;
     v_inserted_ids uuid[] := '{}';
     v_new_id uuid;
+    v_raw_gender text;
+    v_name text;
+    v_parsed_gender text;
 BEGIN
     -- 1. Authenticate caller and resolve company_id
     v_company_id := get_my_company_id();
@@ -591,17 +594,40 @@ BEGIN
     END IF;
 
     -- 3. Determine training format & session ID
+    -- Always assign a batch_session_id for statutory register generation and audit traceability
+    v_batch_session_id := gen_random_uuid();
     IF v_trainee_count = 1 THEN
         v_training_type := 'Individual';
-        v_batch_session_id := NULL;
     ELSE
         v_training_type := 'Batch';
-        v_batch_session_id := gen_random_uuid();
     END IF;
 
     -- 4. Insert each trainee record atomically
     FOR v_trainee IN SELECT * FROM jsonb_array_elements(p_trainees)
     LOOP
+        v_raw_gender := lower(TRIM(COALESCE(v_trainee->>'gender', '')));
+        v_name := TRIM(COALESCE(v_trainee->>'employee_name', 'Unnamed Worker'));
+
+        IF v_raw_gender IN ('f', 'female', 'fem', 'w', 'woman', 'women', 'vrou', 'vroulik', 'vroue', 'meisie', 'girl', 'lady', 'dame', 'mrs', 'ms', 'miss', 'mej')
+           OR v_raw_gender LIKE 'f%'
+           OR v_raw_gender LIKE 'w%'
+           OR v_raw_gender LIKE 'v%'
+           OR v_raw_gender ~* '\m(female|woman|women|vrou|vroulik|meisie|girl|lady)\M' THEN
+            v_parsed_gender := 'Female';
+        ELSIF v_raw_gender IN ('m', 'male', 'man', 'men', 'seun', 'boy', 'manlik', 'mr', 'mnr')
+           OR (v_raw_gender LIKE 'm%' AND v_raw_gender NOT LIKE 'me%')
+           OR v_raw_gender ~* '\m(male|man|men|seun|boy|manlik)\M' THEN
+            v_parsed_gender := 'Male';
+        ELSIF v_name ~* '^(ms|mrs|miss|mej)[\. ]' THEN
+            v_parsed_gender := 'Female';
+        ELSIF v_name ~* '^(mr|mnr)[\. ]' THEN
+            v_parsed_gender := 'Male';
+        ELSIF v_raw_gender = 'other' THEN
+            v_parsed_gender := 'Other';
+        ELSE
+            v_parsed_gender := 'Male'; -- Fallback default for training sign-offs if unspecified
+        END IF;
+
         INSERT INTO public.training_records (
             company_id,
             employee_id,
@@ -620,9 +646,9 @@ BEGIN
         ) VALUES (
             v_company_id,
             NULLIF(v_trainee->>'employee_id', '')::uuid,
-            TRIM(COALESCE(v_trainee->>'employee_name', 'Unnamed Worker')),
+            v_name,
             NULLIF(TRIM(v_trainee->>'employee_number'), ''),
-            COALESCE(NULLIF(TRIM(v_trainee->>'gender'), ''), 'Male'),
+            v_parsed_gender,
             TRIM(p_module_title),
             v_training_type,
             TRIM(p_supervisor_name),
@@ -999,6 +1025,9 @@ DECLARE
     v_deactivated int := 0;
     v_uploaded_numbers text[] := '{}';
     v_caller_role text;
+    v_raw_gender text;
+    v_fn text;
+    v_parsed_gender text;
 BEGIN
     -- 1. Resolve tenant company ID
     v_company_id := get_my_company_id();
@@ -1017,6 +1046,29 @@ BEGIN
     LOOP
         IF NULLIF(TRIM(v_emp->>'employee_number'), '') IS NOT NULL THEN
             v_uploaded_numbers := array_append(v_uploaded_numbers, TRIM(v_emp->>'employee_number'));
+            v_raw_gender := lower(TRIM(COALESCE(v_emp->>'gender', '')));
+            v_fn := TRIM(COALESCE(v_emp->>'first_name', 'Employee'));
+
+            -- Robust gender normalization for real-world payroll exports
+            IF v_raw_gender IN ('f', 'female', 'fem', 'w', 'woman', 'women', 'vrou', 'vroulik', 'vroue', 'meisie', 'girl', 'lady', 'dame', 'mrs', 'ms', 'miss', 'mej')
+               OR v_raw_gender LIKE 'f%'
+               OR v_raw_gender LIKE 'w%'
+               OR v_raw_gender LIKE 'v%'
+               OR v_raw_gender ~* '\m(female|woman|women|vrou|vroulik|meisie|girl|lady)\M' THEN
+                v_parsed_gender := 'Female';
+            ELSIF v_raw_gender IN ('m', 'male', 'man', 'men', 'seun', 'boy', 'manlik', 'mr', 'mnr')
+               OR (v_raw_gender LIKE 'm%' AND v_raw_gender NOT LIKE 'me%')
+               OR v_raw_gender ~* '\m(male|man|men|seun|boy|manlik)\M' THEN
+                v_parsed_gender := 'Male';
+            ELSIF v_fn ~* '^(ms|mrs|miss|mej)[\. ]' THEN
+                v_parsed_gender := 'Female';
+            ELSIF v_fn ~* '^(mr|mnr)[\. ]' THEN
+                v_parsed_gender := 'Male';
+            ELSIF v_raw_gender = 'other' THEN
+                v_parsed_gender := 'Other';
+            ELSE
+                v_parsed_gender := 'Other';
+            END IF;
 
             INSERT INTO public.company_employees (
                 company_id,
@@ -1031,14 +1083,10 @@ BEGIN
             ) VALUES (
                 v_company_id,
                 TRIM(v_emp->>'employee_number'),
-                TRIM(COALESCE(v_emp->>'first_name', 'Employee')),
+                v_fn,
                 TRIM(COALESCE(v_emp->>'last_name', '')),
                 NULLIF(TRIM(v_emp->>'id_passport_number'), ''),
-                CASE 
-                    WHEN lower(COALESCE(v_emp->>'gender', '')) IN ('m', 'male', 'man', 'seun') THEN 'Male'
-                    WHEN lower(COALESCE(v_emp->>'gender', '')) IN ('f', 'female', 'vrou', 'meisie') THEN 'Female'
-                    ELSE 'Other'
-                END,
+                v_parsed_gender,
                 NULLIF(TRIM(v_emp->>'team_or_orchard'), ''),
                 true,
                 now()
@@ -2611,6 +2659,6 @@ ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ul3sferCCvbAgze08vdL6gBkRToO1j45UbZhueh504lOKaV1iq0usSQ26chZSij
+\unrestrict 4YHH7wThug9a4fGJEnz53igH3iqWENgL1S45PSttMXvMRPUabFRe00eN87oS4IN
 
 ```

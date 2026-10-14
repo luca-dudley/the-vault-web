@@ -575,7 +575,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <p class="font-semibold text-slate-600">Start typing to find crew members</p>
-              <p class="text-[11px] text-slate-400">Search by worker name, clock number, or ID to select trainees</p>
+              <p class="text-[11px] text-slate-400">Search by worker name, employee number, or ID to select trainees</p>
             </div>
           `;
           if (btnSelectAll) {
@@ -757,7 +757,7 @@
             <input type="text" class="guest-name w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs" placeholder="Worker full name *" value="${escapeHtml(name)}" oninput="checkComplianceFormValidity()">
           </div>
           <div class="w-full sm:w-36">
-            <input type="text" class="guest-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs uppercase" placeholder="ID or Clock #" value="${escapeHtml(number)}" oninput="checkComplianceFormValidity()">
+            <input type="text" class="guest-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs uppercase" placeholder="ID or Employee #" value="${escapeHtml(number)}" oninput="checkComplianceFormValidity()">
           </div>
           <div class="w-full sm:w-28">
             <select class="guest-gender w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs cursor-pointer" onchange="checkComplianceFormValidity()">
