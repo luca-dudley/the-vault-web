@@ -605,12 +605,37 @@
 
     const HEADER_ALIASES = {
       employee_number: ['employee_number', 'employee no', 'emp no', 'emp_no', 'clock no', 'clock #', 'worker id', 'id', 'persal', 'code', 'staff no', 'badge', 'worker_number', 'personeelno', 'emp #', 'worker #'],
-      first_name: ['first_name', 'first name', 'firstname', 'given name', 'name', 'voornaam', 'worker name', 'werknemer'],
+      first_name: ['first_name', 'first name', 'firstname', 'given name', 'full name', 'fullname', 'worker name', 'worker_name', 'employee name', 'name', 'voornaam', 'werknemer'],
       last_name: ['last_name', 'last name', 'lastname', 'surname', 'van', 'family name', 'achternaam'],
       id_passport_number: ['id_passport_number', 'id number', 'id no', 'identity number', 'passport', 'id / passport', 'rsa id', 'id_no', 'id/passport'],
       gender: ['gender', 'sex', 'geslag', 'm/f', 'title/gender', 'gender/geslag'],
       team_or_orchard: ['team_or_orchard', 'team', 'orchard', 'department', 'section', 'block', 'crew', 'division', 'gang', 'cost center', 'afdeling', 'span']
     };
+
+    /**
+     * Defensive Worker Name Formatter
+     * De-duplicates worker names when first_name already ends with last_name (e.g. "Ms Z BALENI" + "BALENI")
+     * Also cleanly normalizes single-string names with repeated trailing surnames (e.g. "Ms Z BALENI BALENI")
+     */
+    function formatWorkerName(first, last) {
+      first = (first || '').trim();
+      last = (last || '').trim();
+      if (!last) {
+        const words = first.split(/\s+/);
+        if (words.length >= 2) {
+          const lastWord = words[words.length - 1];
+          const prevWord = words[words.length - 2];
+          if (lastWord.toLowerCase() === prevWord.toLowerCase()) {
+            return words.slice(0, -1).join(' ');
+          }
+        }
+        return first;
+      }
+      if (!first) return last;
+      if (first.toLowerCase().endsWith(last.toLowerCase())) return first;
+      return `${first} ${last}`;
+    }
+    window.formatWorkerName = formatWorkerName;
 
     /**
      * Comprehensive Gender Normalization Engine
@@ -903,7 +928,7 @@
 
         if (!groupedRecords.has(key)) {
           groupedRecords.set(key, {
-            employee_name: record.employee_name || 'Unnamed employee',
+            employee_name: formatWorkerName(record.employee_name) || 'Unnamed employee',
             employee_number: record.employee_number || '',
             employee_id: record.employee_id || '',
             company_id: record.company_id || '',
@@ -913,7 +938,7 @@
         }
 
         const employee = groupedRecords.get(key);
-        employee.employee_name = employee.employee_name || record.employee_name || 'Unnamed employee';
+        employee.employee_name = formatWorkerName(employee.employee_name || record.employee_name) || 'Unnamed employee';
         employee.employee_number = employee.employee_number || record.employee_number || '';
         if (record.employee_id) employee.employee_id = record.employee_id;
         employee.company_id = employee.company_id || record.company_id || '';
@@ -1201,7 +1226,7 @@
                     type="button"
                     class="btn-delete-record inline-flex items-center justify-center p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-slate-400 text-xs transition-all shadow-sm cursor-pointer"
                     data-rec-id="${escapeHtml(module.id)}"
-                    data-emp-name="${escapeHtml(employee.employee_name)}"
+                    data-emp-name="${escapeHtml(formatWorkerName(employee.employee_name))}"
                     data-mod-title="${escapeHtml(module.module_title)}"
                     title="Delete / Remove Module Record">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1220,6 +1245,8 @@
           ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">Inactive</span>`
           : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${compliance.badgeClass}" title="${escapeHtml(compliance.label)}">${escapeHtml(compliance.status)}</span>`;
 
+        const displayWorkerName = formatWorkerName(employee.employee_name);
+
         return `
           <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-slate-300 hover:shadow-md">
             <button
@@ -1231,10 +1258,10 @@
             >
               <div class="flex min-w-0 items-center gap-3 sm:gap-4 flex-1">
                 <div class="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-primary/10 text-primary font-bold text-sm sm:text-base">
-                  ${escapeHtml(employee.employee_name.slice(0, 1) || 'E')}
+                  ${escapeHtml(displayWorkerName.slice(0, 1) || 'E')}
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h3 class="truncate text-base sm:text-lg font-bold text-foreground leading-snug">${escapeHtml(employee.employee_name)}</h3>
+                  <h3 class="truncate text-base sm:text-lg font-bold text-foreground leading-snug">${escapeHtml(displayWorkerName)}</h3>
                   <p class="truncate text-xs text-muted mt-0.5">${displayId}</p>
                 </div>
               </div>
@@ -1259,7 +1286,7 @@
                     class="btn-deactivate-worker inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-medium transition-all shadow-sm cursor-pointer"
                     data-emp-id="${escapeHtml(employee.employee_id || '')}"
                     data-emp-num="${escapeHtml(employee.employee_number || '')}"
-                    data-emp-name="${escapeHtml(employee.employee_name)}"
+                    data-emp-name="${escapeHtml(displayWorkerName)}"
                     title="Deactivate worker from active roster"
                   >
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/></svg>
@@ -2508,7 +2535,7 @@
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8.5);
             doc.setTextColor(15, 23, 42);
-            doc.text(trainee.employee_name || '', xName + 5, y + 6.5);
+            doc.text(formatWorkerName(trainee.employee_name) || '', xName + 5, y + 6.5);
 
             // Gender: Consistent regular weight and dark charcoal across all rows
             doc.text(trainee.gender || 'Male', xGen + (colGen / 2), y + 6.5, { align: 'center' });
@@ -2733,7 +2760,7 @@
           const ln = (emp.last_name || '').toLowerCase();
           const idNo = (emp.id_passport_number || '').toLowerCase();
           const team = (emp.team_or_orchard || '').toLowerCase();
-          const fullName = `${fn} ${ln}`;
+          const fullName = formatWorkerName(emp.first_name, emp.last_name).toLowerCase();
           if (!num.includes(query) && !fn.includes(query) && !ln.includes(query) && !fullName.includes(query) && !idNo.includes(query) && !team.includes(query)) {
             return false;
           }
@@ -2764,7 +2791,7 @@
       if (!tableBody) return;
 
       tableBody.innerHTML = employees.map(emp => {
-        const fullName = `${emp.first_name} ${emp.last_name || ''}`.trim();
+        const fullName = formatWorkerName(emp.first_name, emp.last_name);
 
         const statusBadge = emp.is_active
           ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active</span>`
@@ -2992,7 +3019,8 @@
       const sampleRows = [
         ['P1001', 'Sipho', 'Dlamini', '9201015800081', 'Male', 'Orchard Team A'],
         ['P1002', 'Nomvula', 'Khumalo', '9503140800084', 'Female', 'Packing Shed'],
-        ['P1003', 'Jan', 'van der Merwe', '8811205001087', 'Male', 'Workshop & Fleet'],
+        ['P031', 'Ms Z', 'Baleni', '8811205001087', 'Female', 'Harvesting Crew'],
+        ['P1003', 'Jan', 'van der Merwe', '8505125001082', 'Male', 'Workshop & Fleet'],
         ['P1004', 'Zanele', 'Mthembu', '9807220900085', 'Female', 'Orchard Team B'],
         ['P1005', 'Thabo', 'Ndlovu', '', 'Male', 'Harvesting Crew']
       ];
@@ -3064,19 +3092,35 @@
       }
     }
 
-    function processCsvText(text, fileName) {
+    /**
+     * RFC 4180 Roster CSV Parser & Normalizer
+     * - Maps columns with alias recognition
+     * - De-duplicates trailing surname from first_name when both Name and Surname are supplied (e.g. "Ms Z BALENI" + "BALENI")
+     * - Supports single-column Full Name / Worker Name mapping cleanly without forcing an artificial split
+     */
+    function parseAndNormalizeRosterCsv(text) {
       const rows = parseCSV(text);
       if (!rows || rows.length < 2) {
-        showCsvError('CSV file is empty or does not contain header and data rows.');
-        return;
+        return {
+          validRows: [],
+          invalidRows: [],
+          mapping: {},
+          headers: [],
+          error: 'CSV file is empty or does not contain header and data rows.'
+        };
       }
 
       const headers = rows[0];
       const mapping = detectColumnMapping(headers);
 
       if (mapping.first_name === undefined && mapping.employee_number === undefined) {
-        showCsvError('Could not detect worker name or employee number columns. Please ensure your CSV has headers like "Employee Number" and "First Name".');
-        return;
+        return {
+          validRows: [],
+          invalidRows: [],
+          mapping,
+          headers,
+          error: 'Could not detect worker name or employee number columns. Please ensure your CSV has headers like "Employee Number" and "First Name".'
+        };
       }
 
       const validRows = [];
@@ -3093,11 +3137,22 @@
         const genderRaw = mapping.gender !== undefined ? (r[mapping.gender] || '').trim() : '';
         const team = mapping.team_or_orchard !== undefined ? (r[mapping.team_or_orchard] || '').trim() : '';
 
-        if (fn && !ln && fn.includes(' ')) {
-          const parts = fn.split(/\s+/);
-          fn = parts[0];
-          ln = parts.slice(1).join(' ');
+        // If both first_name and last_name are extracted, check if first_name ends with last_name
+        if (fn && ln) {
+          const fnLower = fn.toLowerCase();
+          const lnLower = ln.toLowerCase();
+          if (fnLower === lnLower) {
+            fn = ln;
+            ln = '';
+          } else if (fnLower.endsWith(' ' + lnLower) || fnLower.endsWith('-' + lnLower)) {
+            fn = fn.slice(0, fn.length - ln.length).trim();
+          } else if (fnLower.endsWith(lnLower)) {
+            fn = fn.slice(0, fn.length - ln.length).trim();
+          }
         }
+
+        // Single-column Full Name / Worker Name mapping: cleanly stored in first_name without forced artificial split
+        // (ln remains '' if no separate surname column is present)
 
         let gender = normalizeGender(genderRaw, fn);
 
@@ -3115,6 +3170,19 @@
           team_or_orchard: team || null
         });
       }
+
+      return { validRows, invalidRows, mapping, headers, error: null };
+    }
+    window.parseAndNormalizeRosterCsv = parseAndNormalizeRosterCsv;
+
+    function processCsvText(text, fileName) {
+      const result = parseAndNormalizeRosterCsv(text);
+      if (result.error) {
+        showCsvError(result.error);
+        return;
+      }
+
+      const { validRows, invalidRows, mapping, headers } = result;
 
       if (validRows.length === 0) {
         showCsvError('No valid employee rows detected. Make sure each row has an Employee Number and First Name.');
@@ -3234,6 +3302,21 @@
         return;
       }
 
+      let fn = firstName;
+      let ln = lastName;
+      if (fn && ln) {
+        const fnLower = fn.toLowerCase();
+        const lnLower = ln.toLowerCase();
+        if (fnLower === lnLower) {
+          fn = ln;
+          ln = '';
+        } else if (fnLower.endsWith(' ' + lnLower) || fnLower.endsWith('-' + lnLower)) {
+          fn = fn.slice(0, fn.length - ln.length).trim();
+        } else if (fnLower.endsWith(lnLower)) {
+          fn = fn.slice(0, fn.length - ln.length).trim();
+        }
+      }
+
       const submitBtn = document.getElementById('btnSubmitAddEmployee');
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -3246,8 +3329,8 @@
           .upsert({
             company_id: window.userCompanyId,
             employee_number: empNum.toUpperCase(),
-            first_name: firstName,
-            last_name: lastName,
+            first_name: fn,
+            last_name: ln,
             id_passport_number: idNo,
             gender: gender,
             team_or_orchard: team,

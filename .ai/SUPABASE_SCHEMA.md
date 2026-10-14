@@ -1,5 +1,5 @@
 # Live Supabase Schema Manifest
-> **Last Synchronized:** 2026-10-14 07:16:01 UTC
+> **Last Synchronized:** 2026-10-14 09:42:47 UTC
 > **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
 
 ---
@@ -11,7 +11,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 4YHH7wThug9a4fGJEnz53igH3iqWENgL1S45PSttMXvMRPUabFRe00eN87oS4IN
+\restrict NN9soJLTANlEPEyibR7UEgFlmEwWjuSBhYZSekf2fFDyV3vvNiBLbLF3msSnLd9
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.11 (Ubuntu 17.11-1.pgdg24.04+2)
@@ -1027,6 +1027,7 @@ DECLARE
     v_caller_role text;
     v_raw_gender text;
     v_fn text;
+    v_ln text;
     v_parsed_gender text;
 BEGIN
     -- 1. Resolve tenant company ID
@@ -1048,6 +1049,15 @@ BEGIN
             v_uploaded_numbers := array_append(v_uploaded_numbers, TRIM(v_emp->>'employee_number'));
             v_raw_gender := lower(TRIM(COALESCE(v_emp->>'gender', '')));
             v_fn := TRIM(COALESCE(v_emp->>'first_name', 'Employee'));
+            v_ln := TRIM(COALESCE(v_emp->>'last_name', ''));
+
+            -- Defensive de-duplication: if first_name ends with last_name (e.g. 'Ms Z BALENI' and 'BALENI')
+            IF v_ln <> '' AND length(v_fn) > length(v_ln) AND (lower(v_fn) LIKE '% ' || lower(v_ln) OR lower(v_fn) LIKE '%-' || lower(v_ln)) THEN
+                v_fn := TRIM(substring(v_fn from 1 for length(v_fn) - length(v_ln)));
+            ELSIF v_ln <> '' AND lower(v_fn) = lower(v_ln) THEN
+                v_fn := v_ln;
+                v_ln := '';
+            END IF;
 
             -- Robust gender normalization for real-world payroll exports
             IF v_raw_gender IN ('f', 'female', 'fem', 'w', 'woman', 'women', 'vrou', 'vroulik', 'vroue', 'meisie', 'girl', 'lady', 'dame', 'mrs', 'ms', 'miss', 'mej')
@@ -1084,7 +1094,7 @@ BEGIN
                 v_company_id,
                 TRIM(v_emp->>'employee_number'),
                 v_fn,
-                TRIM(COALESCE(v_emp->>'last_name', '')),
+                v_ln,
                 NULLIF(TRIM(v_emp->>'id_passport_number'), ''),
                 v_parsed_gender,
                 NULLIF(TRIM(v_emp->>'team_or_orchard'), ''),
@@ -1112,15 +1122,14 @@ BEGIN
         WHERE company_id = v_company_id
           AND is_active = true
           AND NOT (employee_number = ANY(v_uploaded_numbers));
-        
+
         GET DIAGNOSTICS v_deactivated = ROW_COUNT;
     END IF;
 
     RETURN jsonb_build_object(
-        'success', true,
         'upserted_count', v_inserted,
         'deactivated_count', v_deactivated,
-        'total_processed', jsonb_array_length(p_employees)
+        'total_processed', array_length(v_uploaded_numbers, 1)
     );
 END;
 $$;
@@ -2659,6 +2668,6 @@ ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 4YHH7wThug9a4fGJEnz53igH3iqWENgL1S45PSttMXvMRPUabFRe00eN87oS4IN
+\unrestrict NN9soJLTANlEPEyibR7UEgFlmEwWjuSBhYZSekf2fFDyV3vvNiBLbLF3msSnLd9
 
 ```

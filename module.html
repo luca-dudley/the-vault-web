@@ -494,6 +494,31 @@
       return sigCanvas.toDataURL() === blank.toDataURL();
     }
 
+    /**
+     * Defensive Worker Name Formatter
+     * De-duplicates worker names when first_name already ends with last_name (e.g. "Ms Z BALENI" + "BALENI")
+     * Also cleanly normalizes single-string names with repeated trailing surnames (e.g. "Ms Z BALENI BALENI")
+     */
+    function formatWorkerName(first, last) {
+      first = (first || '').trim();
+      last = (last || '').trim();
+      if (!last) {
+        const words = first.split(/\s+/);
+        if (words.length >= 2) {
+          const lastWord = words[words.length - 1];
+          const prevWord = words[words.length - 2];
+          if (lastWord.toLowerCase() === prevWord.toLowerCase()) {
+            return words.slice(0, -1).join(' ');
+          }
+        }
+        return first;
+      }
+      if (!first) return last;
+      if (first.toLowerCase().endsWith(last.toLowerCase())) return first;
+      return `${first} ${last}`;
+    }
+    window.formatWorkerName = formatWorkerName;
+
     // --- ACTIVE ROSTER INGESTION FOR INDUCTION DRAWER ---
     async function loadActiveRosterForInduction() {
       const loadingEl = document.getElementById('rosterChecklistLoading');
@@ -530,8 +555,8 @@
           if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
           if (numA) return -1;
           if (numB) return 1;
-          const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
-          const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+          const nameA = formatWorkerName(a.first_name, a.last_name);
+          const nameB = formatWorkerName(b.first_name, b.last_name);
           return nameA.localeCompare(nameB);
         });
 
@@ -594,11 +619,11 @@
           if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
           if (numA) return -1;
           if (numB) return 1;
-          return (`${a.first_name || ''} ${a.last_name || ''}`).localeCompare(`${b.first_name || ''} ${b.last_name || ''}`);
+          return formatWorkerName(a.first_name, a.last_name).localeCompare(formatWorkerName(b.first_name, b.last_name));
         });
 
         const selectedHtml = selectedCrew.map(emp => {
-          const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Worker';
+          const fullName = formatWorkerName(emp.first_name, emp.last_name) || 'Worker';
           const badgeNo = emp.employee_number
             ? `#${escapeHtml(emp.employee_number)}`
             : (emp.id_passport_number ? `ID: ${escapeHtml(emp.id_passport_number)}` : 'No #');
@@ -637,7 +662,7 @@
 
       // User is actively searching: filter and sort matches naturally by employee_number
       const matches = (crew || []).filter(emp => {
-        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.toLowerCase();
+        const name = formatWorkerName(emp.first_name, emp.last_name).toLowerCase();
         const num = (emp.employee_number || '').toLowerCase();
         const idNum = (emp.id_passport_number || '').toLowerCase();
         return name.includes(query) || num.includes(query) || idNum.includes(query);
@@ -649,8 +674,8 @@
         if (numA && numB) return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
         if (numA) return -1;
         if (numB) return 1;
-        const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
-        const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+        const nameA = formatWorkerName(a.first_name, a.last_name);
+        const nameB = formatWorkerName(b.first_name, b.last_name);
         return nameA.localeCompare(nameB);
       });
 
@@ -673,7 +698,7 @@
 
         containerEl.innerHTML = matches.map(emp => {
           const isChecked = selectedTraineeIds.has(emp.id);
-          const fullName = `${emp.first_name || ''} ${emp.last_name || ''}`.trim() || 'Worker';
+          const fullName = formatWorkerName(emp.first_name, emp.last_name) || 'Worker';
           const badgeNo = emp.employee_number
             ? `#${escapeHtml(emp.employee_number)}`
             : (emp.id_passport_number ? `ID: ${escapeHtml(emp.id_passport_number)}` : 'No #');
@@ -724,7 +749,7 @@
       if (!query) return;
 
       const matches = activeRosterCrew.filter(emp => {
-        const name = `${emp.first_name || ''} ${emp.last_name || ''}`.toLowerCase();
+        const name = formatWorkerName(emp.first_name, emp.last_name).toLowerCase();
         const num = (emp.employee_number || '').toLowerCase();
         const idNum = (emp.id_passport_number || '').toLowerCase();
         return name.includes(query) || num.includes(query) || idNum.includes(query);
@@ -818,7 +843,7 @@
         if (name) {
           validGuests.push({
             employee_id: null,
-            employee_name: name,
+            employee_name: formatWorkerName(name),
             employee_number: number || null,
             gender: gender
           });
@@ -835,7 +860,7 @@
         if (fromRoster) {
           result.push({
             employee_id: fromRoster.id,
-            employee_name: `${fromRoster.first_name || ''} ${fromRoster.last_name || ''}`.trim() || 'Worker',
+            employee_name: formatWorkerName(fromRoster.first_name, fromRoster.last_name) || 'Worker',
             employee_number: fromRoster.employee_number || null,
             gender: fromRoster.gender || 'Male'
           });

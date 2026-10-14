@@ -730,13 +730,33 @@
       }
     }
 
+    function formatWorkerName(first, last) {
+      first = (first || '').trim();
+      last = (last || '').trim();
+      if (!last) {
+        const words = first.split(/\s+/);
+        if (words.length >= 2) {
+          const lastWord = words[words.length - 1];
+          const prevWord = words[words.length - 2];
+          if (lastWord.toLowerCase() === prevWord.toLowerCase()) {
+            return words.slice(0, -1).join(' ');
+          }
+        }
+        return first;
+      }
+      if (!first) return last;
+      if (first.toLowerCase().endsWith(last.toLowerCase())) return first;
+      return `${first} ${last}`;
+    }
+    window.formatWorkerName = formatWorkerName;
+
     // Populate Roster Dropdown
     function populateEmployeePicker(employees) {
       const picker = document.getElementById('formEmployeePicker');
       if (!picker) return;
       picker.innerHTML = '<option value="">— Select registered worker or enter manually —</option>' +
         employees.map(e => `
-          <option value="${e.id}">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')} (${escapeHtml(e.employee_number)}) - ${escapeHtml(e.team_or_orchard || 'General')}</option>
+          <option value="${e.id}">${escapeHtml(formatWorkerName(e.first_name, e.last_name))} (${escapeHtml(e.employee_number)}) - ${escapeHtml(e.team_or_orchard || 'General')}</option>
         `).join('');
     }
 
@@ -746,7 +766,7 @@
       if (!emp) return;
 
       document.getElementById('formEmployeeId').value = emp.id;
-      document.getElementById('formInjuredName').value = `${emp.first_name} ${emp.last_name || ''}`.trim();
+      document.getElementById('formInjuredName').value = formatWorkerName(emp.first_name, emp.last_name);
       document.getElementById('formInjuredIdNo').value = emp.id_passport_number || '';
       document.getElementById('formInjuredRole').value = emp.team_or_orchard || 'General Farm Employee';
       if (emp.gender) document.getElementById('formInjuredGender').value = emp.gender;

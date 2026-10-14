@@ -216,7 +216,7 @@ Every authenticated route implements or relies upon standard client-side utility
 15. **`log_induction_session(p_module_title text, p_supervisor_name text, p_supervisor_signature text, p_trainees jsonb)` $\to$ `jsonb`**:
     - `SECURITY DEFINER`. Records group or individual induction sessions, atomically linking trainees with `company_employees` and recording digital dual signatures. Generates a statutory `batch_session_id` UUID for all sessions (including single-trainee inductions) for register retrieval and audit traceability, and normalizes trainee gender using regex and title fallbacks.
 16. **`sync_company_roster(p_employees jsonb, p_deactivate_missing boolean)` $\to$ `jsonb`**:
-    - `SECURITY DEFINER`. Upserts employee rosters from CSV or form input into `company_employees`, matching by employee number and maintaining active compliance status. Features multi-lingual South African agricultural payroll gender normalization (`M`, `F`, `Man`, `Vrou`, `Meisie`, honorific prefixes) and supports optional deactivation of unlisted seasonal employees.
+    - `SECURITY DEFINER`. Upserts employee rosters from CSV or form input into `company_employees`, matching by employee number and maintaining active compliance status. Features defensive worker surname de-duplication (preventing duplicate surname concatenation when payroll exports provide full names in first name fields), multi-lingual South African agricultural payroll gender normalization (`M`, `F`, `Man`, `Vrou`, `Meisie`, honorific prefixes), and supports optional deactivation of unlisted seasonal employees.
 
 ### Row Level Security (RLS) & Auth Policies
 
@@ -718,6 +718,11 @@ graph TD
   - Enforced baseline row styling (`doc.setFont('helvetica', 'normal')`, `doc.setFontSize(8.5)`, `doc.setTextColor(15, 23, 42)`) at the start of every row iteration.
   - Explicitly formatted Employee Number as bold dark slate (`helvetica bold`, 8.5pt, `#0f172a`), Worker Name as regular weight dark slate, and Gender as regular weight dark slate across all rows.
   - Isolated secondary italic styling strictly to the unsigned attestation cell (`Attested (ECTA §13)`) and immediately restored the standard 8.5pt dark slate typography before proceeding to subsequent cells or rows.
+- **Worker Name De-duplication & Payroll CSV Normalization (`records.html`, `module.html`, `incidents.html`, & Migration `20261014113000_normalize_worker_names.sql`)**:
+  - **CSV Parser Normalization (`parseAndNormalizeRosterCsv`)**: Resolved issue where agricultural payroll exports (Sage VIP, Pastel, AgriCol, PaySoft) supply a `Name` column containing titles, initials, and surnames (e.g. `Ms Z BALENI`) alongside a `Surname` column (`BALENI`). Automatically strips trailing surnames from `first_name` while preserving titles and initials. Cleanly supports single-column `Full Name` / `Worker Name` mapping without forcing artificial splits when no separate surname column exists.
+  - **Frontend Display De-duplication (`formatWorkerName`)**: Added defensive helper `formatWorkerName(first, last)` across `records.html`, `module.html`, and `incidents.html`. Guarantees duplicated surnames never render on screen, in the trainee completion drawer, in roster tables, in incident pickers, or in official statutory PDF attendance registers.
+  - **Database Migration & RPC Hardening**: Applied migration `20261014113000_normalize_worker_names.sql` cleaning up all 210 existing rows in `public.company_employees` where `first_name` ended with `last_name` (e.g. `P031` healed from `Ms Z BALENI BALENI` to `Ms Z BALENI`). Hardened `sync_company_roster` RPC to prevent recurrence on future CSV uploads.
+  - **CSV Template Synchronization**: Updated `downloadSampleRosterCsv()` and generated static `the_vault_employee_roster_template.csv` in root with standardized South African agricultural payroll formatting.
 
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
