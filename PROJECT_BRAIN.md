@@ -334,7 +334,7 @@ graph TD
 ### Compliance, PDF Generation & External Workflows
 - **Client-Side PDF Engines**: `jspdf.umd.min.js` generates statutory legal documents in the browser:
   - **Individual Worker Training Certificate**: A4 landscape certificate with South African OHSA compliance stamp, supervisor digital signature, worker signature data, identity numbers, and date stamps.
-  - **Group Induction Log Sheet**: A4 landscape attendance register with batch session ID, supervisor declaration, and worker attendance roster.
+  - **Group Induction Log Sheet**: A4 landscape attendance register with batch session ID, supervisor declaration, fixed 20-minute statutory session time (video screening, supervisor explanation, comprehension Q&A, and practical site walk), and worker attendance roster.
   - **Baseline Risk Assessment Register**: A4 landscape statutory report including hazard register matrices, inherent/residual risk scoring, review intervals, and Section 16(2) appointee digital signature.
   - **Task-Specific Risk Assessment Register**: A4 landscape audit report with work area, equipment ID, verified PPE checklist, and assessor sign-off.
   - **Corporate Supply Chain Audit Certificate & CSV Manifest**: A4 landscape audit certificate and CSV export with a 16-character SHA-256 cryptographic canonical data checksum.
@@ -726,6 +726,14 @@ graph TD
   - **High-Visibility Warning Card**: Added prominent red warning banner (`#csvTemplateWarningBanner`) directly inside `#csvImportModal` above the upload drop zone with clear instructions that raw payroll exports with custom display names or payroll codes will not import correctly, paired with a prominent red download button.
   - **Bulletproof Header Priority**: Refactored `detectColumnMapping()` with tiered alias matching. Prioritizes dedicated `First Name` / `Voornaam` columns over generic or composite headers (`Display Name`, `Full Name`, `Name`). Prevents payroll exports containing both `Display Name` (e.g. `Mr F MBANGI`) and `First Name` (`FANISILE`) from hijacking the worker's genuine first name.
   - **Clean & Minimal CSV Template**: Updated `downloadSampleRosterCsv()` to generate the exact required 6 columns (`Employee Number`, `First Name`, `Last Name`, `ID / Passport Number`, `Gender`, `Team / Orchard`) with realistic South African farm crew examples.
+
+### Statutory Induction & PDF Exports Update (2026-10-15)
+- **Statutory Attendance Register Duration & Risk Objectives (`records.html`)**:
+  - Replaced dynamic video duration calculation (`total_seconds / 60` or default `25 MIN`) in `generateAttendanceRegisterPDF` / `generateGroupLogSheetPDF` with a fixed statutory session time: `20 Minutes (Video & Practical)`.
+  - Raw video lengths (3–7 minutes) are compliance-insufficient for formal statutory SIZA/GlobalG.A.P. registers because an estate safety induction legally encompasses the video screening, supervisor verbal explanation, comprehension Q&A, and practical site hazard walk.
+  - Formatted the session duration cleanly within the Page 1 metadata strip (`x=154`, `metaY + 10.5`) alongside Trainer/Supervisor, Training Date, and Session Ref.
+  - Updated curriculum header label from `KEY LEARNING OBJECTIVES:` to `KEY RISK RELATED LEARNING OBJECTIVES:` to align with statutory agricultural OHS and GlobalG.A.P./SIZA audit requirements.
+
 
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.

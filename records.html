@@ -2109,7 +2109,8 @@
       // 2. Fetch video curriculum objectives & questions
       let objectives = [];
       let questions = [];
-      let durationMins = 25;
+      // Statutory session duration: fixed at 20 minutes (video, supervisor explanation, comprehension Q&A, and practical site walk)
+      const sessionDuration = '20 Minutes (Video & Practical)';
 
       const rawTitle = (moduleTitle || batchRecords[0]?.module_title || '').trim();
       const cleanTitle = rawTitle.replace(/\s*\(video induction\)\s*/i, '').replace(/\s+/g, ' ').trim();
@@ -2172,9 +2173,6 @@
         vData = masterRow || companyRow;
       }
 
-      if (vData?.total_seconds) {
-        durationMins = Math.ceil(vData.total_seconds / 60);
-      }
 
       if (!objectives || objectives.length === 0) {
         objectives = [
@@ -2265,7 +2263,7 @@
       doc.setTextColor(15, 23, 42);
       doc.text(trainerName, 20, metaY + 10.5);
       doc.text(trainingDate, 84, metaY + 10.5);
-      doc.text(`${durationMins} MIN (Video & Practical)`, 154, metaY + 10.5);
+      doc.text(sessionDuration, 154, metaY + 10.5);
       doc.text(batchRef, 224, metaY + 10.5);
 
       // Training Curriculum Section
@@ -2278,7 +2276,7 @@
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(71, 85, 105);
-      doc.text('KEY LEARNING OBJECTIVES:', 16, contentY + 5.5);
+      doc.text('KEY RISK RELATED LEARNING OBJECTIVES:', 16, contentY + 5.5);
 
       const objectivesToRender = objectives.slice(0, 4);
       const questionsToRender = (questions || []).slice(0, 5);
