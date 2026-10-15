@@ -436,6 +436,13 @@
 
         <!-- Modal Body -->
         <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+          <!-- Mandatory Template Warning Banner -->
+          <div id="csvTemplateWarningBanner" class="border-2 border-red-500 bg-red-50/90 rounded-xl p-4 mb-4 text-center shadow-sm">
+            <p class="text-red-700 font-extrabold text-base tracking-wide uppercase flex items-center justify-center gap-2">⚠️ Mandatory Roster Upload Template</p>
+            <p class="text-red-800 text-sm font-bold mt-1">Please use this exact template. Raw payroll exports containing display names, payroll codes, or custom headers will not import correctly.</p>
+            <button type="button" onclick="downloadSampleRosterCsv()" class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg shadow transition-colors cursor-pointer">📥 Download Required CSV Template</button>
+          </div>
+
           <!-- File Picker / Drop Zone -->
           <div id="csvDropZone" onclick="document.getElementById('csvFileInput').click()" class="border-2 border-dashed border-slate-300 hover:border-primary rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-blue-50/20 transition-all cursor-pointer">
             <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden">
@@ -451,7 +458,7 @@
           </div>
 
           <!-- Download Sample CSV Template Pill -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+          <div id="csvTemplatePill" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span>Need the required format and supported column names?</span>
@@ -604,12 +611,13 @@
     let rosterSearchDebounceId = null;
 
     const HEADER_ALIASES = {
-      employee_number: ['employee_number', 'employee no', 'emp no', 'emp_no', 'clock no', 'clock #', 'worker id', 'id', 'persal', 'code', 'staff no', 'badge', 'worker_number', 'personeelno', 'emp #', 'worker #'],
-      first_name: ['first_name', 'first name', 'firstname', 'given name', 'full name', 'fullname', 'worker name', 'worker_name', 'employee name', 'name', 'voornaam', 'werknemer'],
+      employee_number: ['employee_number', 'employee number', 'employee no', 'employee #', 'emp no', 'emp_no', 'clock no', 'clock #', 'worker id', 'id', 'persal', 'code', 'staff no', 'badge', 'worker_number', 'personeelno', 'emp #', 'worker #'],
+      first_name_primary: ['first_name', 'first name', 'firstname', 'given name', 'voornaam'],
+      first_name_fallback: ['full name', 'fullname', 'worker name', 'worker_name', 'employee name', 'display name', 'display_name', 'name', 'werknemer'],
       last_name: ['last_name', 'last name', 'lastname', 'surname', 'van', 'family name', 'achternaam'],
-      id_passport_number: ['id_passport_number', 'id number', 'id no', 'identity number', 'passport', 'id / passport', 'rsa id', 'id_no', 'id/passport'],
+      id_passport_number: ['id_passport_number', 'id / passport number', 'id/passport number', 'id number', 'id no', 'identity number', 'passport', 'id / passport', 'rsa id', 'id_no', 'id/passport'],
       gender: ['gender', 'sex', 'geslag', 'm/f', 'title/gender', 'gender/geslag'],
-      team_or_orchard: ['team_or_orchard', 'team', 'orchard', 'department', 'section', 'block', 'crew', 'division', 'gang', 'cost center', 'afdeling', 'span']
+      team_or_orchard: ['team_or_orchard', 'team / orchard', 'team/orchard', 'team', 'orchard', 'department', 'section', 'block', 'crew', 'division', 'gang', 'cost center', 'afdeling', 'span']
     };
 
     /**
@@ -2996,33 +3004,100 @@
       const mapping = {};
       const usedIndices = new Set();
 
-      for (const [fieldKey, aliases] of Object.entries(HEADER_ALIASES)) {
+      function findMatch(aliases) {
+        if (!aliases || !Array.isArray(aliases)) return -1;
+        // Priority 1: Exact matches
         for (let i = 0; i < headers.length; i++) {
           if (usedIndices.has(i)) continue;
           const cleanHeader = headers[i].toLowerCase().trim().replace(/['"_]/g, ' ');
-          const matches = aliases.some(alias => {
+          for (const alias of aliases) {
             const cleanAlias = alias.toLowerCase().replace(/['"_]/g, ' ');
-            return cleanHeader === cleanAlias || cleanHeader.includes(cleanAlias);
-          });
-          if (matches) {
-            mapping[fieldKey] = i;
-            usedIndices.add(i);
-            break;
+            if (cleanHeader === cleanAlias) {
+              return i;
+            }
           }
         }
+        // Priority 2: Substring matches with word-boundary protections
+        for (let i = 0; i < headers.length; i++) {
+          if (usedIndices.has(i)) continue;
+          const cleanHeader = headers[i].toLowerCase().trim().replace(/['"_]/g, ' ');
+          for (const alias of aliases) {
+            const cleanAlias = alias.toLowerCase().replace(/['"_]/g, ' ');
+            // Prevent generic 'name' from hijacking 'display name' or 'surname' or 'last name'
+            if (cleanAlias === 'name' && (cleanHeader.includes('display') || cleanHeader.includes('sur') || cleanHeader.includes('last'))) {
+              continue;
+            }
+            if (cleanHeader.includes(cleanAlias)) {
+              return i;
+            }
+          }
+        }
+        return -1;
       }
+
+      // 1. Employee Number
+      const empIdx = findMatch(HEADER_ALIASES.employee_number);
+      if (empIdx !== -1) {
+        mapping.employee_number = empIdx;
+        usedIndices.add(empIdx);
+      }
+
+      // 2. High-priority dedicated First Name ('First Name', 'Voornaam', 'Firstname', etc.)
+      const fnPrimaryIdx = findMatch(HEADER_ALIASES.first_name_primary);
+      if (fnPrimaryIdx !== -1) {
+        mapping.first_name = fnPrimaryIdx;
+        usedIndices.add(fnPrimaryIdx);
+      }
+
+      // 3. Last Name ('Last Name', 'Surname', 'Van', etc.)
+      const lnIdx = findMatch(HEADER_ALIASES.last_name);
+      if (lnIdx !== -1) {
+        mapping.last_name = lnIdx;
+        usedIndices.add(lnIdx);
+      }
+
+      // 4. Fallback First Name (ONLY evaluated if no dedicated First Name column exists in the file)
+      // Checks 'Full Name', 'Worker Name', 'Display Name', 'Name', etc.
+      if (mapping.first_name === undefined) {
+        const fnFallbackIdx = findMatch(HEADER_ALIASES.first_name_fallback);
+        if (fnFallbackIdx !== -1) {
+          mapping.first_name = fnFallbackIdx;
+          usedIndices.add(fnFallbackIdx);
+        }
+      }
+
+      // 5. ID / Passport Number
+      const idIdx = findMatch(HEADER_ALIASES.id_passport_number);
+      if (idIdx !== -1) {
+        mapping.id_passport_number = idIdx;
+        usedIndices.add(idIdx);
+      }
+
+      // 6. Gender
+      const genIdx = findMatch(HEADER_ALIASES.gender);
+      if (genIdx !== -1) {
+        mapping.gender = genIdx;
+        usedIndices.add(genIdx);
+      }
+
+      // 7. Team / Orchard
+      const teamIdx = findMatch(HEADER_ALIASES.team_or_orchard);
+      if (teamIdx !== -1) {
+        mapping.team_or_orchard = teamIdx;
+        usedIndices.add(teamIdx);
+      }
+
       return mapping;
     }
 
     function downloadSampleRosterCsv() {
-      const headers = ['Employee Number', 'First Name', 'Last Name', 'ID / Passport', 'Gender', 'Team / Orchard'];
+      const headers = ['Employee Number', 'First Name', 'Last Name', 'ID / Passport Number', 'Gender', 'Team / Orchard'];
       const sampleRows = [
-        ['P1001', 'Sipho', 'Dlamini', '9201015800081', 'Male', 'Orchard Team A'],
-        ['P1002', 'Nomvula', 'Khumalo', '9503140800084', 'Female', 'Packing Shed'],
-        ['P031', 'Ms Z', 'Baleni', '8811205001087', 'Female', 'Harvesting Crew'],
-        ['P1003', 'Jan', 'van der Merwe', '8505125001082', 'Male', 'Workshop & Fleet'],
-        ['P1004', 'Zanele', 'Mthembu', '9807220900085', 'Female', 'Orchard Team B'],
-        ['P1005', 'Thabo', 'Ndlovu', '', 'Male', 'Harvesting Crew']
+        ['P014', 'Fanisile', 'Mbangi', '7606076135083', 'Male', 'General Farm Worker'],
+        ['P026', 'Mongezi', 'Mbangi', '7812156058084', 'Male', 'General Farm Worker'],
+        ['P031', 'Zodumo', 'Baleni', '8705041336088', 'Female', 'General Farm Worker'],
+        ['P1032', 'Esethu', 'Mbhuse', '9605201266084', 'Female', 'General Farm Worker'],
+        ['P1041', 'Phikolomzi', 'Ntozakhe', '9801296096086', 'Male', 'General Farm Worker']
       ];
 
       const csvContent = [
@@ -3058,6 +3133,8 @@
       const fileInput = document.getElementById('csvFileInput');
       if (fileInput) fileInput.value = '';
       document.getElementById('csvDropZone')?.classList.remove('hidden');
+      document.getElementById('csvTemplateWarningBanner')?.classList.remove('hidden');
+      document.getElementById('csvTemplatePill')?.classList.remove('hidden');
       document.getElementById('csvPreviewSection')?.classList.add('hidden');
       document.getElementById('csvErrorBanner')?.classList.add('hidden');
       const commitBtn = document.getElementById('btnCommitCsvImport');
@@ -3192,6 +3269,8 @@
       parsedCsvEmployees = validRows;
 
       document.getElementById('csvDropZone')?.classList.add('hidden');
+      document.getElementById('csvTemplateWarningBanner')?.classList.add('hidden');
+      document.getElementById('csvTemplatePill')?.classList.add('hidden');
       document.getElementById('csvPreviewSection')?.classList.remove('hidden');
       document.getElementById('csvErrorBanner')?.classList.add('hidden');
 
