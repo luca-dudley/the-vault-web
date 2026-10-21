@@ -216,17 +216,16 @@
 
         <div id="incidentsTableWrapper" class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table id="incidentsTable" class="w-full text-left text-xs min-w-[920px]">
               <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th class="px-4 py-3 font-semibold">Incident Ref</th>
-                  <th class="px-4 py-3 font-semibold">Date &amp; Time</th>
-                  <th class="px-4 py-3 font-semibold">Location / Orchard</th>
-                  <th class="px-4 py-3 font-semibold">Injured Worker</th>
-                  <th class="px-4 py-3 font-semibold">Severity Class</th>
-                  <th class="px-4 py-3 font-semibold">Statutory Trigger</th>
-                  <th class="px-4 py-3 font-semibold">Status</th>
-                  <th class="px-4 py-3 font-semibold text-right">Actions</th>
+                  <th class="px-4 py-3 font-semibold whitespace-nowrap font-mono font-bold min-w-[130px]">Incident Ref</th>
+                  <th class="px-4 py-3 font-semibold whitespace-nowrap min-w-[140px]">Date &amp; Time</th>
+                  <th class="px-4 py-3 font-semibold min-w-[180px]">Location / Orchard</th>
+                  <th class="px-4 py-3 font-semibold min-w-[180px]">Injured Worker</th>
+                  <th class="px-4 py-3 font-semibold whitespace-nowrap min-w-[150px]">Severity Class</th>
+                  <th class="px-4 py-3 font-semibold whitespace-nowrap min-w-[110px]">Status</th>
+                  <th class="px-4 py-3 font-semibold text-right whitespace-nowrap min-w-[170px]">Actions</th>
                 </tr>
               </thead>
               <tbody id="incidentsTableBody" class="divide-y divide-slate-100">
@@ -301,8 +300,11 @@
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between shrink-0">
         <div>
-          <h2 id="incidentModalTitle" class="font-serif text-lg sm:text-xl font-bold text-foreground">Record Workplace Incident / Near Miss</h2>
-          <p class="text-xs text-muted">Statutory recording conforming to OHSA Section 24 and GAR Regulation 9.</p>
+          <div class="flex items-center gap-2">
+            <h2 id="incidentModalTitle" class="font-serif text-lg sm:text-xl font-bold text-foreground">Record Workplace Incident / Near Miss</h2>
+            <span id="readOnlyBadge" class="hidden px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">Sealed Evidentiary Record</span>
+          </div>
+          <p id="incidentModalSubtitle" class="text-xs text-muted">Statutory recording conforming to OHSA Section 24 and GAR Regulation 9.</p>
         </div>
         <button type="button" onclick="closeIncidentModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -350,7 +352,7 @@
           </div>
 
           <!-- Roster Autocomplete Select -->
-          <div class="mb-3">
+          <div id="formEmployeePickerContainer" class="mb-3">
             <label class="block font-medium text-slate-700 mb-1">Quick-Select from Active Employee Roster</label>
             <select id="formEmployeePicker" onchange="handleRosterEmployeeSelect(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs cursor-pointer">
               <option value="">— Select registered worker or choose 'Manual Entry' below —</option>
@@ -486,6 +488,48 @@
                 <input type="date" id="formActionCompletedDate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-primary focus:border-primary outline-none text-xs">
               </div>
             </div>
+
+            <!-- Audited CAPA Status Update Card (Visible only in View Record Mode) -->
+            <div id="capaStatusUpdateCard" class="hidden mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span class="text-xs font-bold text-blue-900 uppercase tracking-wide">Audited CAPA Status Management</span>
+                </div>
+                <span class="text-[10px] text-blue-700 font-medium">OHSA Evidentiary Audit Trail</span>
+              </div>
+              <p class="text-[11px] text-blue-800 leading-relaxed">
+                In accordance with OHSA General Admin Reg 9, incident narratives and root causes are sealed upon certification. You may update remediation progress and completion date below.
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Update Status</label>
+                  <select id="capaUpdateStatus" class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs font-semibold cursor-pointer">
+                    <option value="Open">Open</option>
+                    <option value="Under Investigation">Under Investigation</option>
+                    <option value="Action Pending">Action Pending</option>
+                    <option value="Resolved / Closed">Resolved / Closed</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Actual Completion Date</label>
+                  <input type="date" id="capaUpdateCompletedDate" class="w-full px-3 py-2 border border-blue-300 rounded-lg bg-white focus:ring-primary focus:border-primary outline-none text-xs">
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <div id="capaUpdateSuccessBanner" class="hidden text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>CAPA status successfully updated &amp; audited.</span>
+                </div>
+                <div class="ml-auto">
+                  <button type="button" id="btnUpdateCapaStatus" onclick="handleUpdateCapaStatus()" class="px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span>Update CAPA Status</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -506,11 +550,11 @@
             </div>
           </div>
 
-          <!-- Digital Signature Canvas -->
-          <div>
+          <!-- Digital Signature Canvas (Creation Mode) -->
+          <div id="signatureCanvasContainer">
             <div class="flex items-center justify-between mb-1">
               <label class="block font-medium text-slate-700">Digital Signature (Investigating Officer) *</label>
-              <button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-red-600 hover:underline">Clear Signature</button>
+              <button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-red-600 hover:underline cursor-pointer">Clear Signature</button>
             </div>
             <div class="border border-slate-300 rounded-xl bg-slate-50/50 p-2 relative overflow-hidden">
               <canvas id="signatureCanvas" width="600" height="130" class="w-full h-28 bg-white rounded-lg border border-slate-200 cursor-crosshair touch-none"></canvas>
@@ -518,12 +562,44 @@
             </div>
             <p class="text-[10px] text-muted mt-1">I certify under OHSA General Administrative Regulation 9 that this investigation was conducted diligently and all statements are factual.</p>
           </div>
+
+          <!-- Digital Signature Display (Read-Only Inspection Mode) -->
+          <div id="signatureDisplayContainer" class="hidden">
+            <label class="block font-medium text-slate-700 mb-1">Certified Investigating Officer Signature</label>
+            <div class="border border-slate-200 rounded-xl bg-slate-50 p-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="bg-white border border-slate-200 rounded-lg p-2 h-20 w-52 flex items-center justify-center shrink-0 shadow-xs">
+                <img id="viewSignatureImg" src="" alt="Investigator Signature" class="max-h-full max-w-full object-contain">
+                <span id="viewSignatureFallback" class="hidden text-xs text-slate-400 italic">Signature on record</span>
+              </div>
+              <div class="text-left flex-1 space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                  <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  <span id="viewCertifiedInvestigator">Certified by Investigator</span>
+                </div>
+                <p id="viewCertifiedDesignation" class="text-[11px] text-slate-600">Designation / Role</p>
+                <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span>✓ Digitally Certified under ECTA §13 &amp; OHSA GAR Reg 9(1)</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Modal Actions Footer -->
+        <!-- Modal Actions Footer (Dual Mode: Create vs Read-Only) -->
         <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
-          <button type="button" onclick="closeIncidentModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 font-medium">Cancel</button>
-          <button type="submit" id="btnSubmitIncident" class="px-5 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-sm">Save Incident Report</button>
+          <!-- Create Mode Actions -->
+          <div id="createModalActions" class="flex items-center gap-3">
+            <button type="button" onclick="closeIncidentModal()" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 font-medium cursor-pointer">Cancel</button>
+            <button type="submit" id="btnSubmitIncident" class="px-5 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-all shadow-sm cursor-pointer">Save Incident Report</button>
+          </div>
+          <!-- Read-Only Mode Actions -->
+          <div id="readOnlyModalActions" class="hidden flex items-center gap-3">
+            <button type="button" id="btnModalExportAnnexure" class="px-4 py-2 bg-primary/10 hover:bg-primary hover:text-white text-primary border border-primary/20 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Export Annexure 1 PDF</span>
+            </button>
+            <button type="button" onclick="closeIncidentModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg transition-colors cursor-pointer">Close Record</button>
+          </div>
         </div>
       </form>
 
@@ -716,7 +792,7 @@
           .from('company_employees')
           .select('id, employee_number, first_name, last_name, id_passport_number, gender, team_or_orchard')
           .eq('is_active', true)
-          .order('first_name', { ascending: true });
+          .order('employee_number', { ascending: true });
 
         allRosterEmployees = employees || [];
         populateEmployeePicker(allRosterEmployees);
@@ -750,13 +826,20 @@
     }
     window.formatWorkerName = formatWorkerName;
 
-    // Populate Roster Dropdown
+    // Populate Roster Dropdown (Sorted by Employee Number in ascending alphanumeric order)
     function populateEmployeePicker(employees) {
-      const picker = document.getElementById('formEmployeePicker');
+      const picker = document.getElementById('formEmployeePicker') || document.getElementById('incidentInjuredWorkerSelect');
       if (!picker) return;
+
+      const sorted = [...(employees || [])].sort((a, b) => {
+        const numA = (a.employee_number || '').trim();
+        const numB = (b.employee_number || '').trim();
+        return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
       picker.innerHTML = '<option value="">— Select registered worker or enter manually —</option>' +
-        employees.map(e => `
-          <option value="${e.id}">${escapeHtml(formatWorkerName(e.first_name, e.last_name))} (${escapeHtml(e.employee_number)}) - ${escapeHtml(e.team_or_orchard || 'General')}</option>
+        sorted.map(e => `
+          <option value="${e.id}">[${escapeHtml(e.employee_number || 'N/A')}] ${escapeHtml(formatWorkerName(e.first_name, e.last_name))}</option>
         `).join('');
     }
 
@@ -844,6 +927,8 @@
       renderIncidentsTable(filtered);
     }
 
+    let currentInspectingIncidentId = null;
+
     function renderIncidentsTable(incidents) {
       const loading = document.getElementById('incidentsLoadingState');
       const tableWrapper = document.getElementById('incidentsTableWrapper');
@@ -866,27 +951,33 @@
       tableBody.innerHTML = incidents.map(inc => {
         const ref = inc.incident_number || 'INC-TEMP';
         const dt = formatIncidentDateTime(inc.incident_date, inc.incident_time);
-        const worker = `${escapeHtml(inc.injured_person_name)} <span class="text-slate-400">(${escapeHtml(inc.injured_person_role)})</span>`;
+        
+        let empNum = '';
+        if (inc.employee_id && allRosterEmployees.length > 0) {
+          const matchedEmp = allRosterEmployees.find(e => e.id === inc.employee_id);
+          if (matchedEmp?.employee_number) empNum = matchedEmp.employee_number;
+        }
+        const cleanWorkerName = escapeHtml(inc.injured_person_name || 'Unspecified');
+        const worker = empNum
+          ? `<span class="font-medium text-slate-900">${cleanWorkerName}</span> <span class="font-mono text-slate-400 text-[11px] font-normal">[${escapeHtml(empNum)}]</span>`
+          : `<span class="font-medium text-slate-900">${cleanWorkerName}</span>`;
+
         const severityBadge = getSeverityBadge(inc.incident_severity);
         const statusBadge = getStatusBadge(inc.status);
 
-        const statutoryBadge = inc.is_section_24_statutory
-          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>DoL 7-Day</span>`
-          : `<span class="text-slate-400 text-[10px]">Internal</span>`;
-
         return `
           <tr class="hover:bg-slate-50/70 transition-colors">
-            <td class="px-4 py-3 align-middle font-mono font-bold text-slate-900 text-xs">${escapeHtml(ref)}</td>
-            <td class="px-4 py-3 align-middle text-slate-600 text-xs">${escapeHtml(dt)}</td>
-            <td class="px-4 py-3 align-middle text-slate-800 text-xs max-w-[180px] truncate" title="${escapeHtml(inc.location_or_orchard)}">${escapeHtml(inc.location_or_orchard)}</td>
-            <td class="px-4 py-3 align-middle text-slate-800 text-xs">${worker}</td>
-            <td class="px-4 py-3 align-middle">${severityBadge}</td>
-            <td class="px-4 py-3 align-middle">${statutoryBadge}</td>
-            <td class="px-4 py-3 align-middle">${statusBadge}</td>
-            <td class="px-4 py-3 align-middle text-right">
+            <td class="px-4 py-3 align-middle font-mono font-bold text-slate-900 text-xs whitespace-nowrap min-w-[130px]">${escapeHtml(ref)}</td>
+            <td class="px-4 py-3 align-middle text-slate-600 text-xs whitespace-nowrap min-w-[140px]">${escapeHtml(dt)}</td>
+            <td class="px-4 py-3 align-middle text-slate-800 text-xs min-w-[180px] max-w-[220px] truncate" title="${escapeHtml(inc.location_or_orchard || '')}">${escapeHtml(inc.location_or_orchard || '—')}</td>
+            <td class="px-4 py-3 align-middle text-slate-800 text-xs min-w-[180px]">${worker}</td>
+            <td class="px-4 py-3 align-middle whitespace-nowrap min-w-[150px]">${severityBadge}</td>
+            <td class="px-4 py-3 align-middle whitespace-nowrap min-w-[110px]">${statusBadge}</td>
+            <td class="px-4 py-3 align-middle text-right whitespace-nowrap min-w-[170px]">
               <div class="flex items-center justify-end gap-1.5">
-                <button type="button" onclick="openIncidentModal('${inc.id}')" class="px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:text-primary hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer" title="View or edit details">
-                  View / Edit
+                <button type="button" onclick="openIncidentModal('${inc.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:text-primary hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer" title="View statutory incident record">
+                  <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  <span>View Record</span>
                 </button>
                 <button type="button" onclick="handleExportDolAnnexure1('${inc.id}')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white rounded-lg border border-primary/20 transition-all cursor-pointer" title="Generate Department of Employment & Labour Annexure 1 PDF">
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -899,17 +990,60 @@
       }).join('');
     }
 
+    // List of form input field IDs for toggling read-only inspection state
+    const incidentFieldIds = [
+      'formIncidentDate', 'formIncidentTime', 'formLocation', 'formInjuredName',
+      'formInjuredIdNo', 'formInjuredRole', 'formInjuredGender', 'formSeverity',
+      'formStatus', 'formNatureOfInjury', 'formBodyPart', 'formEquipment',
+      'formIsSection24', 'formDescription', 'formRootCause', 'formCapa',
+      'formActionAssignedTo', 'formActionTargetDate', 'formActionCompletedDate',
+      'formInvestigatedBy', 'formInvestigatorRole'
+    ];
+
+    function setFormInspectionMode(isReadOnly) {
+      incidentFieldIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (isReadOnly) {
+          el.setAttribute('disabled', 'true');
+          el.setAttribute('readonly', 'true');
+          el.classList.add('bg-slate-100', 'text-slate-700', 'cursor-not-allowed', 'border-slate-200');
+        } else {
+          el.removeAttribute('disabled');
+          el.removeAttribute('readonly');
+          el.classList.remove('bg-slate-100', 'text-slate-700', 'cursor-not-allowed');
+        }
+      });
+    }
+
     // 4. Modal Interactions & Signature Pad
     function openIncidentModal(incidentId = null) {
       const modal = document.getElementById('incidentModal');
       const form = document.getElementById('incidentForm');
       form.reset();
       modal?.classList.remove('hidden');
-      initSignatureCanvas();
-      clearSignatureCanvas();
+
+      currentInspectingIncidentId = incidentId;
+
+      const titleEl = document.getElementById('incidentModalTitle');
+      const subtitleEl = document.getElementById('incidentModalSubtitle');
+      const readOnlyBadge = document.getElementById('readOnlyBadge');
+      const pickerContainer = document.getElementById('formEmployeePickerContainer');
+      const capaCard = document.getElementById('capaStatusUpdateCard');
+      const sigCanvasContainer = document.getElementById('signatureCanvasContainer');
+      const sigDisplayContainer = document.getElementById('signatureDisplayContainer');
+      const createActions = document.getElementById('createModalActions');
+      const readOnlyActions = document.getElementById('readOnlyModalActions');
+      const modalExportBtn = document.getElementById('btnModalExportAnnexure');
 
       if (incidentId) {
-        document.getElementById('incidentModalTitle').textContent = 'Edit Statutory Incident Report';
+        // READ-ONLY INSPECTION MODE (Evidentiary Record)
+        titleEl.textContent = 'Statutory Workplace Incident Record';
+        if (subtitleEl) subtitleEl.textContent = 'OHSA Section 24 & GAR Reg 9 tamper-evident audit record. Historical narrative is legally sealed.';
+        readOnlyBadge?.classList.remove('hidden');
+        pickerContainer?.classList.add('hidden');
+        setFormInspectionMode(true);
+
         const inc = allIncidents.find(i => i.id === incidentId);
         if (inc) {
           document.getElementById('incidentId').value = inc.id;
@@ -937,12 +1071,60 @@
           document.getElementById('formInvestigatedBy').value = inc.investigated_by_name;
           document.getElementById('formInvestigatorRole').value = inc.investigated_by_role;
 
+          // Configure CAPA Status Update Card
+          capaCard?.classList.remove('hidden');
+          const capaStatusSelect = document.getElementById('capaUpdateStatus');
+          const capaCompletedDateInput = document.getElementById('capaUpdateCompletedDate');
+          if (capaStatusSelect) capaStatusSelect.value = inc.status || 'Open';
+          if (capaCompletedDateInput) capaCompletedDateInput.value = inc.action_completed_date || '';
+          document.getElementById('capaUpdateSuccessBanner')?.classList.add('hidden');
+
+          // Signature display
+          sigCanvasContainer?.classList.add('hidden');
+          sigDisplayContainer?.classList.remove('hidden');
+          const sigImg = document.getElementById('viewSignatureImg');
+          const sigFallback = document.getElementById('viewSignatureFallback');
           if (inc.investigator_signature) {
-            loadExistingSignature(inc.investigator_signature);
+            sigImg.src = inc.investigator_signature;
+            sigImg.classList.remove('hidden');
+            sigFallback?.classList.add('hidden');
+          } else {
+            sigImg?.classList.add('hidden');
+            sigFallback?.classList.remove('hidden');
+          }
+
+          const certInv = document.getElementById('viewCertifiedInvestigator');
+          const certDes = document.getElementById('viewCertifiedDesignation');
+          if (certInv) certInv.textContent = `Certified by ${inc.investigated_by_name || 'Investigating Officer'}`;
+          if (certDes) certDes.textContent = `${inc.investigated_by_role || 'Safety Officer'}${inc.reported_at ? ' • Recorded ' + inc.reported_at.slice(0, 10) : ''}`;
+
+          // Actions display
+          createActions?.classList.add('hidden');
+          readOnlyActions?.classList.remove('hidden');
+          if (modalExportBtn) {
+            modalExportBtn.onclick = () => handleExportDolAnnexure1(inc.id);
           }
         }
       } else {
-        document.getElementById('incidentModalTitle').textContent = 'Record Workplace Incident / Near Miss';
+        // CREATION MODE (New Incident Capture)
+        titleEl.textContent = 'Record Workplace Incident / Near Miss';
+        if (subtitleEl) subtitleEl.textContent = 'Statutory recording conforming to OHSA Section 24 and GAR Regulation 9.';
+        readOnlyBadge?.classList.add('hidden');
+        pickerContainer?.classList.remove('hidden');
+        setFormInspectionMode(false);
+        capaCard?.classList.add('hidden');
+
+        // Signature canvas setup
+        sigDisplayContainer?.classList.add('hidden');
+        sigCanvasContainer?.classList.remove('hidden');
+        setTimeout(() => {
+          initSignatureCanvas();
+          clearSignatureCanvas();
+        }, 60);
+
+        createActions?.classList.remove('hidden');
+        readOnlyActions?.classList.add('hidden');
+
         document.getElementById('incidentId').value = '';
         
         // Auto-generate reference number for tenant (e.g. INC-2026-001)
@@ -969,6 +1151,60 @@
       }
     }
 
+    // Audited CAPA Status Mutation Handler
+    async function handleUpdateCapaStatus() {
+      if (!currentInspectingIncidentId) return;
+      const inc = allIncidents.find(i => i.id === currentInspectingIncidentId);
+      if (!inc) return;
+
+      const btn = document.getElementById('btnUpdateCapaStatus');
+      const origContent = btn.innerHTML;
+      btn.innerText = 'Updating...';
+      btn.disabled = true;
+
+      try {
+        const newStatus = document.getElementById('capaUpdateStatus')?.value || 'Open';
+        const completedDate = document.getElementById('capaUpdateCompletedDate')?.value || null;
+
+        const { error } = await window.dbClient
+          .from('incident_reports')
+          .update({
+            status: newStatus,
+            action_completed_date: completedDate,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', inc.id);
+
+        if (error) throw error;
+
+        // Update local object
+        inc.status = newStatus;
+        inc.action_completed_date = completedDate;
+        inc.updated_at = new Date().toISOString();
+
+        // Update form inputs to keep view synchronized
+        const formStatus = document.getElementById('formStatus');
+        const formCompDate = document.getElementById('formActionCompletedDate');
+        if (formStatus) formStatus.value = newStatus;
+        if (formCompDate) formCompDate.value = completedDate || '';
+
+        // Refresh register table
+        applyIncidentFilters();
+
+        const successBanner = document.getElementById('capaUpdateSuccessBanner');
+        if (successBanner) {
+          successBanner.classList.remove('hidden');
+          setTimeout(() => successBanner.classList.add('hidden'), 4000);
+        }
+      } catch (err) {
+        console.error('[Incidents] CAPA update error:', err);
+        alert(`Failed to update CAPA status: ${err.message || 'Unknown error'}`);
+      } finally {
+        btn.innerHTML = origContent;
+        btn.disabled = false;
+      }
+    }
+
     function closeIncidentModal() {
       document.getElementById('incidentModal')?.classList.add('hidden');
       clearSignatureCanvas();
@@ -982,42 +1218,53 @@
       }
     }
 
-    // HTML5 Signature Canvas
+    // HTML5 Signature Canvas (High-DPI & Mobile Touch Unified)
     function initSignatureCanvas() {
       signatureCanvas = document.getElementById('signatureCanvas');
       if (!signatureCanvas) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = signatureCanvas.getBoundingClientRect();
+      const w = rect.width || signatureCanvas.offsetWidth || 500;
+      const h = rect.height || signatureCanvas.offsetHeight || 112;
+
+      signatureCanvas.width = w * dpr;
+      signatureCanvas.height = h * dpr;
+
       signatureCtx = signatureCanvas.getContext('2d');
+      signatureCtx.scale(dpr, dpr);
       signatureCtx.lineWidth = 2.2;
       signatureCtx.lineCap = 'round';
       signatureCtx.lineJoin = 'round';
-      signatureCtx.strokeStyle = '#1e3a5f';
+      signatureCtx.strokeStyle = '#0f172a';
 
-      const getPos = (e) => {
-        const rect = signatureCanvas.getBoundingClientRect();
+      function getCoords(e) {
+        const r = signatureCanvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const scaleX = signatureCanvas.width / rect.width;
-        const scaleY = signatureCanvas.height / rect.height;
         return {
-          x: (clientX - rect.left) * scaleX,
-          y: (clientY - rect.top) * scaleY
+          x: clientX - r.left,
+          y: clientY - r.top
         };
-      };
+      }
+
+      // Prevent mobile touch scrolling while signing
+      ['touchstart', 'touchmove'].forEach(evt => {
+        signatureCanvas.addEventListener(evt, e => e.preventDefault(), { passive: false });
+      });
 
       const start = (e) => {
-        e.preventDefault();
         isDrawingSignature = true;
         hasSignatureData = true;
         document.getElementById('signaturePlaceholder')?.classList.add('hidden');
-        const pos = getPos(e);
+        const pos = getCoords(e);
         signatureCtx.beginPath();
         signatureCtx.moveTo(pos.x, pos.y);
       };
 
       const move = (e) => {
         if (!isDrawingSignature) return;
-        e.preventDefault();
-        const pos = getPos(e);
+        const pos = getCoords(e);
         signatureCtx.lineTo(pos.x, pos.y);
         signatureCtx.stroke();
       };
@@ -1037,11 +1284,15 @@
       if (!signatureCanvas) {
         signatureCanvas = document.getElementById('signatureCanvas');
       }
-      if (signatureCanvas && !signatureCtx) {
+      if (!signatureCanvas) return;
+      if (!signatureCtx) {
         signatureCtx = signatureCanvas.getContext('2d');
       }
       if (signatureCtx && signatureCanvas) {
+        signatureCtx.save();
+        signatureCtx.setTransform(1, 0, 0, 1, 0, 0);
         signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        signatureCtx.restore();
       }
       hasSignatureData = false;
       document.getElementById('signaturePlaceholder')?.classList.remove('hidden');
@@ -1051,8 +1302,12 @@
       if (!base64 || !signatureCanvas) return;
       const img = new Image();
       img.onload = () => {
+        if (!signatureCtx) signatureCtx = signatureCanvas.getContext('2d');
+        signatureCtx.save();
+        signatureCtx.setTransform(1, 0, 0, 1, 0, 0);
         signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-        signatureCtx.drawImage(img, 0, 0);
+        signatureCtx.drawImage(img, 0, 0, signatureCanvas.width, signatureCanvas.height);
+        signatureCtx.restore();
         hasSignatureData = true;
         document.getElementById('signaturePlaceholder')?.classList.add('hidden');
       };
@@ -1138,9 +1393,26 @@
 
     // 6. DUAL jsPDF GENERATOR: 
     // Generator 1: Statutory DoL Annexure 1 (GAR 9) Investigation PDF (Portrait A4)
-    async function handleExportDolAnnexure1(incidentId) {
-      const inc = allIncidents.find(i => i.id === incidentId);
-      if (!inc) return;
+    async function handleExportDolAnnexure1(incidentIdOrObj, companyOverride) {
+      let inc = null;
+      if (typeof incidentIdOrObj === 'object' && incidentIdOrObj !== null) {
+        inc = incidentIdOrObj;
+      } else if (incidentIdOrObj) {
+        inc = (allIncidents || []).find(i => i.id === incidentIdOrObj || i.incident_number === incidentIdOrObj);
+        if (!inc && window.dbClient) {
+          try {
+            const { data } = await window.dbClient.from('incidents').select('*').eq('id', incidentIdOrObj).single();
+            if (data) inc = data;
+          } catch (e) {
+            console.warn('[PDF] Failed fetching incident by id:', e);
+          }
+        }
+      }
+
+      if (!inc) {
+        alert('Incident record not found for PDF export.');
+        return;
+      }
 
       if (!window.jspdf || !window.jspdf.jsPDF) {
         alert('PDF Generation library loading. Please try again.');
@@ -1152,154 +1424,385 @@
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 14;
-      const contentW = pageWidth - (margin * 2);
+      const contentW = pageWidth - (margin * 2); // 182mm
 
-      const comp = window.currentCompanyData || {};
-      const companyName = comp.name || document.getElementById('topbar-company-name')?.textContent || 'Simple Solutions';
+      // Dynamic Company Profile
+      const comp = companyOverride || window.currentCompanyData || {};
+      const companyName = (comp.trade_name || comp.name || document.getElementById('topbar-company-name')?.textContent || 'Estate Safety Record').trim();
 
-      // Outer Formal Border
-      doc.setDrawColor(30, 58, 95);
-      doc.setLineWidth(0.8);
-      doc.rect(margin, margin, contentW, pageHeight - (margin * 2));
+      // Dynamic Incident Field Extraction & Fallbacks
+      const refNumber = inc.incident_number || inc.reference_number || inc.ref_number || 'INC-RECORD';
+      const incidentDate = inc.incident_date || (inc.created_at ? inc.created_at.slice(0, 10) : '—');
+      const incidentTime = inc.incident_time ? inc.incident_time.slice(0, 5) : '';
+      const dateTimeDisplay = `${incidentDate}${incidentTime ? ' at ' + incidentTime : ''}`.trim();
+      const severity = inc.incident_severity || inc.severity || 'Unspecified';
+      const isSec24 = Boolean(inc.is_section_24_statutory || inc.is_section_24 || inc.statutory_trigger);
 
-      // Header Block
-      doc.setFillColor(30, 58, 95);
-      doc.rect(margin, margin, contentW, 20, 'F');
+      const workerName = inc.injured_person_name || inc.injured_worker_name || inc.worker_name || 'Unspecified';
+      const workerIdNumber = inc.injured_person_id_number || inc.id_passport_number || inc.id_number || 'Not Stated';
+      const workerRole = inc.injured_person_role || inc.worker_role || inc.occupation || 'General Farm Employee';
+      const workerGender = inc.gender || 'Not Specified';
+      const workerClockNum = inc.employee_number || inc.clock_number || (inc.employee_id ? 'EMP-' + String(inc.employee_id).slice(0, 6) : 'Direct Record');
 
+      const locationOrchard = inc.location_or_orchard || inc.incident_location || inc.location || '—';
+      const equipment = inc.equipment_chemical_involved || inc.machinery_involved || inc.equipment || 'None identified';
+      const natureOfInjury = inc.nature_of_injury || inc.injury_type || 'None reported';
+      const bodyPart = inc.body_part || 'N/A';
+      const incidentStatus = (inc.status || 'Reported / Open').toUpperCase();
+
+      const descriptionNarrative = inc.incident_description || inc.description_narrative || inc.description || 'No detailed narrative recorded on file.';
+      const rootCauseNarrative = inc.root_cause_analysis || inc.root_cause || 'Root cause investigation under review by safety committee.';
+      const capaNarrative = inc.corrective_preventative_actions || inc.capa_plan || inc.capa || 'Preventative action plan pending final committee review.';
+
+      const capaAssignedTo = inc.action_assigned_to || inc.capa_assigned_to || 'Assigned Safety Officer';
+      const capaTargetDate = inc.action_target_date || inc.capa_target_date || 'Pending';
+      const capaCompletedDate = inc.action_completed_date || inc.capa_completed_date || 'Pending';
+
+      const investigatorName = inc.investigated_by_name || inc.investigator_name || 'Investigating Officer';
+      const investigatorRole = inc.investigated_by_role || inc.investigator_role || 'OHSA Safety Officer';
+      const investigatorSig = inc.investigator_signature || inc.investigator_signature_data || inc.supervisor_signature_data || null;
+      const recordDateStr = inc.reported_at ? inc.reported_at.slice(0, 10) : (inc.incident_date || new Date().toISOString().slice(0, 10));
+
+      let currentY = margin + 4;
+
+      // 1. MASTHEAD (Matching Page 1 of Attendance Register Design System)
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(30, 58, 95);
+      doc.text(companyName.toUpperCase(), margin, currentY);
+
+      currentY += 5.5;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
-      doc.setTextColor(255, 255, 255);
-      doc.text('DEPARTMENT OF EMPLOYMENT AND LABOUR • OCCUPATIONAL HEALTH AND SAFETY ACT 85 OF 1993', pageWidth / 2, margin + 6, { align: 'center' });
-      doc.setFontSize(10.5);
-      doc.text('GENERAL ADMINISTRATIVE REGULATIONS 9(1) — ANNEXURE 1', pageWidth / 2, margin + 12, { align: 'center' });
+      doc.setTextColor(15, 23, 42);
+      doc.text('STATUTORY INCIDENT INVESTIGATION REPORT (OHSA GAR 9 - ANNEXURE 1)', margin, currentY);
+
+      currentY += 4.5;
+      doc.setFont('helvetica', 'italic');
       doc.setFontSize(7.5);
-      doc.setTextColor(203, 213, 225);
-      doc.text('RECORDING AND INVESTIGATION OF WORKPLACE INCIDENTS', pageWidth / 2, margin + 17, { align: 'center' });
+      doc.setTextColor(100, 116, 139);
+      doc.text('General Administrative Regulations 9(1) • Statutory Recording & Causality Record', margin, currentY);
 
-      let currentY = margin + 25;
+      currentY += 4;
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.5);
+      doc.line(margin, currentY, margin + contentW, currentY);
 
-      // Helper: Section Box Banner
-      const renderSectionHeader = (title) => {
-        doc.setFillColor(241, 245, 249);
+      currentY += 3.5;
+
+      // 2. DYNAMIC 4-BOX METRIC SUMMARY STRIP (Height = 14mm, boxW = 43.25mm)
+      const cardStripY = currentY;
+      const cardH = 14;
+      const cardGap = 3;
+      const boxW = (contentW - (cardGap * 3)) / 4; // 43.25mm
+
+      const metricCards = [
+        { label: 'INCIDENT REF', value: refNumber, color: [15, 23, 42] },
+        { label: 'DATE & TIME', value: dateTimeDisplay, color: [15, 23, 42] },
+        { label: 'SEVERITY CLASS', value: severity, color: [15, 23, 42] },
+        { label: 'SECTION 24 TRIGGER', value: isSec24 ? 'YES (MANDATORY 7-DAY)' : 'NO (INTERNAL OHSA)', color: isSec24 ? [185, 28, 28] : [30, 58, 95] }
+      ];
+
+      metricCards.forEach((c, idx) => {
+        const bx = margin + (idx * (boxW + cardGap));
         doc.setDrawColor(203, 213, 225);
-        doc.rect(margin, currentY, contentW, 5.5, 'FD');
+        doc.setLineWidth(0.4);
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(bx, cardStripY, boxW, cardH, 1.5, 1.5, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text(c.label, bx + 3.5, cardStripY + 4.5);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(c.color[0], c.color[1], c.color[2]);
+        const valLines = doc.splitTextToSize(String(c.value || '—'), boxW - 7);
+        doc.text(valLines[0], bx + 3.5, cardStripY + 9.8);
+      });
+
+      currentY = cardStripY + cardH + 3.5;
+
+      // Card Container & Page Space Helpers
+      const ensurePageSpace = (neededHeight) => {
+        if (currentY + neededHeight > pageHeight - margin - 8) {
+          doc.addPage();
+          currentY = margin + 4;
+          return true;
+        }
+        return false;
+      };
+
+      const drawSectionCard = (y, totalH, title) => {
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.4);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin, y, contentW, totalH, 1.5, 1.5, 'FD');
+
+        doc.setFillColor(241, 245, 249);
+        doc.roundedRect(margin, y, contentW, 5.5, 1.5, 1.5, 'F');
+        doc.setDrawColor(203, 213, 225);
+        doc.line(margin, y + 5.5, margin + contentW, y + 5.5);
+
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
         doc.setTextColor(30, 58, 95);
-        doc.text(title, margin + 3, currentY + 4);
-        currentY += 7.5;
+        doc.text(title, margin + 4, y + 4);
       };
 
-      // SECTION A: EMPLOYER PARTICULARS
-      renderSectionHeader('SECTION A: EMPLOYER / REGISTERED USER PARTICULARS');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(51, 65, 85);
-      doc.text(`1. Name of Employer: ${companyName}`, margin + 3, currentY);
-      doc.text(`2. Trade Name / Estate: ${companyName}`, margin + (contentW / 2), currentY);
-      currentY += 4.5;
-      doc.text(`3. Physical Address: ${comp.postal_address || 'Registered Headquarters'}`, margin + 3, currentY);
-      doc.text(`4. VAT / Reg No: ${comp.vat_number || 'On File'}`, margin + (contentW / 2), currentY);
-      currentY += 4.5;
-      doc.text(`5. Contact Telephone: ${comp.phone || '025 960 2257'}`, margin + 3, currentY);
-      doc.text(`6. Email: ${comp.contact_email || 'safety@thevault.co.za'}`, margin + (contentW / 2), currentY);
-      currentY += 7;
+      const col1X = margin + 4;
+      const col2X = margin + (contentW / 2) + 2;
 
-      // SECTION B: INJURED PERSON
-      renderSectionHeader('SECTION B: PARTICULARS OF INJURED PERSON');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      doc.setTextColor(51, 65, 85);
-      doc.text(`1. Full Names: ${inc.injured_person_name}`, margin + 3, currentY);
-      doc.text(`2. ID / Passport: ${inc.injured_person_id_number || 'N/A'}`, margin + (contentW / 2), currentY);
-      currentY += 4.5;
-      doc.text(`3. Occupation / Role: ${inc.injured_person_role}`, margin + 3, currentY);
-      doc.text(`4. Gender: ${inc.gender || 'Not Specified'}`, margin + (contentW / 2), currentY);
-      currentY += 7;
+      // 3. SECTION A: EMPLOYER / REGISTERED USER PARTICULARS
+      const secABodyH = 16.5;
+      const secATotalH = 5.5 + secABodyH;
+      ensurePageSpace(secATotalH);
+      drawSectionCard(currentY, secATotalH, 'SECTION A: EMPLOYER / REGISTERED USER PARTICULARS');
+      let textY = currentY + 5.5 + 3.5;
 
-      // SECTION C: INCIDENT PARTICULARS
-      renderSectionHeader('SECTION C: PARTICULARS OF INCIDENT & CAUSAL SUBSTANCE');
-      doc.text(`1. Date of Incident: ${inc.incident_date}`, margin + 3, currentY);
-      doc.text(`2. Time: ${inc.incident_time}`, margin + 60, currentY);
-      doc.text(`3. Incident Ref #: ${inc.incident_number}`, margin + 115, currentY);
-      currentY += 4.5;
-      doc.text(`4. Specific Location / Block: ${inc.location_or_orchard}`, margin + 3, currentY);
-      currentY += 4.5;
-      doc.text(`5. Severity Classification: ${inc.incident_severity}`, margin + 3, currentY);
-      doc.text(`6. Section 24 Statutory Trigger: ${inc.is_section_24_statutory ? 'YES (MANDATORY 7-DAY DoL NOTICE)' : 'NO (INTERNAL OHSA RECORD)'}`, margin + 85, currentY);
-      currentY += 4.5;
-      doc.text(`7. Nature of Injury / Illness: ${inc.nature_of_injury || 'None Reported'}`, margin + 3, currentY);
-      doc.text(`8. Body Part: ${inc.body_part || 'N/A'}`, margin + (contentW / 2), currentY);
-      currentY += 4.5;
-      doc.text(`9. Equipment / Chemical Involved: ${inc.equipment_chemical_involved || 'None'}`, margin + 3, currentY);
-      currentY += 7;
-
-      // SECTION D: DESCRIPTION
-      renderSectionHeader('SECTION D: DESCRIPTION OF INCIDENT & CIRCUMSTANCES');
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(6.8);
-      const wrappedDesc = doc.splitTextToSize(inc.incident_description || 'No detailed narrative provided.', contentW - 6);
-      doc.text(wrappedDesc, margin + 3, currentY);
-      currentY += (wrappedDesc.length * 3.5) + 4;
+      doc.setTextColor(15, 23, 42);
 
-      // SECTION E: ROOT CAUSE
-      renderSectionHeader('SECTION E: ROOT CAUSE ANALYSIS');
-      const wrappedRoot = doc.splitTextToSize(inc.root_cause_analysis || 'Under investigation.', contentW - 6);
-      doc.text(wrappedRoot, margin + 3, currentY);
-      currentY += (wrappedRoot.length * 3.5) + 4;
+      doc.text(`1. Name of Registered Employer: ${comp.legal_name || comp.name || companyName}`, col1X, textY);
+      doc.text(`2. Trade Name / Estate: ${comp.trade_name || companyName}`, col2X, textY);
+      textY += 4;
+      doc.text(`3. Physical Address: ${comp.postal_address || comp.address || 'Registered Estate Headquarters'}`, col1X, textY);
+      doc.text(`4. VAT / Reg No: ${comp.vat_number || comp.reg_number || 'On File'}`, col2X, textY);
+      textY += 4;
+      doc.text(`5. Contact Telephone: ${comp.phone || '025 960 2257'}`, col1X, textY);
+      doc.text(`6. Safety Officer / Contact Email: ${comp.contact_email || comp.email || 'safety@thevault.co.za'}`, col2X, textY);
 
-      // SECTION F: CORRECTIVE ACTIONS
-      renderSectionHeader('SECTION F: PREVENTATIVE & CORRECTIVE ACTIONS (CAPA)');
-      const wrappedCapa = doc.splitTextToSize(inc.corrective_preventative_actions || 'Action plan pending.', contentW - 6);
-      doc.text(wrappedCapa, margin + 3, currentY);
-      currentY += (wrappedCapa.length * 3.5) + 3;
-      doc.text(`Action Assigned To: ${inc.action_assigned_to}   |   Target Date: ${inc.action_target_date}   |   Status: ${inc.status}`, margin + 3, currentY);
-      currentY += 7;
+      currentY += secATotalH + 2.5;
 
-      // SECTION G: DECLARATION & SIGNATURE
-      if (currentY > pageHeight - margin - 45) {
-        doc.addPage();
-        currentY = margin + 10;
-      }
-      renderSectionHeader('SECTION G: STATUTORY DECLARATION & INVESTIGATOR VERIFICATION');
-      doc.setFont('helvetica', 'italic');
-      doc.setFontSize(6.5);
-      doc.text('I hereby declare that I have investigated the above-mentioned incident in terms of Regulation 9 of the General Administrative Regulations and that the particulars recorded herein are true and correct.', margin + 3, currentY);
-      currentY += 5;
+      // 4. SECTION B: PARTICULARS OF INJURED PERSON
+      const secBBodyH = 12.5;
+      const secBTotalH = 5.5 + secBBodyH;
+      ensurePageSpace(secBTotalH);
+      drawSectionCard(currentY, secBTotalH, 'SECTION B: PARTICULARS OF INJURED PERSON');
+      textY = currentY + 5.5 + 3.5;
 
-      const sigBoxW = (contentW / 2) - 3;
-      // Left: Investigator Signature
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.text(`Investigated By: ${inc.investigated_by_name}`, margin + 3, currentY);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.5);
-      doc.text(`Designation: ${inc.investigated_by_role}`, margin + 3, currentY + 4);
-      doc.text(`Date Recorded: ${inc.reported_at ? inc.reported_at.slice(0, 10) : inc.incident_date}`, margin + 3, currentY + 8);
+      doc.setFontSize(6.8);
+      doc.setTextColor(15, 23, 42);
 
-      if (inc.investigator_signature) {
+      doc.text(`1. Full Names: ${workerName}`, col1X, textY);
+      doc.text(`2. ID / Passport Number: ${workerIdNumber}`, col2X, textY);
+      textY += 4;
+      doc.text(`3. Occupation / Operational Role: ${workerRole}`, col1X, textY);
+      doc.text(`4. Gender: ${workerGender}   |   Employee Ref: ${workerClockNum}`, col2X, textY);
+
+      currentY += secBTotalH + 2.5;
+
+      // 5. SECTION C: CAUSAL MACHINERY, LOCATION & SEQUENCE
+      const secCBodyH = 16.5;
+      const secCTotalH = 5.5 + secCBodyH;
+      ensurePageSpace(secCTotalH);
+      drawSectionCard(currentY, secCTotalH, 'SECTION C: CAUSAL MACHINERY, LOCATION & SEQUENCE');
+      textY = currentY + 5.5 + 3.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      doc.setTextColor(15, 23, 42);
+
+      doc.text(`1. Specific Location / Block: ${locationOrchard}`, col1X, textY);
+      doc.text(`2. Date & Time: ${dateTimeDisplay}`, col2X, textY);
+      textY += 4;
+      doc.text(`3. Machinery / Equipment / Chemical: ${equipment}`, col1X, textY);
+      doc.text(`4. Nature of Injury / Illness: ${natureOfInjury}`, col2X, textY);
+      textY += 4;
+      doc.text(`5. Body Part Affected: ${bodyPart}`, col1X, textY);
+      doc.text(`6. Statutory Status: ${isSec24 ? 'SECTION 24 MANDATORY 7-DAY NOTICE' : 'INTERNAL RECORD (OHSA REG 9)'}`, col2X, textY);
+
+      currentY += secCTotalH + 2.5;
+
+      // 6. SECTION D: DESCRIPTION OF INCIDENT & CIRCUMSTANCES
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      const wrappedDesc = doc.splitTextToSize(descriptionNarrative, contentW - 8);
+      const secDBodyH = Math.max(10, 3.5 + (wrappedDesc.length * 3.4) + 2);
+      const secDTotalH = 5.5 + secDBodyH;
+
+      ensurePageSpace(secDTotalH);
+      drawSectionCard(currentY, secDTotalH, 'SECTION D: DESCRIPTION OF INCIDENT & CIRCUMSTANCES');
+      textY = currentY + 5.5 + 3.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      doc.setTextColor(51, 65, 85);
+      doc.text(wrappedDesc, col1X, textY);
+
+      currentY += secDTotalH + 2.5;
+
+      // 7. SECTION E: ROOT CAUSE ANALYSIS (IMMEDIATE & SYSTEMIC FACTORS)
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      const wrappedRoot = doc.splitTextToSize(rootCauseNarrative, contentW - 8);
+      const secEBodyH = Math.max(10, 3.5 + (wrappedRoot.length * 3.4) + 2);
+      const secETotalH = 5.5 + secEBodyH;
+
+      ensurePageSpace(secETotalH);
+      drawSectionCard(currentY, secETotalH, 'SECTION E: ROOT CAUSE ANALYSIS');
+      textY = currentY + 5.5 + 3.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      doc.setTextColor(51, 65, 85);
+      doc.text(wrappedRoot, col1X, textY);
+
+      currentY += secETotalH + 2.5;
+
+      // 8. SECTION F: PREVENTATIVE & CORRECTIVE ACTIONS (CAPA PLAN)
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      const wrappedCapa = doc.splitTextToSize(capaNarrative, contentW - 8);
+      const secFBodyH = Math.max(14, 3.5 + (wrappedCapa.length * 3.4) + 2 + 4.5);
+      const secFTotalH = 5.5 + secFBodyH;
+
+      ensurePageSpace(secFTotalH);
+      drawSectionCard(currentY, secFTotalH, 'SECTION F: PREVENTATIVE & CORRECTIVE ACTIONS (CAPA PLAN)');
+      textY = currentY + 5.5 + 3.5;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.8);
+      doc.setTextColor(51, 65, 85);
+      doc.text(wrappedCapa, col1X, textY);
+
+      textY += (wrappedCapa.length * 3.4) + 2.5;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(30, 58, 95);
+      doc.text(`Action Assigned To: ${capaAssignedTo}   |   Target Date: ${capaTargetDate}   |   Completion: ${capaCompletedDate}   |   Status: ${incidentStatus}`, col1X, textY);
+
+      currentY += secFTotalH + 3.0;
+
+      // 9. SECTION G: STATUTORY DECLARATION & OFFICIAL VERIFICATION (FOOTER BLOCK SYMMETRY)
+      const footerH = 46;
+      ensurePageSpace(footerH);
+
+      const footerBlockY = currentY;
+      const leftW = 103;
+      const gap = 4;
+      const rightW = 75; // 103 + 4 + 75 = 182mm = contentW
+      const leftX = margin;
+      const rightX = margin + leftW + gap; // 121mm
+
+      // Left Box: Investigator Declaration & Signature
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.4);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(leftX, footerBlockY, leftW, footerH, 1.5, 1.5, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.2);
+      doc.setTextColor(30, 58, 95);
+      doc.text('INVESTIGATING OFFICER DECLARATION (GAR REG 9)', leftX + 4, footerBlockY + 5);
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(5.8);
+      doc.setTextColor(71, 85, 105);
+      const declText = 'I hereby declare that I have investigated the above-mentioned incident in terms of Regulation 9 of the OHSA General Administrative Regulations. The particulars, causal analysis, and remedial actions recorded herein are true, correct, and certified.';
+      const wrappedDecl = doc.splitTextToSize(declText, leftW - 8);
+      doc.text(wrappedDecl, leftX + 4, footerBlockY + 9);
+
+      // Investigator Signature (if present)
+      const sigLineY = footerBlockY + 34;
+      if (investigatorSig) {
         try {
-          doc.addImage(inc.investigator_signature, 'PNG', margin + 3, currentY + 11, 45, 14);
+          doc.addImage(investigatorSig, 'PNG', leftX + 4, footerBlockY + 16, 42, 16);
         } catch (e) {
           console.warn('[PDF] Failed to embed signature:', e);
         }
       }
+      doc.setDrawColor(148, 163, 184);
+      doc.setLineWidth(0.3);
+      doc.line(leftX + 4, sigLineY, leftX + 46, sigLineY);
+      doc.line(leftX + 50, sigLineY, leftX + leftW - 4, sigLineY);
 
-      // Right: Proportional Official Company Stamp
-      const stampBoxX = margin + (contentW / 2) + 10;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      doc.setTextColor(30, 58, 95);
-      doc.text('OFFICIAL ESTATE VERIFICATION SEAL', stampBoxX + 15, currentY, { align: 'center' });
-      await renderCertificateStamp(doc, comp, stampBoxX, currentY + 3);
-
-      // Bottom Disclaimer Footer
+      doc.setFontSize(6.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(investigatorName, leftX + 4, sigLineY + 3.8);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`Statutory Form Annexure 1 • Certified electronically via The Vault by Simple Solutions • Generated: ${new Date().toISOString()}`, pageWidth / 2, pageHeight - margin - 2, { align: 'center' });
+      doc.setFontSize(5.8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(investigatorRole, leftX + 4, sigLineY + 7);
 
-      doc.save(`DoL_Annexure_1_${inc.incident_number}.pdf`);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Date: ${recordDateStr}`, leftX + 50, sigLineY + 3.8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5.8);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Certified Electronic Record', leftX + 50, sigLineY + 7);
+
+      // Right Box: Official Company Seal / Stamp
+      doc.setDrawColor(30, 58, 95);
+      doc.setLineWidth(0.5);
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(rightX, footerBlockY, rightW, footerH, 1.5, 1.5, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(30, 58, 95);
+      doc.text(companyName.toUpperCase(), rightX + (rightW / 2), footerBlockY + 5, { align: 'center', maxWidth: rightW - 8 });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5.8);
+      doc.setTextColor(71, 85, 105);
+      let stampTextY = footerBlockY + 9;
+      if (comp.postal_address || comp.address) {
+        const addrLines = doc.splitTextToSize(comp.postal_address || comp.address, rightW - 8);
+        doc.text(addrLines[0], rightX + (rightW / 2), stampTextY, { align: 'center' });
+        stampTextY += 3.2;
+      }
+      if (comp.vat_number || comp.reg_number) {
+        doc.text(`VAT / Reg: ${comp.vat_number || comp.reg_number}`, rightX + (rightW / 2), stampTextY, { align: 'center' });
+        stampTextY += 3.2;
+      }
+
+      // Circular Official Stamp (30mm x 25mm bounding box)
+      const stampPlacementY = Math.max(stampTextY + 0.5, footerBlockY + 15.5);
+      await renderCertificateStamp(doc, comp, rightX + (rightW - 30) / 2, stampPlacementY);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text('OFFICIAL VERIFIED AUDIT SEAL', rightX + (rightW / 2), footerBlockY + footerH - 2.5, { align: 'center' });
+
+      // 10. RUNNING FOOTER ON ALL PAGES
+      const totalPages = doc.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        doc.setDrawColor(203, 213, 225);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageHeight - margin - 3, margin + contentW, pageHeight - margin - 3);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.2);
+        doc.setTextColor(148, 163, 184);
+        doc.text(
+          `Page ${p} of ${totalPages} — Statutory Form Annexure 1 • Certified electronically via The Vault • Incident Ref: ${refNumber}`,
+          pageWidth / 2,
+          pageHeight - margin,
+          { align: 'center' }
+        );
+      }
+
+      // 11. PROFESSIONAL PDF FILE NAMING: Incident_Report_[Ref]_[Worker]_[Date].pdf
+      const cleanRef = String(refNumber).replace(/[^a-zA-Z0-9-]/g, '_');
+      const cleanWorker = String(workerName).trim().replace(/[^a-zA-Z0-9]/g, '_');
+      let cleanDate = incidentDate;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(incidentDate)) {
+        const [y, m, d] = incidentDate.split('-');
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        cleanDate = `${parseInt(d, 10)}_${months[parseInt(m, 10) - 1]}_${y}`;
+      }
+
+      const filename = `Incident_Report_${cleanRef}_${cleanWorker}_${cleanDate}.pdf`;
+      doc.save(filename);
     }
 
     // Generator 2: SIZA / GlobalG.A.P. Incident Register (Landscape A4)
@@ -1423,6 +1926,8 @@
     window.closeIncidentModal = closeIncidentModal;
     window.handleExportAuditRegisterPdf = handleExportAuditRegisterPdf;
     window.handleExportDolAnnexure1 = handleExportDolAnnexure1;
+    window.generateDoLAnnexure1PDF = handleExportDolAnnexure1;
+    window.handleUpdateCapaStatus = handleUpdateCapaStatus;
     window.handleSaveIncident = handleSaveIncident;
     window.clearSignatureCanvas = clearSignatureCanvas;
     window.handleRosterEmployeeSelect = handleRosterEmployeeSelect;

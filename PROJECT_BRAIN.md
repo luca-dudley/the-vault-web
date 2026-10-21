@@ -137,7 +137,7 @@ Every authenticated route implements or relies upon standard client-side utility
 | `videos` | `id` (Text) | `title` (text), `description` (text), `category` (text, default `'Agriculture'`), `sub_tag` (text), `language` (text, default `'English'`), `total_seconds` (int4), `thumbnail_url` (text), `partner_thumbnails` (JSONB, default `'{}'`), `objectives` (JSONB, default `'[]'`), `questions` (JSONB, default `'[]'`), `curriculum_slug` (text), `company_id` (UUID fk `companies.id`), `company_name` (text), `streams` (JSONB) | `id`, `title`, `total_seconds` NOT NULL. `company_id IS NULL` for master catalog. | Master and tenant-specific video training modules. |
 | `sops` | `id` (UUID) | `title` (text), `description` (text), `category` (text, default `'Agriculture'`), `sub_tag` (text, default `'General Safety'`), `doc_url` (text), `video_id` (text), `partner_docs` (JSONB, default `'{}'`), `curriculum_slug` (text), `company_id` (UUID fk `companies.id`), `company_name` (text), `created_at` (timestamptz), `updated_at` (timestamptz) | `id`, `title`, `doc_url` NOT NULL. `company_id IS NULL` for master catalog. | Standard Operating Procedures repository with partner-branded document download overrides (`partner_docs`). |
 | `user_video_progress` | `id` (UUID) | `user_id` (UUID), `video_id` (text), `video_title` (text), `progress_seconds` (numeric, default `0`), `duration_seconds` (numeric, default `0`), `percentage` (numeric, default `0`), `is_completed` (bool, default `false`), `updated_at` (timestamptz) | `user_id`, `video_id`, `progress_seconds`, `duration_seconds`, `percentage` NOT NULL. Unique composite index on `(user_id, video_id)`. | Granular per-user video watch progress and completion milestones ($\ge 90\%$). |
-| `training_records` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `employee_id` (UUID fk `company_employees.id`), `module_title` (text), `employee_name` (text), `employee_number` (text), `gender` (text), `training_type` (text, default `'Individual'`), `completed_at` (date, default `CURRENT_DATE`), `status` (text, default `'Verified'`), `supervisor_name` (text), `supervisor_signature_data` (text), `employee_signature_data` (text), `signature_url` (text), `batch_session_id` (UUID), `created_at` (timestamptz) | `id`, `employee_name`, `module_title`, `completed_at`, `status` NOT NULL. | Tamper-evident employee statutory training sign-offs with canvas signatures for individual and group batches. |
+| `training_records` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `employee_id` (UUID fk `company_employees.id`), `module_title` (text), `employee_name` (text), `employee_number` (text), `id_passport_number` (text), `gender` (text), `training_type` (text, default `'Individual'`), `completed_at` (date, default `CURRENT_DATE`), `status` (text, default `'Verified'`), `supervisor_name` (text), `supervisor_signature_data` (text), `employee_signature_data` (text), `signature_url` (text), `batch_session_id` (UUID), `created_at` (timestamptz) | `id`, `employee_name`, `module_title`, `completed_at`, `status` NOT NULL. | Tamper-evident employee statutory training sign-offs with canvas signatures for individual and group batches. |
 | `incident_reports` | `id` (UUID) | `company_id` (UUID fk `companies.id`), `incident_number` (text), `incident_date` (date), `incident_time` (time), `reported_at` (timestamptz), `location_or_orchard` (text), `employee_id` (UUID fk `company_employees.id`), `injured_person_name` (text), `injured_person_id_number` (text), `injured_person_role` (text), `gender` (text), `incident_severity` (text), `nature_of_injury` (text), `body_part` (text), `equipment_chemical_involved` (text), `incident_description` (text), `root_cause_analysis` (text), `corrective_preventative_actions` (text), `action_assigned_to` (text), `action_target_date` (date), `action_completed_date` (date), `is_section_24_statutory` (bool, default `false`), `section_24_reported_at` (timestamptz), `investigated_by_name` (text), `investigated_by_role` (text), `investigator_signature` (text), `status` (text, default `'Open'`), `attachments` (JSONB, default `'[]'`), `created_at` (timestamptz), `updated_at` (timestamptz) | `id`, `company_id`, `incident_number`, `incident_date`, `incident_time`, `location_or_orchard`, `injured_person_name`, `injured_person_role`, `incident_severity`, `incident_description`, `root_cause_analysis`, `corrective_preventative_actions`, `action_assigned_to`, `action_target_date`, `investigated_by_name`, `investigated_by_role`, `investigator_signature`, `status` NOT NULL. | Statutory workplace incident and near-miss register under OHSA Section 24, DoL Annexure 1, and SIZA Social Audit standards. |
 | `corporate_partners` | `id` (UUID) | `name` (text), `slug` (text), `logo_url` (text), `sponsored_crop_pack` (text), `contact_email` (text), `created_at` (timestamptz) | `id`, `name`, `slug`, `sponsored_crop_pack` NOT NULL. | Commercial processor and packhouse partners sponsoring grower networks. |
 | `partner_grower_registry` | `id` (UUID) | `partner_id` (UUID fk `corporate_partners.id`), `grower_code` (text), `company_name` (text), `contact_email` (text), `is_active` (bool, default `true`), `claimed_by_company_id` (UUID fk `companies.id`), `claimed_at` (timestamptz), `created_at` (timestamptz) | `id`, `grower_code`, `company_name` NOT NULL. | Registry of issued grower codes and their claiming farm enterprise. |
@@ -733,6 +733,65 @@ graph TD
   - Raw video lengths (3–7 minutes) are compliance-insufficient for formal statutory SIZA/GlobalG.A.P. registers because an estate safety induction legally encompasses the video screening, supervisor verbal explanation, comprehension Q&A, and practical site hazard walk.
   - Formatted the session duration cleanly within the Page 1 metadata strip (`x=154`, `metaY + 10.5`) alongside Trainer/Supervisor, Training Date, and Session Ref.
   - Updated curriculum header label from `KEY LEARNING OBJECTIVES:` to `KEY RISK RELATED LEARNING OBJECTIVES:` to align with statutory agricultural OHS and GlobalG.A.P./SIZA audit requirements.
+
+### Worker Digital Signatures, Date-Range Bulk PDF Export, and ID Number Field Integration (2026-10-21)
+- **Database Schema Migration & RPC Hardening (`supabase/migrations/20261021100000_worker_signatures_and_id_numbers.sql`)**:
+  - Added `id_passport_number text` column to `public.training_records` with index `idx_training_records_company_id_passport` on `(company_id, id_passport_number)`.
+  - Backfilled existing training records with `id_passport_number` from `public.company_employees`.
+  - Updated atomic RPC `public.log_induction_session`:
+    - Resolves `id_passport_number` from trainee JSON payload with automated fallback lookup to `public.company_employees.id_passport_number` when `employee_id` is supplied.
+    - Stores worker digital signatures via `NULLIF(TRIM(v_trainee->>'employee_signature_data'), '')`, ensuring records remain `NULL` when workers do not sign on device.
+- **Trainee Digital Signature Pad in Induction Completion Drawer (`module.html`)**:
+  - Integrated `#traineeSignatureModal` canvas pop-over pad allowing workers undergoing induction (selected farm roster crew or unlisted guest workers) to optionally sign on device.
+  - Added compact `[ ✍ Sign ]` and `[ ✍ Signed ✓ ]` status triggers with clear/resign controls directly inside each selected worker card and guest worker row.
+  - Added dedicated `ID / Passport #` field (`guest-id-number`) in guest worker repeater cards.
+  - Implemented attestation fallback: sends base64 PNG data in `p_trainees` if worker signs on device, or `null` if they do not (invoking statutory ECTA §13 attestation).
+- **Statutory Attendance Register PDF Redesign (`records.html`)**:
+  - Updated `generateAttendanceRegisterPDF` table layout to the required statutory 5-column structure:
+    `NO.` (12mm) | `EMPLOYEE NO` (36mm) | `EMPLOYEE NAME & SURNAME` (82mm) | `ID / PASSPORT NUMBER` (55mm) | `EMPLOYEE SIGNATURE / CONFIRMATION` (80mm).
+  - Dynamically sized cell widths to fit landscape A4 (`tableW = 265mm`) without clipping.
+  - Conditional signature vs. attestation rendering:
+    - **Signed**: Renders actual vector/base64 signature image cleanly inside the row cell with fallback text removed.
+    - **Unsigned**: Displays statutory fallback text `Attested (ECTA §13)`.
+  - Maintained statutory session duration display: `20 Minutes (Video & Practical)`.
+- **Bulk Date-Range Attendance Register Export Engine (`records.html`)**:
+  - Added `[ 📦 Bulk Export Registers (Date Range) ]` button in the header action bar of `records.html`.
+  - Built responsive `#bulkExportModal` dialog featuring Start Date (defaults to 30 days ago), End Date (defaults to today), optional Module Filter dropdown, and dual format options (ZIP archive or consolidated Merged PDF).
+  - Implemented modular `buildAttendanceRegisterPDFDoc` core generator with curriculum and sponsor logo caching, progress feedback indicators, and dynamic ZIP bundling via `JSZip` (with Merged PDF generation fallback).
+  - Filename conventions adhere strictly to statutory naming: `Vault_Training_Registers_[StartDate]_to_[EndDate].zip` (or `.pdf`).
+
+### Incident UI & PDF Alignment, Mobile Signature Canvas Fix, and Bulk Export Button Placement (2026-10-21)
+- **Incident Table Cleanup & Roster Sorting (`incidents.html`)**:
+  - Removed the `STATUTORY TRIGGER` column entirely from both `#incidentsTable` header `<th>` and row `<td>`.
+  - Cleaned up the Injured Worker cell: removed occupation subtext (`General Farm Employee`) and rendered the worker name and employee number on a single clean baseline.
+  - Sorted `#formEmployeePicker` (Quick-Select from Active Employee Roster) strictly by Employee Number in ascending alphanumeric order using natural sort (`EMP-001`, `EMP-002`, `EMP-010`), formatting option labels cleanly as `[EMP-001] Sipho Sithole` without trailing generic dashes.
+- **Executive Incident PDF Overhaul — DoL Annexure 1 (`incidents.html`)**:
+  - Re-architected `generateDoLAnnexure1PDF` (and its alias `handleExportDolAnnexure1`) to match the exact visual design system, typography, color tokens, and structured boxed card layout of Page 1 of `generateAttendanceRegisterPDF` in `records.html`.
+  - **Strict Color Tokens & Geometry**: Monochromatic executive palette: Navy Primary (`#1e3a5f`), Dark Slate Body (`#0f172a`), Muted Subtitles (`#64748b`), Card Borders (`#cbd5e1`), Section Title Bar Fills (`#f1f5f9`), and Container Card Backgrounds (`#f8fafc`). Strict 14mm margins (`contentWidth = 182mm`) on Portrait A4.
+  - **Executive Masthead**: Clean white background with dynamic company name `(company.trade_name || company.name || 'ESTATE RECORD').toUpperCase()` in 13pt bold Navy, statutory subtitle in 8.5pt bold slate, legal reference in 7.5pt muted italic, and thin divider rule.
+  - **Dynamic 4-Box Metric Strip**: Equal-width 43.25mm cards (14mm height, 3mm gap) displaying `INCIDENT REF`, `DATE & TIME`, `SEVERITY CLASS`, and `SECTION 24 TRIGGER` (dynamically highlighted in dark red `[185, 28, 28]` if statutory Section 24, else Navy).
+  - **Structured Boxed Section Cards (Sections A to F)**: Each section is enclosed in a bordered card (`#cbd5e1`) with a 5.5mm title band (`#f1f5f9` fill, 7.5pt bold Navy text) and 3.5mm-4mm inner cell padding to prevent text-border collision:
+    - *Section A (Employer Particulars)*: 2-column key/value grid (Registered Employer, Trade Name, Physical Address, VAT/Reg, Telephone, Safety Email).
+    - *Section B (Injured Person Particulars)*: 2-column grid (Full Names, ID/Passport Number, Occupation/Role, Gender & Employee Clock Ref).
+    - *Section C (Causal Machinery & Sequence)*: 2-column grid (Specific Location/Block, Date & Time, Machinery/Equipment/Chemical, Nature of Injury, Body Part, Statutory Status).
+    - *Sections D & E (Narrative & Root Cause)*: Dynamic auto-wrapping using `doc.splitTextToSize(..., contentWidth - 8)` with dynamic height calculation and automated multi-page continuation checks.
+    - *Section F (CAPA Plan)*: Enclosed action plan narrative with an integrated metadata status bar (`Assigned To`, `Target Date`, `Completion Date`, `Status`).
+  - **Symmetrical Dual-Box Verification Footer (Section G)**: Balanced 46mm-height footer:
+    - *Left Card (103mm width)*: Investigating Officer Declaration under GAR Reg 9, embedded base64 signature image, printed officer name, designation, and certified electronic record date.
+    - *Right Card (75mm width)*: Registered company name, physical address, VAT number, and centered circular official verification audit seal via `renderCertificateStamp(doc, comp, x, y)`.
+  - **Dynamic Data Binding & Robust Fallbacks**: 100% dynamic mapping supporting full object aliases (`incident_number`/`reference_number`, `injured_person_name`/`injured_worker_name`, `incident_description`/`description_narrative`, `is_section_24_statutory`/`is_section_24`, etc.) and company profile overrides, with database fallback fetching.
+  - **Running Footers & Sanitized File Naming**: Every page includes a running footer (`Page X of Y — Statutory Form Annexure 1 • Certified electronically via The Vault • Incident Ref: ...`) and exports clean filenames (`Incident_Report_[Ref]_[Worker]_[Date].pdf`).
+- **Bulk Training Registers Export Button Placement (`records.html`)**:
+  - Permanently mounted `[ 📦 Bulk Export Registers (Date Range) ]` in the top-right header action strip right next to `[ Export Audit Pack (DPA) ]` as a prominent primary button (`bg-primary text-white`), removing layout wrapping constraints to ensure visibility on mobile and desktop.
+  - Additionally mounted a secondary trigger directly inside the Training Records Register tab toolbar above the search bar adjacent to `#registerPillCompliance` for immediate one-click access.
+- **Cross-Platform Mobile Signature Canvas Touch & DPI Scaling (`module.html` & `incidents.html`)**:
+  - Implemented unified responsive high-DPI canvas scaling logic across:
+    1. Supervisor signature pad (`#supervisorSignaturePad` in `module.html`).
+    2. Trainee digital signature pad (`#traineeSignaturePad` in `module.html`).
+    3. Investigating officer signature canvas (`#signatureCanvas` in `incidents.html`).
+  - Handled `window.devicePixelRatio` scaling via `canvas.width = rect.width * dpr` and `ctx.scale(dpr, dpr)`.
+  - Standardized coordinate tracking via `clientX - r.left` and `clientY - r.top`.
+  - Added non-passive `touchstart` and `touchmove` event listeners calling `e.preventDefault()` to stop touch-scrolling and coordinate drift on iOS Safari and Android Chrome.
 
 
 ### Upcoming Priority Tasks

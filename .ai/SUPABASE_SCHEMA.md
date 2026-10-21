@@ -1,5 +1,5 @@
 # Live Supabase Schema Manifest
-> **Last Synchronized:** 2026-10-15 08:44:07 UTC
+> **Last Synchronized:** 2026-10-21 09:32:54 UTC
 > **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
 
 ---
@@ -11,7 +11,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict ktL8ivEaoMaNE0YUWpZyYOmVVzx5dS7mYrmdyHdDzdV96dJlPQR0jYaWjOe4cuQ
+\restrict uCUndriWqeGWXjnEXj3lUxXGNMNDTydFaawnsvoi6iEyqgiw0AmmcQ7Gknpca4C
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.11 (Ubuntu 17.11-1.pgdg24.04+2)
@@ -568,6 +568,10 @@ DECLARE
     v_raw_gender text;
     v_name text;
     v_parsed_gender text;
+    v_emp_id uuid;
+    v_emp_number text;
+    v_id_passport_number text;
+    v_employee_sig text;
 BEGIN
     -- 1. Authenticate caller and resolve company_id
     v_company_id := get_my_company_id();
@@ -628,11 +632,37 @@ BEGIN
             v_parsed_gender := 'Male'; -- Fallback default for training sign-offs if unspecified
         END IF;
 
+        v_emp_id := NULLIF(TRIM(v_trainee->>'employee_id'), '')::uuid;
+        v_emp_number := NULLIF(TRIM(v_trainee->>'employee_number'), '');
+        
+        -- Resolve id_passport_number:
+        -- 1. Direct from trainee payload
+        v_id_passport_number := NULLIF(TRIM(v_trainee->>'id_passport_number'), '');
+        -- 2. Fallback: If empty but employee_id exists, lookup from company_employees
+        IF v_id_passport_number IS NULL AND v_emp_id IS NOT NULL THEN
+            SELECT ce.id_passport_number INTO v_id_passport_number
+            FROM public.company_employees ce
+            WHERE ce.id = v_emp_id
+              AND ce.company_id = v_company_id;
+        END IF;
+
+        -- Fallback for employee_number if empty but employee_id exists
+        IF v_emp_number IS NULL AND v_emp_id IS NOT NULL THEN
+            SELECT ce.employee_number INTO v_emp_number
+            FROM public.company_employees ce
+            WHERE ce.id = v_emp_id
+              AND ce.company_id = v_company_id;
+        END IF;
+
+        -- Worker digital signature data: NULLIF empty string, remains NULL if not provided
+        v_employee_sig := NULLIF(TRIM(v_trainee->>'employee_signature_data'), '');
+
         INSERT INTO public.training_records (
             company_id,
             employee_id,
             employee_name,
             employee_number,
+            id_passport_number,
             gender,
             module_title,
             training_type,
@@ -645,15 +675,16 @@ BEGIN
             created_at
         ) VALUES (
             v_company_id,
-            NULLIF(v_trainee->>'employee_id', '')::uuid,
+            v_emp_id,
             v_name,
-            NULLIF(TRIM(v_trainee->>'employee_number'), ''),
+            v_emp_number,
+            v_id_passport_number,
             v_parsed_gender,
             TRIM(p_module_title),
             v_training_type,
             TRIM(p_supervisor_name),
             p_supervisor_signature,
-            NULL, -- Individual canvas signature bypassed in favor of ECTA §13 Supervisor Gate
+            v_employee_sig,
             v_batch_session_id,
             'Verified',
             CURRENT_DATE,
@@ -1519,7 +1550,8 @@ CREATE TABLE public.training_records (
     batch_session_id uuid,
     supervisor_signature_data text,
     employee_signature_data text,
-    employee_id uuid
+    employee_id uuid,
+    id_passport_number text
 );
 
 
@@ -2007,6 +2039,13 @@ CREATE INDEX idx_partner_grower_registry_claimed_by ON public.partner_grower_reg
 --
 
 CREATE INDEX idx_training_records_batch_session ON public.training_records USING btree (batch_session_id);
+
+
+--
+-- Name: idx_training_records_company_id_passport; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_training_records_company_id_passport ON public.training_records USING btree (company_id, id_passport_number);
 
 
 --
@@ -2668,6 +2707,6 @@ ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ktL8ivEaoMaNE0YUWpZyYOmVVzx5dS7mYrmdyHdDzdV96dJlPQR0jYaWjOe4cuQ
+\unrestrict uCUndriWqeGWXjnEXj3lUxXGNMNDTydFaawnsvoi6iEyqgiw0AmmcQ7Gknpca4C
 
 ```

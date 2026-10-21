@@ -39,6 +39,7 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://js.paystack.co/v2/inline.js"></script>
   <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -162,15 +163,9 @@
             <p class="text-xs sm:text-sm text-slate-500 mt-1">Manage employee compliance, verified induction registers, and workforce rosters.</p>
           </div>
 
-          <div class="flex items-center gap-2.5 shrink-0">
+          <div class="flex flex-wrap items-center gap-2.5">
             <!-- Register tab actions -->
-            <div id="recordsTabActions" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
-              <!-- Statutory Compliance / DPA Audit Pack Download -->
-              <a href="docs/legal/POPIA SECTION 21 OPERATOR AGREEMENT.pdf" target="_blank" download class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all" title="Download formal POPIA Section 21 Operator Agreement / DPA for SIZA and GlobalG.A.P. audits">
-                <svg class="w-3.5 h-3.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                <span>Export Audit Pack (DPA)</span>
-              </a>
-
+            <div id="recordsTabActions" class="flex flex-wrap items-center gap-2.5">
               <!-- Dynamic Tier PDF Quota & Countdown Pill -->
               <div id="pdf-quota-pill" class="hidden items-center gap-2.5 px-3.5 py-1.5 rounded-xl border text-xs font-medium shadow-sm transition-all">
                 <!-- Injected via updatePdfQuotaUI() -->
@@ -215,12 +210,21 @@
 
         <!-- TAB 1: TRAINING RECORDS REGISTER -->
         <div id="recordsViewContainer" class="space-y-4">
-          <!-- Compliance Metric Strip -->
-          <div class="flex items-center gap-2 text-xs">
-            <span id="registerPillCompliance" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-medium border border-emerald-100 shadow-xs">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span id="registerCountCompliance">0 Active Workers <span class="text-emerald-600 font-semibold">(0 Valid • 0 Expiring • 0 Overdue)</span></span>
-            </span>
+          <!-- Compliance Metric Strip & Action Toolbar -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-2">
+              <span id="registerPillCompliance" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-medium border border-emerald-100 shadow-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span id="registerCountCompliance">0 Active Workers <span class="text-emerald-600 font-semibold">(0 Valid • 0 Expiring • 0 Overdue)</span></span>
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button id="btnToolbarBulkExport" type="button" onclick="openBulkExportModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-primary/20 bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap" title="Export statutory attendance registers for a selected date range">
+                <span>📦</span>
+                <span>Bulk Export Registers (Date Range)</span>
+              </button>
+            </div>
           </div>
 
           <!-- Full-Width Search & Filter Bar -->
@@ -575,6 +579,83 @@
           <div class="pt-2 flex justify-end gap-2">
             <button type="button" onclick="closeAddEmployeeModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
             <button type="submit" id="btnSubmitAddEmployee" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Save Employee</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- BULK EXPORT REGISTERS (DATE RANGE) MODAL -->
+    <div id="bulkExportModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
+        <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">Statutory Compliance Audit</span>
+            <h3 class="text-base font-serif font-bold text-foreground mt-1">Bulk Export Attendance Registers</h3>
+          </div>
+          <button type="button" onclick="closeBulkExportModal()" class="p-1.5 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <form id="bulkExportForm" onsubmit="handleExecuteBulkExport(event)" class="p-6 space-y-4 text-xs">
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Generate and package statutory Attendance Register &amp; Curriculum PDFs for all induction sessions conducted within the specified date range.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Start Date *</label>
+              <input type="date" id="bulkExportStartDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary text-xs bg-white">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">End Date *</label>
+              <input type="date" id="bulkExportEndDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-primary text-xs bg-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Module Filter (Optional)</label>
+            <select id="bulkExportModuleSelect" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white text-xs cursor-pointer focus:border-primary">
+              <option value="all">All Modules (Entire Safety Curriculum)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Export Format</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center gap-2 p-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                <input type="radio" name="bulkExportFormat" value="zip" checked class="text-primary focus:ring-primary">
+                <div>
+                  <span class="block font-semibold text-slate-800 text-xs">ZIP Archive</span>
+                  <span class="block text-[10px] text-slate-500">Individual PDF per session</span>
+                </div>
+              </label>
+              <label class="flex items-center gap-2 p-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                <input type="radio" name="bulkExportFormat" value="merged" class="text-primary focus:ring-primary">
+                <div>
+                  <span class="block font-semibold text-slate-800 text-xs">Merged PDF</span>
+                  <span class="block text-[10px] text-slate-500">Single consolidated document</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Progress / Feedback Banner -->
+          <div id="bulkExportStatusBanner" class="hidden p-3.5 rounded-xl border text-xs">
+            <div class="flex items-center gap-2.5">
+              <div id="bulkExportSpinner" class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent shrink-0"></div>
+              <span id="bulkExportStatusText" class="font-medium">Preparing export...</span>
+            </div>
+            <div id="bulkExportProgressBarBg" class="w-full bg-slate-200 h-1.5 rounded-full mt-2.5 overflow-hidden">
+              <div id="bulkExportProgressBar" class="bg-primary h-full rounded-full transition-all duration-200" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="pt-3 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 border-t border-slate-100">
+            <button type="button" onclick="closeBulkExportModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors font-medium">Cancel</button>
+            <button type="submit" id="btnRunBulkExport" class="px-5 py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+              <span>📥 Generate &amp; Download Bulk ZIP / Merged PDF</span>
+            </button>
           </div>
         </form>
       </div>
@@ -1538,7 +1619,7 @@
 
         const { data: records, error } = await window.dbClient
           .from('training_records')
-          .select('id, employee_id, employee_name, employee_number, company_id, module_title, supervisor_name, supervisor_signature_data, employee_signature_data, training_type, created_at, completed_at, batch_session_id, status')
+          .select('id, employee_id, employee_name, employee_number, id_passport_number, company_id, module_title, supervisor_name, supervisor_signature_data, employee_signature_data, training_type, created_at, completed_at, batch_session_id, status')
           .eq('company_id', companyId)
           .neq('status', 'Archived')
           .order('completed_at', { ascending: false });
@@ -2032,166 +2113,164 @@
     // =========================================================================
     // 2. STATUTORY ATTENDANCE REGISTER & CURRICULUM LOG (LANDSCAPE A4)
     // =========================================================================
-    async function generateAttendanceRegisterPDF(batchSessionId, moduleTitle, supervisorName, sessionDate, recordId) {
-      // Support object parameter or positional arguments
-      if (typeof batchSessionId === 'object' && batchSessionId !== null) {
-        const opts = batchSessionId;
-        batchSessionId = opts.batchSessionId;
-        moduleTitle = opts.moduleTitle;
-        supervisorName = opts.supervisorName;
-        sessionDate = opts.sessionDate;
-        recordId = opts.recordId;
-      }
 
-      const currentTier = (window.currentCompanyTier || 'basic').toLowerCase();
-      const companyId = window.userCompanyId || 'default';
-      const currentMonthKey = `group_quota_${companyId}_${new Date().getFullYear()}_${new Date().getMonth() + 1}`;
-      const { days, resetLabel } = getDaysUntilNextMonth();
-
-      // Basic Tier Lock
-      if (currentTier === 'basic') {
-        openProfileModal();
-        switchProfileTab('plans');
-        alert('Statutory Training Attendance Registers are available on Essential (5/mo) and Enterprise (Unlimited). Please upgrade your plan.');
-        return;
-      }
-
-      // Essential Tier Limit (5 Registers/mo)
-      if (currentTier === 'essential') {
-        let usedCount = parseInt(localStorage.getItem(currentMonthKey) || '0', 10);
-        const monthlyLimit = 5;
-
-        if (usedCount >= monthlyLimit) {
-          openProfileModal();
-          switchProfileTab('plans');
-          alert(`You have reached your monthly limit of ${monthlyLimit} Training Registers on the Essential plan (resets in ${days} days on ${resetLabel}). Upgrade to Enterprise for unlimited statutory registers.`);
-          return;
-        }
-
-        localStorage.setItem(currentMonthKey, (usedCount + 1).toString());
-        updatePdfQuotaUI();
-      }
-
+    /**
+     * Builds an in-memory jsPDF instance for a training session attendance register.
+     * Supports standalone download, bulk zipping, and merged multi-session PDF generation.
+     */
+    async function buildAttendanceRegisterPDFDoc(
+      batchSessionId,
+      moduleTitle,
+      supervisorName,
+      sessionDate,
+      recordId,
+      preloadedRecords = null,
+      curriculumCache = {},
+      companyCache = null,
+      sponsorCache = {},
+      existingDoc = null
+    ) {
       if (!window.jspdf || !window.jspdf.jsPDF) {
-        alert('PDF library is loading. Please try again in a moment.');
-        return;
+        throw new Error('PDF generation engine (jsPDF) is not ready.');
       }
 
-      // 1. Fetch trainee records (by batch_session_id or fallback to recordId for single sessions)
-      let batchRecords = [];
-      if (batchSessionId && batchSessionId !== 'null' && batchSessionId !== 'undefined' && String(batchSessionId).trim() !== '') {
-        const { data, error } = await window.dbClient
-          .from('training_records')
-          .select('*')
-          .eq('batch_session_id', batchSessionId)
-          .order('created_at', { ascending: true });
-        if (!error && data && data.length > 0) {
-          batchRecords = data;
+      // 1. Resolve trainee records
+      let batchRecords = Array.isArray(preloadedRecords) && preloadedRecords.length > 0 ? preloadedRecords : [];
+      if (batchRecords.length === 0) {
+        if (batchSessionId && batchSessionId !== 'null' && batchSessionId !== 'undefined' && String(batchSessionId).trim() !== '') {
+          const { data, error } = await window.dbClient
+            .from('training_records')
+            .select('*')
+            .eq('batch_session_id', batchSessionId)
+            .order('created_at', { ascending: true });
+          if (!error && data && data.length > 0) {
+            batchRecords = data;
+          }
         }
-      }
 
-      // Fallback: fetch individual record by primary key if no batch match found
-      if ((!batchRecords || batchRecords.length === 0) && recordId) {
-        const { data, error } = await window.dbClient
-          .from('training_records')
-          .select('*')
-          .eq('id', recordId);
-        if (!error && data && data.length > 0) {
-          batchRecords = data;
+        // Fallback: fetch individual record by primary key if no batch match found
+        if (batchRecords.length === 0 && recordId) {
+          const { data, error } = await window.dbClient
+            .from('training_records')
+            .select('*')
+            .eq('id', recordId);
+          if (!error && data && data.length > 0) {
+            batchRecords = data;
+          }
         }
       }
 
       if (!batchRecords || batchRecords.length === 0) {
-        alert('Unable to load session training records for PDF register export.');
-        return;
+        return null;
       }
 
-      // 2. Fetch video curriculum objectives & questions
-      let objectives = [];
-      let questions = [];
-      // Statutory session duration: fixed at 20 minutes (video, supervisor explanation, comprehension Q&A, and practical site walk)
-      const sessionDuration = '20 Minutes (Video & Practical)';
-
+      // 2. Curriculum objectives & verbal checks resolution (cached for speed during bulk runs)
       const rawTitle = (moduleTitle || batchRecords[0]?.module_title || '').trim();
       const cleanTitle = rawTitle.replace(/\s*\(video induction\)\s*/i, '').replace(/\s+/g, ' ').trim();
       const batchRef = String(batchSessionId || recordId || batchRecords[0]?.id || 'SESSION').substring(0, 8).toUpperCase();
       const trainerName = supervisorName || batchRecords[0]?.supervisor_name || 'Authorized Supervisor';
       const trainingDate = sessionDate || formatDate(batchRecords[0]?.completed_at || batchRecords[0]?.created_at) || 'Recorded Date';
+      const sessionDuration = '20 Minutes (Video & Practical)';
 
-      // Resolve crop sponsorship for this module
-      const sponsorEntry = await getSponsorForModuleTitle(cleanTitle);
-      const sponsorLogoBase64 = sponsorEntry ? await loadImageAsBase64(sponsorEntry.partner_logo_url) : null;
+      let objectives = [];
+      let questions = [];
 
-      const parseCurriculumArray = (val) => {
-        if (!val) return [];
-        if (Array.isArray(val)) return val;
-        if (typeof val === 'string') {
-          try {
-            const parsed = JSON.parse(val);
-            return Array.isArray(parsed) ? parsed : Object.values(parsed);
-          } catch (e) {
-            return val.trim() ? [val] : [];
+      if (curriculumCache && curriculumCache[cleanTitle]) {
+        objectives = curriculumCache[cleanTitle].objectives;
+        questions = curriculumCache[cleanTitle].questions;
+      } else {
+        const parseCurriculumArray = (val) => {
+          if (!val) return [];
+          if (Array.isArray(val)) return val;
+          if (typeof val === 'string') {
+            try {
+              const parsed = JSON.parse(val);
+              return Array.isArray(parsed) ? parsed : Object.values(parsed);
+            } catch (e) {
+              return val.trim() ? [val] : [];
+            }
           }
-        }
-        if (typeof val === 'object') return Object.values(val);
-        return [];
-      };
-
-      async function fetchVideoRow(titleFilter, companyScope) {
-        const baseQuery = () => {
-          let q = window.dbClient
-            .from('videos')
-            .select('objectives, questions, total_seconds, title, company_id');
-          return companyScope === null ? q.is('company_id', null) : q.eq('company_id', companyScope);
+          if (typeof val === 'object') return Object.values(val);
+          return [];
         };
 
-        const { data: exact } = await baseQuery().ilike('title', titleFilter).limit(1);
-        if (exact && exact.length > 0) return exact[0];
+        async function fetchVideoRow(titleFilter, companyScope) {
+          const baseQuery = () => {
+            let q = window.dbClient
+              .from('videos')
+              .select('objectives, questions, total_seconds, title, company_id');
+            return companyScope === null ? q.is('company_id', null) : q.eq('company_id', companyScope);
+          };
 
-        const { data: wildcard } = await baseQuery().ilike('title', `%${titleFilter}%`).limit(1);
-        return (wildcard && wildcard.length > 0) ? wildcard[0] : null;
+          const { data: exact } = await baseQuery().ilike('title', titleFilter).limit(1);
+          if (exact && exact.length > 0) return exact[0];
+
+          const { data: wildcard } = await baseQuery().ilike('title', `%${titleFilter}%`).limit(1);
+          return (wildcard && wildcard.length > 0) ? wildcard[0] : null;
+        }
+
+        const [masterRow, companyRow] = await Promise.all([
+          fetchVideoRow(cleanTitle, null),
+          window.userCompanyId ? fetchVideoRow(cleanTitle, window.userCompanyId) : Promise.resolve(null)
+        ]);
+
+        const masterObjectives = parseCurriculumArray(masterRow?.objectives);
+        const masterQuestions = parseCurriculumArray(masterRow?.questions);
+        const companyObjectives = parseCurriculumArray(companyRow?.objectives);
+        const companyQuestions = parseCurriculumArray(companyRow?.questions);
+
+        if (companyQuestions.length > 0) {
+          objectives = companyObjectives.length > 0 ? companyObjectives : masterObjectives;
+          questions = companyQuestions;
+        } else {
+          objectives = masterObjectives.length > 0 ? masterObjectives : companyObjectives;
+          questions = masterQuestions.length > 0 ? masterQuestions : companyQuestions;
+        }
+
+        if (!objectives || objectives.length === 0) {
+          objectives = [
+            'Mandatory Personal Protective Equipment (PPE) requirements',
+            'Standard operational hazard identification and mitigation',
+            'Workplace hygiene and cross-contamination prevention',
+            'Emergency procedures and incident reporting protocols'
+          ];
+        }
+
+        if (curriculumCache) {
+          curriculumCache[cleanTitle] = { objectives, questions };
+        }
       }
 
-      const [masterRow, companyRow] = await Promise.all([
-        fetchVideoRow(cleanTitle, null),
-        window.userCompanyId ? fetchVideoRow(cleanTitle, window.userCompanyId) : Promise.resolve(null)
-      ]);
-
-      const masterObjectives = parseCurriculumArray(masterRow?.objectives);
-      const masterQuestions = parseCurriculumArray(masterRow?.questions);
-      const companyObjectives = parseCurriculumArray(companyRow?.objectives);
-      const companyQuestions = parseCurriculumArray(companyRow?.questions);
-
-      let vData;
-      if (companyQuestions.length > 0) {
-        objectives = companyObjectives.length > 0 ? companyObjectives : masterObjectives;
-        questions = companyQuestions;
-        vData = companyRow;
+      // 3. Resolve Sponsor details (cached)
+      let sponsorEntry = null;
+      let sponsorLogoBase64 = null;
+      if (sponsorCache && sponsorCache[cleanTitle]) {
+        sponsorEntry = sponsorCache[cleanTitle].sponsorEntry;
+        sponsorLogoBase64 = sponsorCache[cleanTitle].sponsorLogoBase64;
       } else {
-        objectives = masterObjectives.length > 0 ? masterObjectives : companyObjectives;
-        questions = masterQuestions.length > 0 ? masterQuestions : companyQuestions;
-        vData = masterRow || companyRow;
+        sponsorEntry = await getSponsorForModuleTitle(cleanTitle);
+        sponsorLogoBase64 = sponsorEntry ? await loadImageAsBase64(sponsorEntry.partner_logo_url) : null;
+        if (sponsorCache) {
+          sponsorCache[cleanTitle] = { sponsorEntry, sponsorLogoBase64 };
+        }
       }
 
-
-      if (!objectives || objectives.length === 0) {
-        objectives = [
-          'Mandatory Personal Protective Equipment (PPE) requirements',
-          'Standard operational hazard identification and mitigation',
-          'Workplace hygiene and cross-contamination prevention',
-          'Emergency procedures and incident reporting protocols'
-        ];
-      }
-
-      const comp = await getFreshCompanyInfo();
+      // 4. Resolve company metadata
+      const comp = companyCache || await getFreshCompanyInfo();
       const companyName = comp.name || document.getElementById('topbar-company-name')?.textContent || 'Simple Solutions';
       const supervisorSig = batchRecords[0]?.supervisor_signature_data || null;
 
+      // 5. Initialize or extend jsPDF
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      let doc = existingDoc;
+      if (!doc) {
+        doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      } else {
+        doc.addPage();
+      }
+
       const pageWidth = 297;
       const pageHeight = 210;
-
       const rowsPerPage = 15;
       const totalTraineePages = Math.max(1, Math.ceil(batchRecords.length / rowsPerPage));
       const totalPages = 1 + totalTraineePages;
@@ -2369,7 +2448,11 @@
       doc.text(doc.splitTextToSize(declarationText, attestW - 12), 22, bottomY + 13);
 
       if (supervisorSig) {
-        doc.addImage(supervisorSig, 'PNG', 22, bottomY + 28, 45, 18);
+        try {
+          doc.addImage(supervisorSig, 'PNG', 22, bottomY + 28, 45, 18);
+        } catch (e) {
+          console.warn('[PDF] Failed rendering supervisor signature:', e);
+        }
       }
       doc.setDrawColor(148, 163, 184);
       doc.line(22, bottomY + 50, 85, bottomY + 50);
@@ -2414,7 +2497,6 @@
         stampLineY += 4;
       }
 
-      // Vertical Clearance & Positioning: Center seal between metadata details and bottom label
       const labelY = bottomY + stampBoxH - 3;
       const stampH = 24;
       const availableSpace = (labelY - 2) - stampLineY;
@@ -2433,28 +2515,29 @@
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(148, 163, 184);
-      doc.text(`Page 1 of ${totalPages} — Curriculum & Trainer Attestation • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
+      doc.text(`Page 1 of ${totalPages} — Curriculum & Trainer Attestation • Ref: ${batchRef} • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
 
       // =======================================================================
       // PAGE 2+: STATUTORY ATTENDANCE REGISTER (PAGINATED FOR ALL TRAINEES)
+      // Columns: NO. | EMPLOYEE NO | EMPLOYEE NAME & SURNAME | ID / PASSPORT NUMBER | EMPLOYEE SIGNATURE / CONFIRMATION
       // =======================================================================
       const tableX = 16;
       const tableY = 32;
       const headerH = 8;
       const rowH = 10;
-      const tableW = pageWidth - 32;
+      const tableW = pageWidth - 32; // 265mm
 
-      const colNo = 14;
-      const colEmp = 45;
-      const colName = 110;
-      const colGen = 28;
-      const colSig = 68;
+      const colNo = 12;
+      const colEmp = 36;
+      const colName = 82;
+      const colId = 55;
+      const colSig = 80;
 
       const xNo = tableX;
       const xEmp = xNo + colNo;
       const xName = xEmp + colEmp;
-      const xGen = xName + colName;
-      const xSig = xGen + colGen;
+      const xId = xName + colName;
+      const xSig = xId + colId;
 
       for (let pageIdx = 0; pageIdx < totalTraineePages; pageIdx++) {
         doc.addPage();
@@ -2485,7 +2568,7 @@
 
         doc.line(xEmp, tableY, xEmp, tableY + headerH);
         doc.line(xName, tableY, xName, tableY + headerH);
-        doc.line(xGen, tableY, xGen, tableY + headerH);
+        doc.line(xId, tableY, xId, tableY + headerH);
         doc.line(xSig, tableY, xSig, tableY + headerH);
 
         doc.setFont('helvetica', 'bold');
@@ -2494,7 +2577,7 @@
         doc.text('NO.', xNo + (colNo / 2), tableY + 5.5, { align: 'center' });
         doc.text('EMPLOYEE NO', xEmp + 5, tableY + 5.5);
         doc.text('EMPLOYEE NAME & SURNAME', xName + 5, tableY + 5.5);
-        doc.text('GENDER', xGen + (colGen / 2), tableY + 5.5, { align: 'center' });
+        doc.text('ID / PASSPORT NUMBER', xId + 5, tableY + 5.5);
         doc.text('EMPLOYEE SIGNATURE / CONFIRMATION', xSig + (colSig / 2), tableY + 5.5, { align: 'center' });
 
         // Table Rows
@@ -2508,10 +2591,9 @@
 
           doc.line(xEmp, y, xEmp, y + rowH);
           doc.line(xName, y, xName, y + rowH);
-          doc.line(xGen, y, xGen, y + rowH);
+          doc.line(xId, y, xId, y + rowH);
           doc.line(xSig, y, xSig, y + rowH);
 
-          // Enforce uniform standard baseline typography at the start of every row iteration
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(8.5);
           doc.setTextColor(15, 23, 42);
@@ -2519,35 +2601,45 @@
           doc.text(String(globalIdx), xNo + (colNo / 2), y + 6.5, { align: 'center' });
 
           if (trainee) {
-            // Employee Number: Bold and prominent across all rows
+            // Employee Number: Bold and prominent
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8.5);
             doc.setTextColor(15, 23, 42);
             doc.text(trainee.employee_number || '—', xEmp + 5, y + 6.5);
 
-            // Worker Name: Regular weight, consistent dark charcoal across all rows
+            // Worker Name
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8.5);
             doc.setTextColor(15, 23, 42);
             doc.text(formatWorkerName(trainee.employee_name) || '', xName + 5, y + 6.5);
 
-            // Gender: Consistent regular weight and dark charcoal across all rows
-            doc.text(trainee.gender || 'Male', xGen + (colGen / 2), y + 6.5, { align: 'center' });
+            // ID / Passport Number
+            const idNum = trainee.id_passport_number || (trainee.employee_id && (allRosterEmployees || []).find(e => e.id === trainee.employee_id)?.id_passport_number) || '—';
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(51, 65, 85);
+            doc.text(String(idNum), xId + 5, y + 6.5);
 
-            // Employee Signature / Attestation Column
+            // Employee Signature / Confirmation Column
             if (trainee.employee_signature_data) {
-              const sigWidth = 22.5;
-              const sigHeight = 9;
-              const sigX = xSig + (colSig - sigWidth) / 2;
-              doc.addImage(trainee.employee_signature_data, 'PNG', sigX, y + 0.5, sigWidth, sigHeight);
+              try {
+                const sigWidth = 35;
+                const sigHeight = 8;
+                const sigX = xSig + (colSig - sigWidth) / 2;
+                doc.addImage(trainee.employee_signature_data, 'PNG', sigX, y + 1, sigWidth, sigHeight, undefined, 'FAST');
+              } catch (sigErr) {
+                console.warn('[PDF] Failed rendering employee signature, fallback to attested:', sigErr);
+                doc.setFont('helvetica', 'italic');
+                doc.setFontSize(6.5);
+                doc.setTextColor(148, 163, 184);
+                doc.text('Attested (ECTA §13)', xSig + (colSig / 2), y + 6, { align: 'center' });
+              }
             } else {
-              // Isolate secondary styling strictly to this specific attestation cell
               doc.setFont('helvetica', 'italic');
               doc.setFontSize(6.5);
               doc.setTextColor(148, 163, 184);
               doc.text('Attested (ECTA §13)', xSig + (colSig / 2), y + 6, { align: 'center' });
 
-              // Immediately restore standard row typography
               doc.setFont('helvetica', 'normal');
               doc.setFontSize(8.5);
               doc.setTextColor(15, 23, 42);
@@ -2559,19 +2651,324 @@
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
         doc.setTextColor(148, 163, 184);
-        doc.text(`Page ${currentPageNum} of ${totalPages} — Trainee Sign-Off Register • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
+        doc.text(`Page ${currentPageNum} of ${totalPages} — Trainee Sign-Off Register • Ref: ${batchRef} • Logged via The Vault by Simple Solutions`, pageWidth / 2, 200, { align: 'center' });
+      }
+
+      return { doc, cleanTitle, trainingDate, batchRef, batchRecords };
+    }
+    window.buildAttendanceRegisterPDFDoc = buildAttendanceRegisterPDFDoc;
+
+    async function generateAttendanceRegisterPDF(batchSessionId, moduleTitle, supervisorName, sessionDate, recordId) {
+      if (typeof batchSessionId === 'object' && batchSessionId !== null) {
+        const opts = batchSessionId;
+        batchSessionId = opts.batchSessionId;
+        moduleTitle = opts.moduleTitle;
+        supervisorName = opts.supervisorName;
+        sessionDate = opts.sessionDate;
+        recordId = opts.recordId;
+      }
+
+      const currentTier = (window.currentCompanyTier || 'basic').toLowerCase();
+      const companyId = window.userCompanyId || 'default';
+      const currentMonthKey = `group_quota_${companyId}_${new Date().getFullYear()}_${new Date().getMonth() + 1}`;
+      const { days, resetLabel } = getDaysUntilNextMonth();
+
+      // Basic Tier Lock
+      if (currentTier === 'basic') {
+        openProfileModal();
+        switchProfileTab('plans');
+        alert('Statutory Training Attendance Registers are available on Essential (5/mo) and Enterprise (Unlimited). Please upgrade your plan.');
+        return;
+      }
+
+      // Essential Tier Limit (5 Registers/mo)
+      if (currentTier === 'essential') {
+        let usedCount = parseInt(localStorage.getItem(currentMonthKey) || '0', 10);
+        const monthlyLimit = 5;
+
+        if (usedCount >= monthlyLimit) {
+          openProfileModal();
+          switchProfileTab('plans');
+          alert(`You have reached your monthly limit of ${monthlyLimit} Training Registers on the Essential plan (resets in ${days} days on ${resetLabel}). Upgrade to Enterprise for unlimited statutory registers.`);
+          return;
+        }
+
+        localStorage.setItem(currentMonthKey, (usedCount + 1).toString());
+        updatePdfQuotaUI();
+      }
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('PDF library is loading. Please try again in a moment.');
+        return;
+      }
+
+      const res = await buildAttendanceRegisterPDFDoc(batchSessionId, moduleTitle, supervisorName, sessionDate, recordId);
+      if (!res || !res.doc) {
+        alert('Unable to load session training records for PDF register export.');
+        return;
       }
 
       if (typeof gtag === 'function') {
         gtag('event', 'generate_attendance_register', {
-          module: cleanTitle,
-          session_ref: batchRef,
-          trainee_count: batchRecords.length
+          module: res.cleanTitle,
+          session_ref: res.batchRef,
+          trainee_count: res.batchRecords.length
         });
       }
 
-      doc.save(`Training_Register_${cleanTitle.replace(/\s+/g, '_')}_${String(trainingDate).replace(/[\s,]+/g, '_')}.pdf`);
+      res.doc.save(`Training_Register_${res.cleanTitle.replace(/\s+/g, '_')}_${String(res.trainingDate).replace(/[\s,]+/g, '_')}.pdf`);
     }
+
+    // Preserve alias for backward compatibility
+    window.generateAttendanceRegisterPDF = generateAttendanceRegisterPDF;
+    window.generateGroupLogSheetPDF = generateAttendanceRegisterPDF;
+
+    // =========================================================================
+    // 3. BULK ATTENDANCE REGISTERS DATE RANGE EXPORT (ZIP / MERGED PDF)
+    // =========================================================================
+
+    function openBulkExportModal() {
+      const modal = document.getElementById('bulkExportModal');
+      const startInput = document.getElementById('bulkExportStartDate');
+      const endInput = document.getElementById('bulkExportEndDate');
+      const moduleSelect = document.getElementById('bulkExportModuleSelect');
+      const statusBanner = document.getElementById('bulkExportStatusBanner');
+
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+
+      if (endInput) endInput.value = today.toISOString().split('T')[0];
+      if (startInput) startInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+
+      if (moduleSelect) {
+        const modules = new Set();
+        (rawTrainingRecords || []).forEach(r => {
+          if (r.module_title) modules.add(r.module_title.trim());
+        });
+        const sortedMods = Array.from(modules).sort();
+        moduleSelect.innerHTML = '<option value="all">All Modules (Entire Safety Curriculum)</option>' +
+          sortedMods.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+      }
+
+      statusBanner?.classList.add('hidden');
+      modal?.classList.remove('hidden');
+    }
+    window.openBulkExportModal = openBulkExportModal;
+
+    function closeBulkExportModal() {
+      document.getElementById('bulkExportModal')?.classList.add('hidden');
+    }
+    window.closeBulkExportModal = closeBulkExportModal;
+
+    async function handleExecuteBulkExport(event) {
+      if (event && event.preventDefault) event.preventDefault();
+
+      const startDate = document.getElementById('bulkExportStartDate')?.value;
+      const endDate = document.getElementById('bulkExportEndDate')?.value;
+      const selectedModule = document.getElementById('bulkExportModuleSelect')?.value || 'all';
+      const format = document.querySelector('input[name="bulkExportFormat"]:checked')?.value || 'zip';
+
+      if (!startDate || !endDate) {
+        alert('Please select both a Start Date and an End Date.');
+        return;
+      }
+
+      if (startDate > endDate) {
+        alert('Start Date cannot be later than End Date.');
+        return;
+      }
+
+      const currentTier = (window.currentCompanyTier || 'basic').toLowerCase();
+      if (currentTier === 'basic') {
+        openProfileModal();
+        switchProfileTab('plans');
+        alert('Bulk Export of Statutory Attendance Registers is available on Essential and Enterprise plans. Please upgrade.');
+        return;
+      }
+
+      const statusBanner = document.getElementById('bulkExportStatusBanner');
+      const statusText = document.getElementById('bulkExportStatusText');
+      const progressBar = document.getElementById('bulkExportProgressBar');
+      const runBtn = document.getElementById('btnRunBulkExport');
+
+      statusBanner?.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'border-red-200', 'bg-emerald-50', 'text-emerald-700', 'border-emerald-200', 'bg-amber-50', 'text-amber-800', 'border-amber-200');
+      statusBanner?.classList.add('bg-blue-50', 'text-blue-900', 'border-blue-200');
+      if (statusText) statusText.textContent = `Querying induction records between ${startDate} and ${endDate}...`;
+      if (progressBar) progressBar.style.width = '10%';
+      if (runBtn) {
+        runBtn.disabled = true;
+        runBtn.classList.add('opacity-50', 'cursor-wait');
+      }
+
+      try {
+        const ready = await waitForDbClient();
+        if (!ready || !window.dbClient) throw new Error('Database client unavailable.');
+
+        let q = window.dbClient
+          .from('training_records')
+          .select('id, employee_id, employee_name, employee_number, id_passport_number, company_id, module_title, supervisor_name, supervisor_signature_data, employee_signature_data, training_type, created_at, completed_at, batch_session_id, status')
+          .eq('company_id', window.userCompanyId)
+          .neq('status', 'Archived')
+          .gte('completed_at', startDate)
+          .lte('completed_at', endDate)
+          .order('completed_at', { ascending: true });
+
+        if (selectedModule && selectedModule !== 'all') {
+          q = q.eq('module_title', selectedModule);
+        }
+
+        const { data: records, error } = await q;
+        if (error) throw error;
+
+        if (!records || records.length === 0) {
+          statusBanner?.classList.remove('bg-blue-50', 'text-blue-900', 'border-blue-200');
+          statusBanner?.classList.add('bg-amber-50', 'text-amber-800', 'border-amber-200');
+          if (statusText) statusText.textContent = `No induction sessions found between ${startDate} and ${endDate}. Please adjust your date range or module filter.`;
+          if (progressBar) progressBar.style.width = '0%';
+          return;
+        }
+
+        // Group records by distinct session
+        const sessionMap = new Map();
+        for (const r of records) {
+          const sKey = r.batch_session_id || r.id;
+          if (!sessionMap.has(sKey)) {
+            sessionMap.set(sKey, {
+              batchSessionId: r.batch_session_id,
+              recordId: r.id,
+              moduleTitle: r.module_title,
+              supervisorName: r.supervisor_name,
+              sessionDate: formatDate(r.completed_at || r.created_at),
+              records: []
+            });
+          }
+          sessionMap.get(sKey).records.push(r);
+        }
+
+        const sessions = Array.from(sessionMap.values());
+        const totalSessions = sessions.length;
+
+        // Pre-cache company metadata & curriculum across all sessions
+        const companyInfo = await getFreshCompanyInfo();
+        const curriculumCache = {};
+        const sponsorCache = {};
+
+        if (statusText) statusText.textContent = `Found ${records.length} records across ${totalSessions} session(s). Generating registers...`;
+
+        if (format === 'zip') {
+          if (!window.JSZip) {
+            throw new Error('JSZip compression library is not loaded. Please reload the page.');
+          }
+          const zip = new JSZip();
+
+          for (let i = 0; i < totalSessions; i++) {
+            const s = sessions[i];
+            const pct = Math.round(15 + ((i / totalSessions) * 70));
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (statusText) statusText.textContent = `Rendering register ${i + 1} of ${totalSessions}: ${escapeHtml(s.moduleTitle)} (${s.records.length} workers)...`;
+
+            const res = await buildAttendanceRegisterPDFDoc(
+              s.batchSessionId,
+              s.moduleTitle,
+              s.supervisorName,
+              s.sessionDate,
+              s.recordId,
+              s.records,
+              curriculumCache,
+              companyInfo,
+              sponsorCache
+            );
+
+            if (res && res.doc) {
+              const pdfBlob = res.doc.output('blob');
+              const cleanMod = (res.cleanTitle || 'Module').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 30);
+              const cleanDate = (res.trainingDate || 'Date').replace(/[^a-zA-Z0-9_-]/g, '_');
+              const refStr = String(res.batchRef || `S${i + 1}`);
+              const filename = `Training_Register_${cleanMod}_${cleanDate}_${refStr}.pdf`;
+              zip.file(filename, pdfBlob);
+            }
+          }
+
+          if (statusText) statusText.textContent = `Packaging ${totalSessions} registers into ZIP archive...`;
+          if (progressBar) progressBar.style.width = '90%';
+
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          const downloadUrl = URL.createObjectURL(zipBlob);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = `Vault_Training_Registers_${startDate}_to_${endDate}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(downloadUrl);
+
+        } else {
+          // Merged Consolidated PDF
+          let masterDoc = null;
+
+          for (let i = 0; i < totalSessions; i++) {
+            const s = sessions[i];
+            const pct = Math.round(15 + ((i / totalSessions) * 75));
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (statusText) statusText.textContent = `Rendering register ${i + 1} of ${totalSessions}: ${escapeHtml(s.moduleTitle)} (${s.records.length} workers)...`;
+
+            const res = await buildAttendanceRegisterPDFDoc(
+              s.batchSessionId,
+              s.moduleTitle,
+              s.supervisorName,
+              s.sessionDate,
+              s.recordId,
+              s.records,
+              curriculumCache,
+              companyInfo,
+              sponsorCache,
+              masterDoc
+            );
+
+            if (res && res.doc && !masterDoc) {
+              masterDoc = res.doc;
+            }
+          }
+
+          if (masterDoc) {
+            if (statusText) statusText.textContent = `Saving consolidated Multi-Session Audit Register PDF...`;
+            if (progressBar) progressBar.style.width = '95%';
+            masterDoc.save(`Vault_Training_Registers_${startDate}_to_${endDate}.pdf`);
+          }
+        }
+
+        if (progressBar) progressBar.style.width = '100%';
+        statusBanner?.classList.remove('bg-blue-50', 'text-blue-900', 'border-blue-200');
+        statusBanner?.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+        if (statusText) statusText.textContent = `✓ Successfully generated and downloaded ${totalSessions} session register(s)!`;
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'bulk_export_registers', {
+            start_date: startDate,
+            end_date: endDate,
+            sessions_count: totalSessions,
+            records_count: records.length,
+            format: format
+          });
+        }
+
+        setTimeout(() => {
+          closeBulkExportModal();
+        }, 2200);
+
+      } catch (err) {
+        console.error('Bulk export failed:', err);
+        statusBanner?.classList.remove('bg-blue-50', 'text-blue-900', 'border-blue-200');
+        statusBanner?.classList.add('bg-red-50', 'text-red-800', 'border-red-200');
+        if (statusText) statusText.textContent = `Bulk export error: ${err.message || 'Unknown error occurred'}`;
+      } finally {
+        if (runBtn) {
+          runBtn.disabled = false;
+          runBtn.classList.remove('opacity-50', 'cursor-wait');
+        }
+      }
+    }
+    window.handleExecuteBulkExport = handleExecuteBulkExport;
 
     // Preserve alias for backward compatibility
     window.generateAttendanceRegisterPDF = generateAttendanceRegisterPDF;

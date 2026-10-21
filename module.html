@@ -381,6 +381,51 @@
     </div>
   </div>
 
+  <!-- NATIVE TRAINEE DIGITAL SIGNATURE MODAL (POP-OVER PAD) -->
+  <div id="traineeSignatureModal" class="fixed inset-0 z-[60] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">Worker Attestation</span>
+          <h3 id="traineeSigModalWorkerName" class="text-base font-serif font-bold text-foreground mt-1">Worker Digital Signature</h3>
+        </div>
+        <button type="button" onclick="closeTraineeSignatureModal()" class="p-1.5 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Please invite the worker to sign inside the box below using a touchscreen or stylus to digitally authenticate their attendance.
+        </p>
+
+        <div class="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-slate-50/50 relative">
+          <canvas id="traineeSignaturePad" class="block w-full h-40 cursor-crosshair bg-white" style="touch-action: none;"></canvas>
+          <div class="absolute bottom-2 left-3 pointer-events-none text-[10px] text-slate-400 font-medium">
+            Worker Sign Area ✍️
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 pt-2">
+          <button type="button" onclick="clearTraineeSignaturePad()" class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-red-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
+            Clear Pad
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeTraineeSignatureModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
+              Cancel
+            </button>
+            <button type="button" onclick="saveTraineeSignature()" class="px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-sm transition-all cursor-pointer">
+              Confirm Signature
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // =========================================================================
     // UNIFIED INDUCTION INTAKE & STATUTORY SUPERVISOR ENGINE (ECTA §13)
@@ -419,32 +464,50 @@
       };
     }
 
-    // --- SUPERVISOR SIGNATURE PAD ---
+    // --- SUPERVISOR SIGNATURE PAD (High-DPI & Mobile Touch Unified) ---
     function initSignaturePad() {
       sigCanvas = document.getElementById('supervisorSignaturePad');
       if (!sigCanvas) return;
 
-      const rect = sigCanvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
+      const rect = sigCanvas.getBoundingClientRect();
+      const w = rect.width || sigCanvas.offsetWidth || 300;
+      const h = rect.height || sigCanvas.offsetHeight || 128;
 
-      sigCanvas.width = rect.width * dpr;
-      sigCanvas.height = rect.height * dpr;
+      sigCanvas.width = w * dpr;
+      sigCanvas.height = h * dpr;
 
       sigCtx = sigCanvas.getContext('2d');
-      sigCtx.strokeStyle = '#000000';
-      sigCtx.lineWidth = 2.5 * dpr;
+      sigCtx.scale(dpr, dpr);
+      sigCtx.lineWidth = 2.2;
       sigCtx.lineCap = 'round';
       sigCtx.lineJoin = 'round';
+      sigCtx.strokeStyle = '#0f172a';
+
+      function getCoords(e) {
+        const r = sigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - r.left,
+          y: clientY - r.top
+        };
+      }
+
+      // Prevent mobile touch scrolling while signing
+      ['touchstart', 'touchmove'].forEach(evt => {
+        sigCanvas.addEventListener(evt, e => e.preventDefault(), { passive: false });
+      });
 
       sigCanvas.onmousedown = (e) => {
         isSupervisorDrawing = true;
-        const pos = getCanvasCoordinates(sigCanvas, e.clientX, e.clientY);
+        const pos = getCoords(e);
         sigCtx.beginPath();
         sigCtx.moveTo(pos.x, pos.y);
       };
       sigCanvas.onmousemove = (e) => {
         if (!isSupervisorDrawing) return;
-        const pos = getCanvasCoordinates(sigCanvas, e.clientX, e.clientY);
+        const pos = getCoords(e);
         sigCtx.lineTo(pos.x, pos.y);
         sigCtx.stroke();
       };
@@ -456,18 +519,14 @@
       });
 
       sigCanvas.ontouchstart = (e) => {
-        e.preventDefault();
         isSupervisorDrawing = true;
-        const touch = e.touches[0];
-        const pos = getCanvasCoordinates(sigCanvas, touch.clientX, touch.clientY);
+        const pos = getCoords(e);
         sigCtx.beginPath();
         sigCtx.moveTo(pos.x, pos.y);
       };
       sigCanvas.ontouchmove = (e) => {
         if (!isSupervisorDrawing) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        const pos = getCanvasCoordinates(sigCanvas, touch.clientX, touch.clientY);
+        const pos = getCoords(e);
         sigCtx.lineTo(pos.x, pos.y);
         sigCtx.stroke();
       };
@@ -481,7 +540,10 @@
 
     function clearSignaturePad() {
       if (!sigCanvas || !sigCtx) return;
+      sigCtx.save();
+      sigCtx.setTransform(1, 0, 0, 1, 0, 0);
       sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      sigCtx.restore();
       checkComplianceFormValidity();
     }
     window.clearSignaturePad = clearSignaturePad;
@@ -493,6 +555,193 @@
       blank.height = sigCanvas.height;
       return sigCanvas.toDataURL() === blank.toDataURL();
     }
+
+    // --- WORKER / TRAINEE DIGITAL SIGNATURE ENGINE ---
+    window.traineeSignatures = {};
+    let currentSigningWorkerId = null;
+    let currentSigningWorkerName = '';
+    let traineeSigCanvas = null;
+    let traineeSigCtx = null;
+    let isTraineeDrawing = false;
+
+    function initTraineeSignaturePad() {
+      traineeSigCanvas = document.getElementById('traineeSignaturePad');
+      if (!traineeSigCanvas) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      const rect = traineeSigCanvas.getBoundingClientRect();
+      const w = rect.width || traineeSigCanvas.offsetWidth || 300;
+      const h = rect.height || traineeSigCanvas.offsetHeight || 160;
+
+      traineeSigCanvas.width = w * dpr;
+      traineeSigCanvas.height = h * dpr;
+
+      traineeSigCtx = traineeSigCanvas.getContext('2d');
+      traineeSigCtx.scale(dpr, dpr);
+      traineeSigCtx.lineWidth = 2.2;
+      traineeSigCtx.lineCap = 'round';
+      traineeSigCtx.lineJoin = 'round';
+      traineeSigCtx.strokeStyle = '#0f172a';
+
+      function getCoords(e) {
+        const r = traineeSigCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - r.left,
+          y: clientY - r.top
+        };
+      }
+
+      // Prevent mobile touch scrolling while signing
+      ['touchstart', 'touchmove'].forEach(evt => {
+        traineeSigCanvas.addEventListener(evt, e => e.preventDefault(), { passive: false });
+      });
+
+      traineeSigCanvas.onmousedown = (e) => {
+        isTraineeDrawing = true;
+        const pos = getCoords(e);
+        traineeSigCtx.beginPath();
+        traineeSigCtx.moveTo(pos.x, pos.y);
+      };
+      traineeSigCanvas.onmousemove = (e) => {
+        if (!isTraineeDrawing) return;
+        const pos = getCoords(e);
+        traineeSigCtx.lineTo(pos.x, pos.y);
+        traineeSigCtx.stroke();
+      };
+      window.addEventListener('mouseup', () => { 
+        if (isTraineeDrawing) isTraineeDrawing = false;
+      });
+
+      traineeSigCanvas.ontouchstart = (e) => {
+        isTraineeDrawing = true;
+        const pos = getCoords(e);
+        traineeSigCtx.beginPath();
+        traineeSigCtx.moveTo(pos.x, pos.y);
+      };
+      traineeSigCanvas.ontouchmove = (e) => {
+        if (!isTraineeDrawing) return;
+        const pos = getCoords(e);
+        traineeSigCtx.lineTo(pos.x, pos.y);
+        traineeSigCtx.stroke();
+      };
+      traineeSigCanvas.ontouchend = () => { 
+        if (isTraineeDrawing) isTraineeDrawing = false;
+      };
+    }
+
+    function clearTraineeSignaturePad() {
+      if (!traineeSigCanvas || !traineeSigCtx) return;
+      traineeSigCtx.save();
+      traineeSigCtx.setTransform(1, 0, 0, 1, 0, 0);
+      traineeSigCtx.clearRect(0, 0, traineeSigCanvas.width, traineeSigCanvas.height);
+      traineeSigCtx.restore();
+    }
+    window.clearTraineeSignaturePad = clearTraineeSignaturePad;
+
+    function isTraineeSignatureBlank() {
+      if (!traineeSigCanvas) return true;
+      const blank = document.createElement('canvas');
+      blank.width = traineeSigCanvas.width;
+      blank.height = traineeSigCanvas.height;
+      return traineeSigCanvas.toDataURL() === blank.toDataURL();
+    }
+
+    function openTraineeSignatureModal(workerId, workerName) {
+      currentSigningWorkerId = workerId;
+      currentSigningWorkerName = workerName || 'Worker';
+
+      const modal = document.getElementById('traineeSignatureModal');
+      const nameEl = document.getElementById('traineeSigModalWorkerName');
+      if (nameEl) nameEl.textContent = `Worker Signature: ${currentSigningWorkerName}`;
+
+      modal?.classList.remove('hidden');
+
+      setTimeout(() => {
+        initTraineeSignaturePad();
+        clearTraineeSignaturePad();
+
+        const existingSig = window.traineeSignatures[workerId];
+        if (existingSig) {
+          const img = new Image();
+          img.onload = () => {
+            traineeSigCtx?.drawImage(img, 0, 0, traineeSigCanvas.width, traineeSigCanvas.height);
+          };
+          img.src = existingSig;
+        }
+      }, 80);
+    }
+    window.openTraineeSignatureModal = openTraineeSignatureModal;
+
+    function closeTraineeSignatureModal() {
+      document.getElementById('traineeSignatureModal')?.classList.add('hidden');
+      currentSigningWorkerId = null;
+      currentSigningWorkerName = '';
+    }
+    window.closeTraineeSignatureModal = closeTraineeSignatureModal;
+
+    function saveTraineeSignature() {
+      if (!currentSigningWorkerId) return;
+
+      if (isTraineeSignatureBlank()) {
+        delete window.traineeSignatures[currentSigningWorkerId];
+      } else {
+        window.traineeSignatures[currentSigningWorkerId] = traineeSigCanvas.toDataURL('image/png');
+      }
+
+      const workerId = currentSigningWorkerId;
+      closeTraineeSignatureModal();
+
+      const guestRow = document.querySelector(`.guest-worker-row[data-row-id="${workerId}"]`);
+      if (guestRow) {
+        const name = guestRow.querySelector('.guest-name')?.value?.trim() || 'Guest Worker';
+        const container = guestRow.querySelector('.guest-sign-container');
+        if (container) {
+          container.innerHTML = renderTraineeSignButton(workerId, name);
+        }
+      } else {
+        renderTraineeChecklist();
+      }
+    }
+    window.saveTraineeSignature = saveTraineeSignature;
+
+    function removeTraineeSignature(workerId) {
+      delete window.traineeSignatures[workerId];
+      const guestRow = document.querySelector(`.guest-worker-row[data-row-id="${workerId}"]`);
+      if (guestRow) {
+        const name = guestRow.querySelector('.guest-name')?.value?.trim() || 'Guest Worker';
+        const container = guestRow.querySelector('.guest-sign-container');
+        if (container) {
+          container.innerHTML = renderTraineeSignButton(workerId, name);
+        }
+      } else {
+        renderTraineeChecklist();
+      }
+    }
+    window.removeTraineeSignature = removeTraineeSignature;
+
+    function renderTraineeSignButton(workerId, workerName) {
+      const isSigned = Boolean(window.traineeSignatures && window.traineeSignatures[workerId]);
+      if (isSigned) {
+        return `
+          <div class="inline-flex items-center gap-1 shrink-0">
+            <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openTraineeSignatureModal('${escapeHtml(workerId)}', '${escapeHtml(workerName)}')" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 transition-colors shadow-xs cursor-pointer" title="Signed on device. Click to review or resign.">
+              <span>✍ Signed ✓</span>
+            </button>
+            <button type="button" onclick="event.preventDefault(); event.stopPropagation(); removeTraineeSignature('${escapeHtml(workerId)}')" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer" title="Clear signature">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        `;
+      }
+      return `
+        <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openTraineeSignatureModal('${escapeHtml(workerId)}', '${escapeHtml(workerName)}')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition-colors shadow-xs cursor-pointer shrink-0" title="Sign on device">
+          <span>✍ Sign</span>
+        </button>
+      `;
+    }
+    window.renderTraineeSignButton = renderTraineeSignButton;
 
     /**
      * Defensive Worker Name Formatter
@@ -630,17 +879,20 @@
           const teamLabel = emp.team_or_orchard ? `<span class="text-[10px] text-slate-400 font-normal ml-1.5">(${escapeHtml(emp.team_or_orchard)})</span>` : '';
 
           return `
-            <label class="flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all bg-blue-50/80 border-blue-200 text-primary">
-              <div class="flex items-center gap-2.5 min-w-0">
+            <div class="flex items-center justify-between p-2 rounded-lg border select-none transition-all bg-blue-50/80 border-blue-200 text-primary">
+              <label class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer">
                 <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(emp.id)}" checked onchange="toggleTraineeSelection('${escapeHtml(emp.id)}')">
                 <div class="min-w-0 truncate">
                   <span class="font-mono text-xs font-bold text-slate-900">${badgeNo}</span>
                   <span class="text-xs font-semibold ml-1.5 text-slate-800">${escapeHtml(fullName)}</span>
                   ${teamLabel}
                 </div>
+              </label>
+              <div class="flex items-center gap-2 shrink-0 ml-2">
+                <span class="text-[11px] text-slate-500 font-medium">${escapeHtml(emp.gender || '—')}</span>
+                ${renderTraineeSignButton(emp.id, fullName)}
               </div>
-              <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(emp.gender || '—')}</span>
-            </label>
+            </div>
           `;
         }).join('');
 
@@ -705,17 +957,20 @@
           const teamLabel = emp.team_or_orchard ? `<span class="text-[10px] text-slate-400 font-normal ml-1.5">(${escapeHtml(emp.team_or_orchard)})</span>` : '';
 
           return `
-            <label class="flex items-center justify-between p-2.5 rounded-lg border cursor-pointer select-none transition-all ${isChecked ? 'bg-blue-50/80 border-blue-200 text-primary' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'}">
-              <div class="flex items-center gap-2.5 min-w-0">
+            <div class="flex items-center justify-between p-2 rounded-lg border select-none transition-all ${isChecked ? 'bg-blue-50/80 border-blue-200 text-primary' : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'}">
+              <label class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer">
                 <input type="checkbox" class="trainee-checkbox h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shrink-0 cursor-pointer" data-id="${escapeHtml(emp.id)}" ${isChecked ? 'checked' : ''} onchange="toggleTraineeSelection('${escapeHtml(emp.id)}')">
                 <div class="min-w-0 truncate">
                   <span class="font-mono text-xs font-bold text-slate-900">${badgeNo}</span>
                   <span class="text-xs font-semibold ml-1.5 text-slate-800">${escapeHtml(fullName)}</span>
                   ${teamLabel}
                 </div>
+              </label>
+              <div class="flex items-center gap-2 shrink-0 ml-2">
+                <span class="text-[11px] text-slate-500 font-medium">${escapeHtml(emp.gender || '—')}</span>
+                ${isChecked ? renderTraineeSignButton(emp.id, fullName) : ''}
               </div>
-              <span class="text-[11px] text-slate-500 font-medium shrink-0 ml-2">${escapeHtml(emp.gender || '—')}</span>
-            </label>
+            </div>
           `;
         }).join('');
 
@@ -774,27 +1029,38 @@
     function createGuestWorkerRowHtml(rowId, data = {}) {
       const name = data.name || '';
       const number = data.number || '';
+      const idNumber = data.id_number || data.id_passport_number || '';
       const gender = data.gender || 'Male';
 
       return `
-        <div class="guest-worker-row flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg shadow-xs" data-row-id="${rowId}">
-          <div class="flex-1">
-            <input type="text" class="guest-name w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs" placeholder="Worker full name *" value="${escapeHtml(name)}" oninput="checkComplianceFormValidity()">
+        <div class="guest-worker-row flex flex-col gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg shadow-xs" data-row-id="${rowId}">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div class="flex-1">
+              <input type="text" class="guest-name w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs" placeholder="Worker full name *" value="${escapeHtml(name)}" oninput="checkComplianceFormValidity()">
+            </div>
+            <div class="w-full sm:w-28">
+              <input type="text" class="guest-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs uppercase" placeholder="Emp / Clock #" value="${escapeHtml(number)}" oninput="checkComplianceFormValidity()">
+            </div>
+            <div class="w-full sm:w-36">
+              <input type="text" class="guest-id-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs" placeholder="ID / Passport #" value="${escapeHtml(idNumber)}" oninput="checkComplianceFormValidity()">
+            </div>
+            <div class="w-full sm:w-24">
+              <select class="guest-gender w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs cursor-pointer" onchange="checkComplianceFormValidity()">
+                <option value="Male" ${gender === 'Male' ? 'selected' : ''}>Male</option>
+                <option value="Female" ${gender === 'Female' ? 'selected' : ''}>Female</option>
+                <option value="Other" ${gender === 'Other' ? 'selected' : ''}>Other</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 justify-between sm:justify-start">
+              <div class="guest-sign-container">
+                ${renderTraineeSignButton(rowId, name || 'Guest Worker')}
+              </div>
+              <button type="button" onclick="removeGuestWorkerRow(this)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0 flex items-center gap-1 text-xs" title="Remove worker">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span class="sm:hidden text-red-600 font-medium">Remove</span>
+              </button>
+            </div>
           </div>
-          <div class="w-full sm:w-36">
-            <input type="text" class="guest-number w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-xs uppercase" placeholder="ID or Employee #" value="${escapeHtml(number)}" oninput="checkComplianceFormValidity()">
-          </div>
-          <div class="w-full sm:w-28">
-            <select class="guest-gender w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg outline-none focus:border-primary text-xs cursor-pointer" onchange="checkComplianceFormValidity()">
-              <option value="Male" ${gender === 'Male' ? 'selected' : ''}>Male</option>
-              <option value="Female" ${gender === 'Female' ? 'selected' : ''}>Female</option>
-              <option value="Other" ${gender === 'Other' ? 'selected' : ''}>Other</option>
-            </select>
-          </div>
-          <button type="button" onclick="removeGuestWorkerRow(this)" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer self-end sm:self-auto shrink-0 flex items-center gap-1 text-xs" title="Remove worker">
-            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            <span class="sm:hidden text-red-600 font-medium">Remove</span>
-          </button>
         </div>
       `;
     }
@@ -817,6 +1083,10 @@
     function removeGuestWorkerRow(btn) {
       const row = btn.closest('.guest-worker-row');
       if (row) {
+        const rowId = row.dataset.rowId;
+        if (rowId && window.traineeSignatures) {
+          delete window.traineeSignatures[rowId];
+        }
         row.remove();
         checkComplianceFormValidity();
       }
@@ -838,14 +1108,18 @@
       rows.forEach(row => {
         const name = row.querySelector('.guest-name')?.value?.trim();
         const number = row.querySelector('.guest-number')?.value?.trim();
+        const idNumber = row.querySelector('.guest-id-number')?.value?.trim();
         const gender = row.querySelector('.guest-gender')?.value || 'Male';
+        const rowId = row.dataset.rowId;
 
         if (name) {
           validGuests.push({
             employee_id: null,
             employee_name: formatWorkerName(name),
             employee_number: number || null,
-            gender: gender
+            id_passport_number: idNumber || null,
+            gender: gender,
+            employee_signature_data: (window.traineeSignatures && window.traineeSignatures[rowId]) ? window.traineeSignatures[rowId] : null
           });
         }
       });
@@ -862,7 +1136,9 @@
             employee_id: fromRoster.id,
             employee_name: formatWorkerName(fromRoster.first_name, fromRoster.last_name) || 'Worker',
             employee_number: fromRoster.employee_number || null,
-            gender: fromRoster.gender || 'Male'
+            id_passport_number: fromRoster.id_passport_number || null,
+            gender: fromRoster.gender || 'Male',
+            employee_signature_data: (window.traineeSignatures && window.traineeSignatures[fromRoster.id]) ? window.traineeSignatures[fromRoster.id] : null
           });
         }
       });
@@ -959,6 +1235,7 @@
       if (declCheck) declCheck.checked = false;
 
       selectedTraineeIds.clear();
+      window.traineeSignatures = {};
       customUnlistedTrainees = [];
       rosterFilterQuery = '';
 
@@ -987,6 +1264,8 @@
 
     function closeComplianceModal() {
       document.getElementById('complianceModal')?.classList.add('hidden');
+      closeTraineeSignatureModal();
+      window.traineeSignatures = {};
     }
     window.closeComplianceModal = closeComplianceModal;
 
