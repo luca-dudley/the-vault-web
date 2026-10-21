@@ -557,7 +557,7 @@
               <button type="button" onclick="clearSignatureCanvas()" class="text-[11px] text-red-600 hover:underline cursor-pointer">Clear Signature</button>
             </div>
             <div class="border border-slate-300 rounded-xl bg-slate-50/50 p-2 relative overflow-hidden">
-              <canvas id="signatureCanvas" width="600" height="130" class="w-full h-28 bg-white rounded-lg border border-slate-200 cursor-crosshair touch-none"></canvas>
+              <canvas id="signatureCanvas" width="600" height="130" class="w-full h-28 bg-white rounded-lg border border-slate-200 cursor-crosshair touch-none" style="touch-action: none;"></canvas>
               <span id="signaturePlaceholder" class="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-slate-400">Sign with finger or stylus inside box</span>
             </div>
             <p class="text-[10px] text-muted mt-1">I certify under OHSA General Administrative Regulation 9 that this investigation was conducted diligently and all statements are factual.</p>
@@ -1117,10 +1117,19 @@
         // Signature canvas setup
         sigDisplayContainer?.classList.add('hidden');
         sigCanvasContainer?.classList.remove('hidden');
-        setTimeout(() => {
-          initSignatureCanvas();
-          clearSignatureCanvas();
-        }, 60);
+        initSignatureCanvas();
+        clearSignatureCanvas();
+
+        // Ensure canvas dimensions recalculate properly when #incidentModal transitions from hidden to visible
+        let frameCount = 0;
+        const ensureCanvasSizing = () => {
+          if (resizeSignatureCanvas() || frameCount > 20) return;
+          frameCount++;
+          requestAnimationFrame(ensureCanvasSizing);
+        };
+        requestAnimationFrame(ensureCanvasSizing);
+        setTimeout(resizeSignatureCanvas, 50);
+        setTimeout(resizeSignatureCanvas, 150);
 
         createActions?.classList.remove('hidden');
         readOnlyActions?.classList.add('hidden');
@@ -1219,17 +1228,36 @@
     }
 
     // HTML5 Signature Canvas (High-DPI & Mobile Touch Unified)
-    function initSignatureCanvas() {
-      signatureCanvas = document.getElementById('signatureCanvas');
-      if (!signatureCanvas) return;
+    function resizeSignatureCanvas() {
+      signatureCanvas = document.getElementById('signatureCanvas') || document.getElementById('supervisorSignatureCanvas');
+      if (!signatureCanvas) return false;
+
+      const modal = document.getElementById('incidentModal');
+      if (modal && modal.classList.contains('hidden')) return false;
+
+      const rect = signatureCanvas.getBoundingClientRect();
+      if (!rect || rect.width === 0 || rect.height === 0) return false;
 
       const dpr = window.devicePixelRatio || 1;
-      const rect = signatureCanvas.getBoundingClientRect();
-      const w = rect.width || signatureCanvas.offsetWidth || 500;
-      const h = rect.height || signatureCanvas.offsetHeight || 112;
+      const targetW = Math.round(rect.width * dpr);
+      const targetH = Math.round(rect.height * dpr);
 
-      signatureCanvas.width = w * dpr;
-      signatureCanvas.height = h * dpr;
+      if (signatureCanvas.width === targetW && signatureCanvas.height === targetH) {
+        return true;
+      }
+
+      // Preserve existing drawing before resizing bitmap buffer
+      let snapshot = null;
+      if (hasSignatureData && signatureCanvas.width > 0 && signatureCanvas.height > 0) {
+        snapshot = document.createElement('canvas');
+        snapshot.width = signatureCanvas.width;
+        snapshot.height = signatureCanvas.height;
+        const snapCtx = snapshot.getContext('2d');
+        snapCtx.drawImage(signatureCanvas, 0, 0);
+      }
+
+      signatureCanvas.width = targetW;
+      signatureCanvas.height = targetH;
 
       signatureCtx = signatureCanvas.getContext('2d');
       signatureCtx.scale(dpr, dpr);
@@ -1238,25 +1266,43 @@
       signatureCtx.lineJoin = 'round';
       signatureCtx.strokeStyle = '#0f172a';
 
+      if (snapshot) {
+        signatureCtx.drawImage(snapshot, 0, 0, snapshot.width, snapshot.height, 0, 0, rect.width, rect.height);
+      }
+      return true;
+    }
+
+    function initSignatureCanvas() {
+      signatureCanvas = document.getElementById('signatureCanvas') || document.getElementById('supervisorSignatureCanvas');
+      if (!signatureCanvas) return;
+
+      resizeSignatureCanvas();
+
+      if (signatureCanvas.__sigEventsBound) return;
+      signatureCanvas.__sigEventsBound = true;
+
       function getCoords(e) {
         const r = signatureCanvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else if (e.changedTouches && e.changedTouches.length > 0) {
+          clientX = e.changedTouches[0].clientX;
+          clientY = e.changedTouches[0].clientY;
+        }
         return {
           x: clientX - r.left,
           y: clientY - r.top
         };
       }
 
-      // Prevent mobile touch scrolling while signing
-      ['touchstart', 'touchmove'].forEach(evt => {
-        signatureCanvas.addEventListener(evt, e => e.preventDefault(), { passive: false });
-      });
-
       const start = (e) => {
         isDrawingSignature = true;
         hasSignatureData = true;
         document.getElementById('signaturePlaceholder')?.classList.add('hidden');
+        if (!signatureCtx) signatureCtx = signatureCanvas.getContext('2d');
         const pos = getCoords(e);
         signatureCtx.beginPath();
         signatureCtx.moveTo(pos.x, pos.y);
@@ -1269,21 +1315,48 @@
         signatureCtx.stroke();
       };
 
-      const stop = () => { isDrawingSignature = false; };
+      const stop = () => {
+        if (isDrawingSignature) {
+          isDrawingSignature = false;
+        }
+      };
 
-      signatureCanvas.onmousedown = start;
-      signatureCanvas.onmousemove = move;
-      window.onmouseup = stop;
+      // Suppress mobile touch scrolling while signing with passive: false
+      const onTouchStart = (e) => {
+        e.preventDefault();
+        start(e);
+      };
+      const onTouchMove = (e) => {
+        e.preventDefault();
+        move(e);
+      };
+      const onTouchEnd = (e) => {
+        stop();
+      };
 
-      signatureCanvas.ontouchstart = start;
-      signatureCanvas.ontouchmove = move;
-      signatureCanvas.ontouchend = stop;
+      signatureCanvas.addEventListener('touchstart', onTouchStart, { passive: false });
+      signatureCanvas.addEventListener('touchmove', onTouchMove, { passive: false });
+      signatureCanvas.addEventListener('touchend', onTouchEnd, { passive: false });
+      signatureCanvas.addEventListener('touchcancel', stop, { passive: false });
+
+      signatureCanvas.addEventListener('mousedown', start);
+      signatureCanvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', stop);
+
+      if (window.ResizeObserver && !signatureCanvas.__roAttached) {
+        const ro = new ResizeObserver(() => {
+          const modal = document.getElementById('incidentModal');
+          if (modal && !modal.classList.contains('hidden')) {
+            resizeSignatureCanvas();
+          }
+        });
+        ro.observe(signatureCanvas);
+        signatureCanvas.__roAttached = true;
+      }
     }
 
     function clearSignatureCanvas() {
-      if (!signatureCanvas) {
-        signatureCanvas = document.getElementById('signatureCanvas');
-      }
+      signatureCanvas = document.getElementById('signatureCanvas') || document.getElementById('supervisorSignatureCanvas');
       if (!signatureCanvas) return;
       if (!signatureCtx) {
         signatureCtx = signatureCanvas.getContext('2d');
@@ -1299,6 +1372,7 @@
     }
 
     function loadExistingSignature(base64) {
+      signatureCanvas = document.getElementById('signatureCanvas') || document.getElementById('supervisorSignatureCanvas');
       if (!base64 || !signatureCanvas) return;
       const img = new Image();
       img.onload = () => {
@@ -1930,6 +2004,8 @@
     window.handleUpdateCapaStatus = handleUpdateCapaStatus;
     window.handleSaveIncident = handleSaveIncident;
     window.clearSignatureCanvas = clearSignatureCanvas;
+    window.initSignatureCanvas = initSignatureCanvas;
+    window.resizeSignatureCanvas = resizeSignatureCanvas;
     window.handleRosterEmployeeSelect = handleRosterEmployeeSelect;
     window.handleSeverityChange = handleSeverityChange;
     window.renderCertificateStamp = renderCertificateStamp;

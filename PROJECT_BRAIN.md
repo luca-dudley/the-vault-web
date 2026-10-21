@@ -794,6 +794,19 @@ graph TD
   - Added non-passive `touchstart` and `touchmove` event listeners calling `e.preventDefault()` to stop touch-scrolling and coordinate drift on iOS Safari and Android Chrome.
 
 
+### Incident Signature Pad Mobile Scaling & Bulk Export Module Filter Expansion (2026-10-21)
+- **Incident Modal Mobile Signature Pad Touch & DPI Scaling (`incidents.html`)**:
+  - Implemented responsive canvas buffer scaling for `#signatureCanvas` using `window.devicePixelRatio` (`width = rect.width * dpr`, `height = rect.height * dpr`, `ctx.scale(dpr, dpr)`).
+  - Standardized stroke coordinate extraction via `clientX - rect.left` and `clientY - rect.top` across pointer, touch, and mouse events, supporting `touches` and `changedTouches`.
+  - Added non-passive `touchstart`, `touchmove`, `touchend`, and `touchcancel` event handlers with `{ passive: false }` invoking `e.preventDefault()` to eliminate mobile scroll collision and stroke drift on iOS and Android touchscreens.
+  - Added `style="touch-action: none;"` inline and bound a `ResizeObserver` with animated frame polling (`requestAnimationFrame` and interval fallbacks) when `#incidentModal` transitions from `hidden` to visible.
+  - Implemented drawing preservation snapshotting during dynamic canvas resizes so existing strokes are retained.
+- **Bulk Export Modal Module Filter Dropdown Comprehensive Resolution (`records.html`)**:
+  - Introduced `populateBulkExportModuleOptions()` to populate `#bulkExportModuleSelect` directly from the full catalog (`public.videos` table: global master modules and tenant-specific records) merged with distinct active modules in `training_records`.
+  - Resolved dropdown truncation where the module filter was restricted only to previously logged training records or current page subset.
+  - Bound execution on modal launch (`openBulkExportModal`) and post-data-fetch (`fetchTrainingRecords`).
+  - Streamlined toolbar button text to `Bulk Export Registers`.
+
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.
 2. **Paystack Bolt-On Automation**: Verify live webhook processing of `charge.success` events for `PLN_8n5qrpeh23evvnu` across production testing farms.

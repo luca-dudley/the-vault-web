@@ -222,7 +222,7 @@
             <div class="flex items-center gap-2">
               <button id="btnToolbarBulkExport" type="button" onclick="openBulkExportModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-primary/20 bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap" title="Export statutory attendance registers for a selected date range">
                 <span>📦</span>
-                <span>Bulk Export Registers (Date Range)</span>
+                <span>Bulk Export Registers</span>
               </button>
             </div>
           </div>
@@ -584,7 +584,7 @@
       </div>
     </div>
 
-    <!-- BULK EXPORT REGISTERS (DATE RANGE) MODAL -->
+    <!-- BULK EXPORT REGISTERS MODAL -->
     <div id="bulkExportModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
         <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
@@ -1662,6 +1662,7 @@
 
         rawTrainingRecords = records || [];
         populateModuleFilterOptions();
+        populateBulkExportModuleOptions();
 
         if (!records || records.length === 0) {
           allEmployeesData = [];
@@ -2727,11 +2728,68 @@
     // 3. BULK ATTENDANCE REGISTERS DATE RANGE EXPORT (ZIP / MERGED PDF)
     // =========================================================================
 
+    async function populateBulkExportModuleOptions() {
+      const moduleSelect = document.getElementById('bulkExportModuleSelect');
+      if (!moduleSelect) return;
+
+      const currentVal = moduleSelect.value || 'all';
+      const modules = new Set();
+
+      // Ensure catalog videos are loaded from the comprehensive library
+      if (!window.allCatalogVideos || window.allCatalogVideos.length === 0) {
+        try {
+          const ready = await waitForDbClient();
+          if (ready && window.dbClient) {
+            const companyId = window.userCompanyId;
+            let query = window.dbClient.from('videos').select('title, category, sub_tag');
+            if (companyId) {
+              query = query.or(`company_id.is.null,company_id.eq.${companyId}`);
+            } else {
+              query = query.is('company_id', null);
+            }
+            const { data: catVideos, error: vErr } = await query.order('title', { ascending: true });
+            if (!vErr && catVideos && catVideos.length > 0) {
+              window.allCatalogVideos = catVideos;
+            }
+          }
+        } catch (err) {
+          console.warn('[BulkExport] Error fetching complete catalog for bulk export dropdown:', err);
+        }
+      }
+
+      // 1. Populate from complete catalog videos
+      if (window.allCatalogVideos && Array.isArray(window.allCatalogVideos)) {
+        window.allCatalogVideos.forEach(v => {
+          if (v && v.title && v.title.trim()) {
+            modules.add(v.title.trim());
+          }
+        });
+      }
+
+      // 2. Also populate from distinct module titles in raw training records
+      (rawTrainingRecords || []).forEach(r => {
+        if (r && r.module_title && r.module_title.trim() && r.status !== 'Archived') {
+          modules.add(r.module_title.trim());
+        }
+      });
+
+      const sortedMods = Array.from(modules).sort((a, b) => a.localeCompare(b));
+      let optionsHtml = '<option value="all">All Modules (Entire Safety Curriculum)</option>';
+      sortedMods.forEach(m => {
+        optionsHtml += `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`;
+      });
+
+      moduleSelect.innerHTML = optionsHtml;
+      if (currentVal && (currentVal === 'all' || modules.has(currentVal))) {
+        moduleSelect.value = currentVal;
+      }
+    }
+    window.populateBulkExportModuleOptions = populateBulkExportModuleOptions;
+
     function openBulkExportModal() {
       const modal = document.getElementById('bulkExportModal');
       const startInput = document.getElementById('bulkExportStartDate');
       const endInput = document.getElementById('bulkExportEndDate');
-      const moduleSelect = document.getElementById('bulkExportModuleSelect');
       const statusBanner = document.getElementById('bulkExportStatusBanner');
 
       const today = new Date();
@@ -2740,15 +2798,7 @@
       if (endInput) endInput.value = today.toISOString().split('T')[0];
       if (startInput) startInput.value = thirtyDaysAgo.toISOString().split('T')[0];
 
-      if (moduleSelect) {
-        const modules = new Set();
-        (rawTrainingRecords || []).forEach(r => {
-          if (r.module_title) modules.add(r.module_title.trim());
-        });
-        const sortedMods = Array.from(modules).sort();
-        moduleSelect.innerHTML = '<option value="all">All Modules (Entire Safety Curriculum)</option>' +
-          sortedMods.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
-      }
+      populateBulkExportModuleOptions();
 
       statusBanner?.classList.add('hidden');
       modal?.classList.remove('hidden');

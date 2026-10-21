@@ -1,5 +1,5 @@
 # Live Supabase Schema Manifest
-> **Last Synchronized:** 2026-10-21 09:32:54 UTC
+> **Last Synchronized:** 2026-10-21 15:53:46 UTC
 > **Source:** Remote Supabase Instance via pg_dump (Direct Connection)
 
 ---
@@ -11,7 +11,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict uCUndriWqeGWXjnEXj3lUxXGNMNDTydFaawnsvoi6iEyqgiw0AmmcQ7Gknpca4C
+\restrict YWxPp5BeiiaYFBnBmcE24dXWlEuBHEcmi3tNHsPEL4d2SeSwH5uwSyHAbv0g8qm
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.11 (Ubuntu 17.11-1.pgdg24.04+2)
@@ -2707,6 +2707,6 @@ ALTER TABLE public.videos ENABLE ROW LEVEL SECURITY;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict uCUndriWqeGWXjnEXj3lUxXGNMNDTydFaawnsvoi6iEyqgiw0AmmcQ7Gknpca4C
+\unrestrict YWxPp5BeiiaYFBnBmcE24dXWlEuBHEcmi3tNHsPEL4d2SeSwH5uwSyHAbv0g8qm
 
 ```
