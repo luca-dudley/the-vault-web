@@ -1150,10 +1150,12 @@
         plan: activeCheckoutPlan.planCode,
         currency: 'ZAR',
         metadata: {
+          plan_code: activeCheckoutPlan.planCode,
           custom_fields: [
             { display_name: "Customer Name", variable_name: "customer_name", value: userName },
             { display_name: "Company Name", variable_name: "company_name", value: userCompany },
-            { display_name: "Tier Selected", variable_name: "tier_selected", value: activeCheckoutPlan.tierName }
+            { display_name: "Tier Selected", variable_name: "tier_selected", value: activeCheckoutPlan.tierName },
+            { display_name: "Plan Code", variable_name: "plan_code", value: activeCheckoutPlan.planCode }
           ]
         },
         onSuccess: async (transaction) => {

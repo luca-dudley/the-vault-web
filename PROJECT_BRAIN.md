@@ -293,6 +293,11 @@ graph TD
 ### Paystack Payment & Subscription Infrastructure
 - **Client SDK**: Paystack Inline v2 (`https://js.paystack.co/v2/inline.js`).
 - **Live Public Key**: `pk_live_6e9ead28ba957dc643c949c5dc8164e3d62c0d09`
+- **Subscription Architecture**:
+  - Native Paystack recurring plan billing via `popup.newTransaction({ plan: '<PLAN_CODE>', amount: <cents>, currency: 'ZAR', email, metadata })`.
+  - All tier checkouts (`index.html`), organization upgrades (`js/profile-engine.js`), and crop pack bolt-ons (`vault.html`, `sop.html`, `module.html`) pass their respective plan codes directly at the root configuration object to establish recurring monthly tokenized billing.
+  - Channel restrictions are omitted at the client level so active acquiring channels (Card, EFT, etc.) are determined by Paystack merchant account acquiring status without client-side gating.
+  - Initial authorization references (`transaction.reference`) are passed directly to backend RPCs (`provision_company_subscription`, `upgrade_company_tier`) to provision workspace access immediately on first charge.
 - **Subscription Plans & Pricing**:
   - **Basic Vault**: `PLN_q37eti0fct6aazv` — **R180 /mo** (18,000 cents). 1 Admin Seat, full multi-language streaming library, no training records or sign-offs.
   - **Essential Vault**: `PLN_glbt6ice9adjj45` — **R280 /mo** (28,000 cents). 4 Total Seats (1 Admin + 3 Managers), Training Records dashboard, digital compliance sign-offs, 10 Individual Worker Certificates/mo, 5 Group Registers/mo.
@@ -806,6 +811,13 @@ graph TD
   - Resolved dropdown truncation where the module filter was restricted only to previously logged training records or current page subset.
   - Bound execution on modal launch (`openBulkExportModal`) and post-data-fetch (`fetchTrainingRecords`).
   - Streamlined toolbar button text to `Bulk Export Registers`.
+
+### Paystack Recurring Plan & Metadata Synchronization (2026-10-26)
+- **Paystack Recurring Plan Architecture Alignment (`index.html`, `js/profile-engine.js`, `module.html`, `sop.html`, `vault.html`)**:
+  - Embedded `plan_code` directly within `metadata` and `custom_fields` across all Paystack Inline v2 transaction initializations.
+  - Aligned Tier Checkouts (`index.html`), In-App Tier Upgrades (`js/profile-engine.js`), and Crop Pack Bolt-Ons (`vault.html`, `sop.html`, `module.html`) with native Paystack recurring subscription plan codes (`PLN_q37eti0fct6aazv`, `PLN_glbt6ice9adjj45`, `PLN_8n5qrpeh23evvnu`).
+  - Standardized customer metadata formatting for Paystack dashboard auditing and automated downstream webhook reconciliation.
+  - Maintained unconstrained acquiring channels to allow card and EFT based on merchant account configurations without client-side channel gating.
 
 ### Upcoming Priority Tasks
 1. **Citrus Processing Pack**: Finalize dedicated SOP documentation and master risk assessment templates for citrus harvesting, packing, and cold-storage operations.

@@ -1321,10 +1321,12 @@ function executeVaultPaystackUpgrade() {
       plan: pendingVaultUpgrade.planCode,
       currency: 'ZAR',
       metadata: {
+        plan_code: pendingVaultUpgrade.planCode,
         custom_fields: [
           { display_name: "Customer Name", variable_name: "customer_name", value: `${fName} ${lName}`.trim() },
           { display_name: "Company Name", variable_name: "company_name", value: companyName },
-          { display_name: "Target Tier", variable_name: "target_tier", value: pendingVaultUpgrade.targetTier }
+          { display_name: "Target Tier", variable_name: "target_tier", value: pendingVaultUpgrade.targetTier },
+          { display_name: "Plan Code", variable_name: "plan_code", value: pendingVaultUpgrade.planCode }
         ]
       },
       onSuccess: async (transaction) => {
